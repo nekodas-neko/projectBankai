@@ -10,7 +10,9 @@ namespace Game.Client
     public class ArenaAssets
     {
         public Mesh capsule;
+        public Mesh sphere;
         public Mesh cube;
+        public Mesh cylinder;
         public Material player;
         public Material ally;
         public Material enemy;
@@ -25,6 +27,7 @@ namespace Game.Client
         const float FlashSeconds = 0.12f;
         const float BarWidth = 1.2f;
         const float LocalSmoothing = 25f;
+        const float SpeedSmoothing = 12f;
 
         readonly Transform parent;
         readonly ArenaAssets assets;
@@ -54,11 +57,32 @@ namespace Game.Client
             return false;
         }
 
-        public void Flash(EntityId id)
+        public bool TryGetBodyMaterial(EntityId id, out Material material)
+        {
+            if (views.TryGetValue(id.Value, out var view))
+            {
+                material = view.Visual.BodyMaterial;
+                return true;
+            }
+
+            material = null;
+            return false;
+        }
+
+        public void OnUse(EntityId id, int slot)
+        {
+            if (views.TryGetValue(id.Value, out var view))
+            {
+                view.Visual.OnUse(slot);
+            }
+        }
+
+        public void OnHit(EntityId id)
         {
             if (views.TryGetValue(id.Value, out var view))
             {
                 view.FlashRemaining = FlashSeconds;
+                view.Visual.OnHit();
             }
         }
 
@@ -90,8 +114,9 @@ namespace Game.Client
                 var target = new Vector3(position.X, 0f, position.Y);
                 if (!views.TryGetValue(state.Id.Value, out var view))
                 {
-                    view = Create(state);
+                    view = Create(state, client.Player);
                     view.Root.position = target;
+                    view.LastPosition = target;
                     views.Add(state.Id.Value, view);
                 }
                 else if (isLocal)
@@ -108,7 +133,7 @@ namespace Game.Client
                     LocalRoot = view.Root;
                 }
 
-                Apply(view, state, client.Player, dt);
+                Apply(view, state, dt);
             }
 
             stale.Clear();
@@ -127,94 +152,73 @@ namespace Game.Client
             }
         }
 
-        void Apply(View view, EntityState state, PlayerId localPlayer, float dt)
+        void Apply(View view, EntityState state, float dt)
         {
-            if (state.Facing.SqrLength > 1e-6f)
-            {
-                var yaw = Mathf.Atan2(state.Facing.X, state.Facing.Y) * Mathf.Rad2Deg;
-                view.Body.rotation = Quaternion.Euler(0f, yaw, 0f);
-            }
+            var moved = (view.Root.position - view.LastPosition).magnitude / Mathf.Max(dt, 1e-4f);
+            view.LastPosition = view.Root.position;
+            view.Speed = Mathf.Lerp(view.Speed, moved, 1f - Mathf.Exp(-SpeedSmoothing * dt));
 
             var alive = state.Health > 0f;
+            view.Visual.SetFacing(new Vector2(state.Facing.X, state.Facing.Y));
+            view.Visual.Tick(dt, view.Speed, !alive);
+
             view.FlashRemaining = Mathf.Max(0f, view.FlashRemaining - dt);
-
-            Material material;
-            if (!alive)
+            var flashing = alive && view.FlashRemaining > 0f;
+            if (flashing != view.Flashing)
             {
-                material = assets.dead;
-            }
-            else if (view.FlashRemaining > 0f)
-            {
-                material = assets.flash;
-            }
-            else if (state.Owner == localPlayer)
-            {
-                material = assets.player;
-            }
-            else
-            {
-                material = state.Team == Team.Enemies ? assets.enemy : assets.ally;
+                view.Flashing = flashing;
+                view.Visual.SetFlash(assets.flash, flashing);
             }
 
-            view.BodyRenderer.sharedMaterial = material;
-            view.NoseRenderer.sharedMaterial = material;
-
-            var fraction = state.MaxHealth > 0f ? Mathf.Clamp01(state.Health / state.MaxHealth) : 0f;
+            view.Ring.gameObject.SetActive(alive);
             view.BarBackground.gameObject.SetActive(alive);
             view.BarFill.gameObject.SetActive(alive);
+            var fraction = state.MaxHealth > 0f ? Mathf.Clamp01(state.Health / state.MaxHealth) : 0f;
             view.BarFill.localScale = new Vector3(BarWidth * fraction, 0.12f, 0.05f);
-            view.BarFill.localPosition = new Vector3(-BarWidth * 0.5f * (1f - fraction), 2.6f, -0.04f);
+            view.BarFill.localPosition = new Vector3(-BarWidth * 0.5f * (1f - fraction), view.BarHeight, -0.04f);
         }
 
-        View Create(EntityState state)
+        View Create(EntityState state, PlayerId localPlayer)
         {
             var root = new GameObject($"Entity {state.Id.Value}").transform;
             root.SetParent(parent, false);
 
-            var body = Part(assets.capsule, root, "Body");
-            body.localPosition = new Vector3(0f, 1f, 0f);
+            var teamMaterial = state.Owner == localPlayer ? assets.player : state.Team == Team.Enemies ? assets.enemy : assets.ally;
+            var skin = SkinCatalog.Get(state.Appearance);
+            var scale = skin != null ? skin.scale : Vector3.one;
+            var barHeight = 1.6f + 1f * scale.y;
 
-            var nose = Part(assets.cube, body, "Nose");
-            nose.localScale = new Vector3(0.3f, 0.3f, 0.6f);
-            nose.localPosition = new Vector3(0f, 0.35f, 0.55f);
+            var ring = CharacterVisual.Part(assets.cylinder, root, "TeamRing");
+            var ringSize = 1.7f * Mathf.Max(scale.x, scale.z);
+            ring.localScale = new Vector3(ringSize, 0.02f, ringSize);
+            ring.localPosition = new Vector3(0f, 0.02f, 0f);
+            ring.GetComponent<Renderer>().sharedMaterial = teamMaterial;
 
-            var background = Part(assets.cube, root, "BarBackground");
+            var visual = CharacterVisual.Create(root, skin, assets);
+
+            var background = CharacterVisual.Part(assets.cube, root, "BarBackground");
             background.localScale = new Vector3(BarWidth + 0.08f, 0.18f, 0.05f);
-            background.localPosition = new Vector3(0f, 2.6f, 0f);
+            background.localPosition = new Vector3(0f, barHeight, 0f);
             background.GetComponent<Renderer>().sharedMaterial = assets.barBackground;
 
-            var fill = Part(assets.cube, root, "BarFill");
-            var fillRenderer = fill.GetComponent<Renderer>();
-            fillRenderer.sharedMaterial = state.Team == Team.Enemies ? assets.enemy : assets.player;
+            var fill = CharacterVisual.Part(assets.cube, root, "BarFill");
+            fill.GetComponent<Renderer>().sharedMaterial = teamMaterial;
 
-            return new View
-            {
-                Root = root,
-                Body = body,
-                BodyRenderer = body.GetComponent<Renderer>(),
-                NoseRenderer = nose.GetComponent<Renderer>(),
-                BarBackground = background,
-                BarFill = fill,
-            };
-        }
-
-        static Transform Part(Mesh mesh, Transform parent, string name)
-        {
-            var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
-            go.GetComponent<MeshFilter>().sharedMesh = mesh;
-            go.transform.SetParent(parent, false);
-            return go.transform;
+            return new View { Root = root, Visual = visual, Ring = ring, BarBackground = background, BarFill = fill, BarHeight = barHeight };
         }
 
         sealed class View
         {
             public Transform Root;
-            public Transform Body;
-            public Renderer BodyRenderer;
-            public Renderer NoseRenderer;
+            public CharacterVisual Visual;
+            public Transform Ring;
             public Transform BarBackground;
             public Transform BarFill;
+            public float BarHeight;
+            public Vector3 LastPosition;
+            public float Speed;
             public float FlashRemaining;
+            public bool Flashing;
         }
     }
 }

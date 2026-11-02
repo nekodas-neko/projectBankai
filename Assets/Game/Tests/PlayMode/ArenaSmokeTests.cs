@@ -1,5 +1,6 @@
 using System.Collections;
 using Game.Client;
+using Game.Core;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,6 +18,36 @@ namespace Game.PlayMode.Tests
             data.position = to;
             ExecuteEvents.Execute<IDragHandler>(button.gameObject, data, ExecuteEvents.dragHandler);
             ExecuteEvents.Execute<IPointerUpHandler>(button.gameObject, data, ExecuteEvents.pointerUpHandler);
+        }
+
+        [UnityTest]
+        public IEnumerator Skin_ChosenForTheClassIsWhatThePlayerWears()
+        {
+            HudSettings.ClassName = "mage";
+            HudSettings.SetSkin("mage", "mage_crimson");
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.6f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Assert.IsTrue(bootstrap.Views.TryGetBodyMaterial(bootstrap.LocalClient.LocalEntity, out var material));
+            HudSettings.SetSkin("mage", "mage_arcane");
+
+            Assert.AreEqual("mage_crimson_body", material.name);
+        }
+
+        [UnityTest]
+        public IEnumerator UsingASkill_PlaysItsCastEffect()
+        {
+            HudSettings.ClassName = "mage";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Assert.AreEqual(0, Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None).Length);
+
+            Press(bootstrap.Hud.Attack, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.2f);
+
+            Assert.Greater(Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None).Length, 0);
         }
 
         [UnityTest]
@@ -62,7 +93,7 @@ namespace Game.PlayMode.Tests
 
             yield return new WaitForSeconds(0.5f);
 
-            Assert.AreEqual(4, bootstrap.Views.Count);
+            Assert.AreEqual(5, bootstrap.Views.Count);
             Assert.IsNotNull(bootstrap.Views.LocalRoot);
             var before = bootstrap.Views.LocalRoot.position;
 

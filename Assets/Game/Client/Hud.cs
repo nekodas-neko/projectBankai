@@ -11,6 +11,8 @@ namespace Game.Client
         const string MoveOnRightKey = "hud.moveOnRight.v2";
 
         const string CameraZoomKey = "hud.cameraZoom";
+        const string SkinKey = "player.skin";
+        const string ClassKey = "player.class";
         public const float MinZoom = 0.6f;
         public const float MaxZoom = 1.6f;
         public const float ZoomStep = 0.15f;
@@ -19,6 +21,32 @@ namespace Game.Client
         {
             get => PlayerPrefs.GetInt(MoveOnRightKey, 0) == 1;
             set => PlayerPrefs.SetInt(MoveOnRightKey, value ? 1 : 0);
+        }
+
+        public static string ClassName
+        {
+            get => PlayerPrefs.GetString(ClassKey, "mage");
+            set => PlayerPrefs.SetString(ClassKey, value);
+        }
+
+        public static string SkinFor(string classId)
+        {
+            var skins = SkinCatalog.ForClass(classId);
+            var saved = PlayerPrefs.GetString(SkinKey + "." + classId, string.Empty);
+            for (var i = 0; i < skins.Count; i++)
+            {
+                if (skins[i].name == saved)
+                {
+                    return saved;
+                }
+            }
+
+            return skins.Count > 0 ? skins[0].name : SkinCatalog.DefaultSkin;
+        }
+
+        public static void SetSkin(string classId, string skinName)
+        {
+            PlayerPrefs.SetString(SkinKey + "." + classId, skinName);
         }
 
         public static float CameraZoom
@@ -55,7 +83,7 @@ namespace Game.Client
 
         public bool MoveOnRight { get; }
 
-        public static Hud Create(bool moveOnRight, Action onSwapSides, Action<int> onZoom)
+        public static Hud Create(bool moveOnRight, Action onSwapSides, Action<int> onZoom, Action onCycleSkin, Action onCycleClass)
         {
             var root = new GameObject("Hud");
             var canvas = root.AddComponent<Canvas>();
@@ -77,6 +105,8 @@ namespace Game.Client
             var stick = BuildMoveStick(safeArea, moveOnRight);
             BuildTextButton(safeArea, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -60f), onSwapSides);
             BuildTextButton(safeArea, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -170f), () => onZoom?.Invoke(-1));
+            BuildTextButton(safeArea, "Skin", "Skin", new Vector2(115f, 90f), new Vector2(-165f, -280f), onCycleSkin);
+            BuildTextButton(safeArea, "Class", "Class", new Vector2(115f, 90f), new Vector2(-40f, -280f), onCycleClass);
             BuildTextButton(safeArea, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -170f), () => onZoom?.Invoke(1));
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);

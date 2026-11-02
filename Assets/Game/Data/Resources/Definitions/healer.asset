@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
+  m_Name: healer
+  m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
+  role: 3
+  maxHealth: 100
+  moveSpeed: 6
+  power: 1
+  autoAttack: {fileID: 11400000, guid: 48571fde32c853145bc655a41335133b, type: 2}
+  skills:
+  - {fileID: 11400000, guid: 971c79afea78ac549a4a289aac689271, type: 2}
