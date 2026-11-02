@@ -32,6 +32,11 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: ta
 - Every build shows its version (git commit count) on screen.
 - Performance target: low-end Android with 3-4 GB RAM. 60 fps on mid-range, 30 fps floor on low-end. Pool objects, no per-frame allocations in combat.
 
+## Game design decisions
+- Dungeons are the only game mode for now. No PvP or open-world entries in the hub.
+- Controls, two hands: a floating move stick (right by default, "Swap sides" button flips it; `HudSettings.MoveOnRight`), and on the other side an attack button, one special skill and a dodge/block button. Attack and special: tap fires along facing or at the nearest enemy, drag aims, release fires.
+- Defensive skills are class-specific and are the only way besides movement to avoid damage: DPS dodge, tank block, healer conversion shield (issue 19). Classes get their own resource (issue 20). Several skills on one button with priority is an idea to try later (issue 21).
+
 ## Layout
 - `Assets/Game/Core` — `Game.Core` (no engine references)
 - `Assets/Game/Client` — `Game.Client` (input, UI, display)
