@@ -30,10 +30,10 @@ namespace Game.Core
 
         public IReadOnlyList<GameClient> Clients => clients;
 
-        public GameClient AddPlayer(PlayerId player, string classId, int appearance = 0)
+        public GameClient AddPlayer(PlayerId player, string classId, int appearance = 0, int[] variants = null)
         {
             var link = new LoopbackLink(random, Conditions);
-            Server.AddPlayer(player, classId, link.ServerEnd, appearance);
+            Server.AddPlayer(player, classId, link.ServerEnd, appearance, variants);
             var client = new GameClient(player, link.ClientEnd, classes.Get(classId), clientConfig);
             links.Add(link);
             clients.Add(client);

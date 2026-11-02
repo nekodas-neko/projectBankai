@@ -70,6 +70,19 @@ namespace Game.Core.Tests
         }
 
         [Test]
+        public void Join_CarriesTheVariantLoadout()
+        {
+            var hot = StableId.From("hot");
+            var transport = new UdpClientTransport(endpoint, "sparker", 0, "Tester", new[] { hot });
+            disposables.Add(transport);
+
+            Pump(() => transport.State == ConnectionState.Connected, new GameClient[0], new[] { transport });
+
+            Assert.AreEqual(ConnectionState.Connected, transport.State);
+            Assert.AreEqual(hot, server.FindPlayerEntity(transport.PlayerId).Variants[0]);
+        }
+
+        [Test]
         public void TwoClients_JoinOverRealSocketsAndSeeEachOther()
         {
             var a = Connect(appearance: StableId.From("skin_a"));

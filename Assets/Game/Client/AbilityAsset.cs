@@ -1,8 +1,22 @@
+using System;
+using System.Linq;
 using Game.Core;
 using UnityEngine;
 
 namespace Game.Client
 {
+    [Serializable]
+    public class VariantData
+    {
+        public string id = "";
+        [Min(0f)] public float damageScale = 1f;
+        [Min(0.1f)] public float rangeScale = 1f;
+        [Min(0.1f)] public float cooldownScale = 1f;
+        [Min(0f)] public float costScale = 1f;
+        public GameObject castEffect;
+        public GameObject hitEffect;
+    }
+
     [CreateAssetMenu(menuName = "Game/Ability", fileName = "new_ability")]
     public class AbilityAsset : DefinitionAsset
     {
@@ -23,8 +37,29 @@ namespace Game.Client
         [Min(0f)] public float heal;
         [Min(0f)] public float taunt;
         public AbilityAsset rider;
+        public VariantData[] variants = new VariantData[0];
         public GameObject castEffect;
         public GameObject hitEffect;
+
+        public bool TryGetVariant(int variantId, out VariantData variant)
+        {
+            variant = null;
+            if (variantId == 0)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < variants.Length; i++)
+            {
+                if (StableId.From(variants[i].id) == variantId)
+                {
+                    variant = variants[i];
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public AbilityDef ToDefinition()
         {
@@ -48,6 +83,14 @@ namespace Game.Client
                 Heal = heal,
                 Taunt = taunt,
                 Rider = rider != null ? rider.Id : null,
+                Variants = variants.Select(variant => new VariantDef
+                {
+                    Id = variant.id,
+                    DamageScale = variant.damageScale,
+                    RangeScale = variant.rangeScale,
+                    CooldownScale = variant.cooldownScale,
+                    CostScale = variant.costScale,
+                }).ToArray(),
             };
         }
     }

@@ -30,6 +30,20 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': damage must not be negative");
                 }
 
+                var seenVariants = new HashSet<string>();
+                foreach (var variant in ability.Variants)
+                {
+                    if (string.IsNullOrEmpty(variant.Id) || !seenVariants.Add(variant.Id))
+                    {
+                        errors.Add($"Ability '{ability.Id}': variant ids must be non-empty and unique");
+                    }
+
+                    if (variant.DamageScale < 0f || variant.RangeScale <= 0f || variant.CooldownScale <= 0f || variant.CostScale < 0f)
+                    {
+                        errors.Add($"Ability '{ability.Id}': variant '{variant.Id}' has a non-positive scale");
+                    }
+                }
+
                 if (ability.Heal < 0f || ability.Taunt < 0f)
                 {
                     errors.Add($"Ability '{ability.Id}': heal and taunt must not be negative");

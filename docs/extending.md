@@ -81,7 +81,16 @@ Class skins are found by the class id prefix (`tank_`, `healer_`, `mage_`), and 
 
 ## Worked example: change what a skill looks like
 
-Open the ability asset (for example `fireball.asset`) and set **Cast Effect** and **Hit Effect** to other prefabs. A particle prefab with a one-shot burst works well. Nothing else changes, and the skill's numbers are untouched. Skill-tree variants (a green bolt that becomes a red bolt) will extend this with a variant id; see issue 31.
+Open the ability asset (for example `fireball.asset`) and set **Cast Effect** and **Hit Effect** to other prefabs. A particle prefab with a one-shot burst works well. Nothing else changes, and the skill's numbers are untouched. 
+
+## Worked example: add a skill variant
+
+A variant is a changed version of one ability, for the skill tree to unlock later. On the ability asset, add an entry to **Variants**: an **Id** (for example `crimson`), the numbers it changes (**Damage Scale**, **Range Scale**, **Cooldown Scale**, **Cost Scale**; all 1 means no change) and its own **Cast Effect** and **Hit Effect**. A green bolt becoming a red bolt is a variant with a red effect and a damage scale above 1.
+
+- The player's choice is a loadout: the variant id for each ability slot, sent when joining (`GameServer.AddPlayer`, the join message). The server ignores an id the ability does not have.
+- The server applies the scales itself, and the use and damage events carry the variant id, so every client plays the right effect.
+- For now the **Style** button picks the same variant number for the attack and the first skill (style 1 is the first variant of each). The skill-tree screen replaces that later; nothing else changes.
+- Heal and circle size scale with the damage and range scales.
 
 ## Worked example: add a boss (planned, M2)
 

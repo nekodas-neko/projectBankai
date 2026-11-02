@@ -14,6 +14,20 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "provoke", Cooldown = 1f, Range = 5f, Radius = 2f, Damage = 5f, Taunt = 3f });
             registry.Add(new AbilityDef { Id = "nova", Shape = AbilityShape.Circle, Cooldown = 2f, Range = 4f, Radius = 4f, Damage = 10f, Windup = 0.3f });
             registry.Add(new AbilityDef { Id = "wave", Shape = AbilityShape.Cone, Cooldown = 2f, Range = 8f, Radius = 0f, Angle = 90f, Damage = 10f });
+            registry.Add(new AbilityDef
+            {
+                Id = "spark",
+                Cooldown = 2f,
+                Range = 5f,
+                Radius = 1f,
+                Damage = 10f,
+                ResourceCost = 10f,
+                Variants = new[]
+                {
+                    new VariantDef { Id = "hot", DamageScale = 2f, RangeScale = 1.5f, CooldownScale = 0.5f, CostScale = 2f },
+                    new VariantDef { Id = "cold", DamageScale = 0.5f },
+                },
+            });
             registry.Add(new AbilityDef { Id = "jab", Cooldown = 0.1f, Range = 8f, Radius = 1f, Damage = 10f });
             registry.Add(new AbilityDef { Id = "heavy", Cooldown = 0.1f, Range = 8f, Radius = 1f, Damage = 10f, ResourceCost = 50f });
             registry.Add(new AbilityDef { Id = "smash", Cooldown = 2f, Range = 3f, Radius = 2f, Damage = 20f, Windup = 0.5f });
@@ -125,6 +139,14 @@ namespace Game.Core.Tests
                 Role = Role.None,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 0f, Power = 1f },
                 BodyRadius = 0.5f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "sparker",
+                Role = Role.Dps,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
+                AutoAttack = "spark",
+                Resource = new ResourceDef { Id = "focus", Max = 100f, Start = 100f },
             });
             registry.Add(new ClassDef
             {

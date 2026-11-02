@@ -29,5 +29,13 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
+  variants:
+  - id: ember
+    damageScale: 1.2
+    rangeScale: 1
+    cooldownScale: 1.15
+    costScale: 1
+    castEffect: {fileID: 3149955137659609420, guid: 14c6a32cca5a2264e907401c645d4198, type: 3}
+    hitEffect: {fileID: 3087614463699662056, guid: 4332b79e556cccf438f32048b00e694e, type: 3}
   castEffect: {fileID: 2370515591234554031, guid: 1fbed1fd51ef8304082259bd5693396d, type: 3}
   hitEffect: {fileID: 4465893761992978395, guid: 33b9f5df61c2a214f9e0ac5373b2f08e, type: 3}

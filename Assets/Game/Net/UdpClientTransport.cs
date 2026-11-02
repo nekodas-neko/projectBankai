@@ -36,7 +36,7 @@ namespace Game.Net
         double lastReceived;
         int attempts;
 
-        public UdpClientTransport(IPEndPoint host, string classId, int appearance, string displayName)
+        public UdpClientTransport(IPEndPoint host, string classId, int appearance, string displayName, int[] variants = null)
         {
             this.host = host;
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp) { Blocking = false };
@@ -46,6 +46,13 @@ namespace Game.Net
             writer.Write(classId);
             writer.Write(appearance);
             writer.Write(Protocol.ValidText(displayName, Protocol.MaxNameLength) ? displayName : "Player");
+            var count = variants == null ? 0 : Math.Min(variants.Length, Entity.AbilitySlots);
+            writer.Write((byte)count);
+            for (var i = 0; i < count; i++)
+            {
+                writer.Write(variants[i]);
+            }
+
             joinPacket = Protocol.Finish(writer);
         }
 

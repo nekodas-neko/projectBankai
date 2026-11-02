@@ -29,5 +29,13 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
+  variants:
+  - id: crimson
+    damageScale: 1.15
+    rangeScale: 1
+    cooldownScale: 1.1
+    costScale: 1
+    castEffect: {fileID: 3376757264301951962, guid: 407dcd9549086c540ac0565cb95a8564, type: 3}
+    hitEffect: {fileID: 1819741467926727777, guid: 77980496ffd326e48a2bcad84f9a1ef2, type: 3}
   castEffect: {fileID: 2694509242977273831, guid: 8f1f2f4a3e5133b489490c82164c4c29, type: 3}
   hitEffect: {fileID: 7451035516701182542, guid: add6469434a753d4faef1670aa118ac4, type: 3}

@@ -73,6 +73,7 @@ namespace Game.Core
         public readonly List<ThreatEntry> Threat = new List<ThreatEntry>();
         public readonly string[] AbilityIds = new string[AbilitySlots];
         public readonly float[] Cooldowns = new float[AbilitySlots];
+        public readonly int[] Variants = new int[AbilitySlots];
 
         public bool IsAlive => Health > 0f;
 

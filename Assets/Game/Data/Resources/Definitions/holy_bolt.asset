@@ -29,5 +29,13 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
+  variants:
+  - id: verdant
+    damageScale: 1.1
+    rangeScale: 1
+    cooldownScale: 1
+    costScale: 1
+    castEffect: {fileID: 4235914005934083111, guid: 75d11c318af259b498dc289b968ebc45, type: 3}
+    hitEffect: {fileID: 2783669238277001471, guid: bbb82fd28b4805841805bb4b12f4f478, type: 3}
   castEffect: {fileID: 3444918375678099980, guid: 73e0a8b0592521843b48d5ceaf716d85, type: 3}
   hitEffect: {fileID: 8979028662820827838, guid: 8b285d15f1bc548459c1b89365e91257, type: 3}

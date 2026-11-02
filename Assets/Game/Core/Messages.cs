@@ -84,6 +84,7 @@ namespace Game.Core
         public float Amount;
         public byte Slot;
         public int Ability;
+        public int Variant;
         public HitOutcome Outcome;
     }
 
@@ -92,6 +93,7 @@ namespace Game.Core
         public EntityId User;
         public byte Slot;
         public int Ability;
+        public int Variant;
         public Vec2 Direction;
     }
 
