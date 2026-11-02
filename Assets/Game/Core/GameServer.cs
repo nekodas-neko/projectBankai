@@ -247,7 +247,7 @@ namespace Game.Core
 
             user.Facing = direction;
             user.Cooldowns[slot] = ability.Cooldown;
-            pendingUses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Direction = direction });
+            pendingUses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Direction = direction });
 
             var damage = ability.Damage * user.Stats.Power;
             for (var i = 0; i < entities.Count; i++)
@@ -272,7 +272,7 @@ namespace Game.Core
                 }
 
                 other.Health = MathF.Max(0f, other.Health - damage);
-                pendingEvents.Add(new DamageEvent { Source = user.Id, Target = other.Id, Amount = damage, Slot = (byte)slot });
+                pendingEvents.Add(new DamageEvent { Source = user.Id, Target = other.Id, Amount = damage, Slot = (byte)slot, Ability = StableId.From(ability.Id) });
             }
         }
 

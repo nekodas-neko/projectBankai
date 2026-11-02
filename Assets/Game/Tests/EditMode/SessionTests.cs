@@ -101,6 +101,7 @@ namespace Game.Core.Tests
             Assert.AreEqual(90f, dummy.Health);
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(dummy.Id, events[0].Target);
+            Assert.AreEqual(StableId.From("basic"), events[0].Ability);
             Assert.IsTrue(client.Latest.TryFind(dummy.Id, out var state));
             Assert.AreEqual(90f, state.Health);
         }
