@@ -17,6 +17,7 @@ namespace Game.Client
         public Material dead;
         public Material flash;
         public Material barBackground;
+        public Material aim;
     }
 
     public sealed class EntityViews

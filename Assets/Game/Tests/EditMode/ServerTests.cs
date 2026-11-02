@@ -169,14 +169,30 @@ namespace Game.Core.Tests
         }
 
         [Test]
-        public void AutoAim_WithNoTarget_DoesNotSpendCooldown()
+        public void AutoAim_WithNoTarget_FiresAlongFacingAndSpendsCooldown()
         {
             var rig = new ServerRig(1);
-
-            rig.Send(0, 1, CommandType.Attack, Vec2.Zero);
+            rig.Send(0, 1, CommandType.Move, new Vec2(1f, 0f));
+            rig.Send(0, 2, CommandType.Attack, Vec2.Zero);
             rig.Tick();
 
-            Assert.AreEqual(0f, rig.Players[0].Cooldowns[0]);
+            Assert.AreEqual(new Vec2(1f, 0f), rig.Players[0].Facing);
+            Assert.Greater(rig.Players[0].Cooldowns[0], 0f);
+        }
+
+        [Test]
+        public void Snapshot_CarriesCooldowns()
+        {
+            var session = TestData.Session(1);
+            var client = session.Clients[0];
+            session.Advance(0.2f, 1f / 30f);
+
+            client.Skill(1, new Vec2(1f, 0f));
+            session.Advance(0.2f, 1f / 30f);
+
+            Assert.IsTrue(client.TryGetLocalState(out var state));
+            Assert.Greater(state.GetCooldown(1), 0f);
+            Assert.AreEqual(0f, state.GetCooldown(0));
         }
 
         [Test]

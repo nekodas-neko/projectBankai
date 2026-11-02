@@ -41,6 +41,22 @@ namespace Game.Core
         public Vec2 Facing;
         public float Health;
         public float MaxHealth;
+        public float Cooldown0;
+        public float Cooldown1;
+        public float Cooldown2;
+        public float Cooldown3;
+
+        public float GetCooldown(int slot)
+        {
+            switch (slot)
+            {
+                case 0: return Cooldown0;
+                case 1: return Cooldown1;
+                case 2: return Cooldown2;
+                case 3: return Cooldown3;
+                default: return 0f;
+            }
+        }
     }
 
     public struct DamageEvent

@@ -43,6 +43,7 @@ namespace Game.Editor
                 dead = SeedMaterial($"{materialsRoot}/Dead.mat", new Color(0.35f, 0.35f, 0.35f)),
                 flash = SeedMaterial($"{materialsRoot}/Flash.mat", Color.white),
                 barBackground = SeedMaterial($"{materialsRoot}/BarBackground.mat", new Color(0.1f, 0.1f, 0.12f)),
+                aim = SeedMaterial($"{materialsRoot}/Aim.mat", new Color(0.78f, 0.88f, 1f)),
             };
             var ground = SeedMaterial($"{materialsRoot}/Ground.mat", new Color(0.23f, 0.25f, 0.29f));
             var rim = SeedMaterial($"{materialsRoot}/Rim.mat", new Color(0.55f, 0.58f, 0.64f));
