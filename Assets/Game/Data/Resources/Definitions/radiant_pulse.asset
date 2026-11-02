@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f163ad990b858e444a427c5a66f8a819, type: 3}
+  m_Name: radiant_pulse
+  m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
+  cooldown: 5
+  range: 5
+  radius: 3
+  damage: 10
+  castEffect: {fileID: 4905148031431149112, guid: a1651bd803f9bff499fe3f38d44f2e0f, type: 3}
+  hitEffect: {fileID: 8979028662820827838, guid: 8b285d15f1bc548459c1b89365e91257, type: 3}

@@ -9,6 +9,8 @@ The rule: adding a skill, class or boss means adding files, not editing the fram
 | Abilities (cooldown, range, width, damage) | `AbilityAsset` files in `Assets/Game/Data/Resources/Definitions` | Data. One file each. |
 | Classes (role, stats, auto-attack, up to 3 skills) | `ClassAsset` files in the same folder | Data. One file each. |
 | Ability behaviour beyond "damage along a line" (dash, shield, heal, projectile) | `Game.Core` | Not built yet. Needs an effect extension point (see issues #19, #20). |
+| Skins (look of a character) | `SkinAsset` files in `Assets/Game/Data/Resources/Skins` | Data. One file each. A skin is either a prefab with an Animator or a coloured primitive. |
+| Skill effects | `castEffect` and `hitEffect` prefabs on each `AbilityAsset` | Data. Played on every client from use and hit events. |
 | Bosses, telegraph shapes, phases | `Game.Core` | Not built yet. Milestone M2. |
 | Status effects | `Entity.Statuses` exists; no effects use it yet | Stub. |
 
@@ -33,6 +35,18 @@ Tuning an existing value is the same: edit the asset. Reports of the form "value
 2. Set role, max health, move speed and power. Set **Auto Attack** and up to three **Skills** from existing or new ability assets.
 3. To play it, change the class id passed to `AddPlayer` in `ArenaBootstrap` (a class picker comes with the hub).
 4. Add a test: load the definitions with `DefinitionLoader.Load` and assert the class and its abilities resolve. See `DefinitionLoaderTests`.
+
+## Worked example: add a skin
+
+1. **Assets > Create > Game > Skin**, save as `Assets/Game/Data/Resources/Skins/mage_frost.asset`. The name must start with the class id and an underscore (`mage_`) to appear in that class's skin list.
+2. Either set **Prefab** to a rigged character prefab, or leave it empty and set **Body** and **Accent** materials, **Scale** and **Shape** for a primitive.
+3. The skin id is the file name. Players pick it with the Skin button; other players see it because the server relays only its 32-bit id.
+
+If the prefab has an **Animator**, it can use these parameters, and any it lacks are simply ignored: `Speed` (float), `Use` (trigger), `Slot` (int, 0 is the auto-attack), `Hit` (trigger), `Dead` (bool).
+
+## Worked example: change what a skill looks like
+
+Open the ability asset (for example `fireball.asset`) and set **Cast Effect** and **Hit Effect** to other prefabs. A particle prefab with a one-shot burst works well. Nothing else changes, and the skill's numbers are untouched. Skill-tree variants (a green bolt that becomes a red bolt) will extend this with a variant id; see issue 31.
 
 ## Worked example: add a boss (planned, M2)
 

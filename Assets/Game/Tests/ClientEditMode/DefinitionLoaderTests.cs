@@ -10,13 +10,17 @@ namespace Game.Client.Tests
         {
             DefinitionLoader.Load(out var classes, out var abilities);
 
-            Assert.IsTrue(classes.TryGet("fighter", out var fighter));
-            Assert.AreEqual(Role.Dps, fighter.Role);
-            Assert.AreEqual("slash", fighter.AutoAttack);
-            CollectionAssert.AreEqual(new[] { "bolt", "shockwave" }, fighter.Skills);
-            Assert.IsTrue(abilities.TryGet("bolt", out var bolt));
-            Assert.AreEqual(25f, bolt.Damage);
-            Assert.IsTrue(classes.TryGet("training_dummy", out _));
+            Assert.IsTrue(classes.TryGet("mage", out var mage));
+            Assert.AreEqual(Role.Dps, mage.Role);
+            Assert.AreEqual("arcane_bolt", mage.AutoAttack);
+            CollectionAssert.AreEqual(new[] { "fireball" }, mage.Skills);
+            Assert.IsTrue(abilities.TryGet("fireball", out var fireball));
+            Assert.AreEqual(30f, fireball.Damage);
+
+            Assert.AreEqual(Role.Tank, classes.Get("tank").Role);
+            Assert.AreEqual(Role.Healer, classes.Get("healer").Role);
+            Assert.IsTrue(classes.TryGet("slime", out _));
+            Assert.IsTrue(classes.TryGet("slime_boss", out _));
         }
 
         [Test]
@@ -24,14 +28,35 @@ namespace Game.Client.Tests
         {
             DefinitionLoader.Load(out var classes, out var abilities);
             var session = new LocalSession(new ServerConfig(), classes, abilities, 1);
-            var client = session.AddPlayer(new PlayerId(1), "fighter");
-            var dummy = session.Server.SpawnNpc("training_dummy", Team.Enemies, new Vec2(-3f, 2f));
+            var client = session.AddPlayer(new PlayerId(1), "mage");
+            var slime = session.Server.SpawnNpc("slime", Team.Enemies, new Vec2(-3f, 2f));
 
             session.Advance(0.2f, 1f / 30f);
             client.Attack(Vec2.Zero);
             session.Advance(0.2f, 1f / 30f);
 
-            Assert.AreEqual(390f, dummy.Health);
+            Assert.AreEqual(60f - 9f * 1.2f, slime.Health, 0.01f);
+        }
+
+        [Test]
+        public void EveryAbilityHasEffectsAndEveryClassHasASkin()
+        {
+            DefinitionLoader.Load(out var classes, out var abilities);
+
+            foreach (var ability in abilities.All)
+            {
+                Assert.IsTrue(AbilityCatalog.TryGet(StableId.From(ability.Id), out var asset), ability.Id);
+                Assert.IsNotNull(asset.castEffect, $"{ability.Id} cast effect");
+                Assert.IsNotNull(asset.hitEffect, $"{ability.Id} hit effect");
+            }
+
+            foreach (var id in new[] { "tank", "healer", "mage" })
+            {
+                Assert.GreaterOrEqual(SkinCatalog.ForClass(id).Count, 2, $"{id} skins");
+            }
+
+            Assert.IsNotNull(SkinCatalog.Get(StableId.From("slime_green")));
+            Assert.IsNotNull(SkinCatalog.Get(StableId.From("slime_king")));
         }
     }
 }

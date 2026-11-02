@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: add142465e0fbf7449ac467266c6a7c4, type: 3}
+  m_Name: tank_steel
+  m_EditorClassIdentifier: Game.Client::Game.Client.SkinAsset
+  playable: 1
+  shape: 0
+  bobHeight: 0.14
+  prefab: {fileID: 0}
+  body: {fileID: 2100000, guid: 66e2c30e0d91edb4c892a283ddf64492, type: 2}
+  accent: {fileID: 2100000, guid: 445473744ee033943af2b9630a1d6431, type: 2}
+  scale: {x: 1.15, y: 1.05, z: 1.15}
