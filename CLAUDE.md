@@ -43,6 +43,7 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: ta
 
 ## Build and test
 Unity 6000.3.27f2 (6.3 LTS), URP. Windows, PowerShell.
+- Fast `Game.Core` tests, no Unity needed: `tools\test-core.ps1` (needs the .NET SDK; compiles Game.Core and the EditMode tests at C# 9, same as Unity).
 - EditMode tests: `tools\run-tests.ps1` (`-Platform PlayMode` for Play Mode tests). Results in `Logs\`.
 - Android APK: `tools\build-android.ps1 -Development`; add `-Install` to `adb install -r` and launch on the phone.
 - Details and Unity Remote steps: `docs/dev-loop.md`.

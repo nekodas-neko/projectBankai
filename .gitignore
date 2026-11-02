@@ -69,3 +69,7 @@ Thumbs.db
 /Assets/Resources/BillingMode.json
 /Assets/Resources/BillingMode.json.meta
 /Assets/Resources.meta
+
+!/tests/**/*.csproj
+/tests/**/bin/
+/tests/**/obj/
