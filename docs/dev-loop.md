@@ -42,6 +42,22 @@ Builds use Unity's debug keystore. The release keystore never goes in the repo.
 
 Every build shows its version in the bottom-left corner: `b<commit count>-<short hash>`. Quote it in bug reports. In the editor, the number is written when Play starts.
 
+## Playing together on a local network
+
+Nothing goes on the internet. One device hosts and others join over the same Wi-Fi.
+
+1. On the host: tap **Session**, then **Host on Wi-Fi**. The menu shows the host's address, for example `192.168.68.78:47777`, and how many players are in.
+2. On each joining device: tap **Session**. Hosts on the same Wi-Fi appear under "Sessions found"; tap one to join. If none appear, type the host's address into the box and tap **Join**.
+3. Pick your class with **Class** and skin with **Skin** before joining; the host checks the class exists and sends everyone your skin id.
+4. Up to four players. The host runs the game; a player who stays silent for 8 seconds is dropped.
+5. **Solo (offline)** in the same menu goes back to playing alone.
+
+Notes:
+- A phone hosting works with no setup. A **Windows PC hosting** can be blocked by Windows Firewall when the Wi-Fi is set to a **Public** network: Unity's firewall rules block incoming connections on Public networks, so phones cannot find or join it. Set the Wi-Fi's network profile to **Private** in Windows network settings, or let a phone host.
+- Everyone must be on the same Wi-Fi (or a private network such as Tailscale). Some routers isolate wireless devices from each other ("AP isolation"); turn that off or use a different network.
+- Anyone on the same network can join; there is no password. Do not host on public Wi-Fi.
+- Ports: UDP 47777.
+
 ## Tests
 
 ```powershell

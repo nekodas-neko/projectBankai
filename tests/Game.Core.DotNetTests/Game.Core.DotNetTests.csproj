@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="../../Assets/Game/Core/**/*.cs" />
+    <Compile Include="../../Assets/Game/Net/**/*.cs" />
     <Compile Include="../../Assets/Game/Tests/EditMode/**/*.cs" />
   </ItemGroup>
 

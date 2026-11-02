@@ -23,6 +23,7 @@ namespace Game.Editor
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel25;
+            PlayerSettings.Android.forceInternetPermission = true;
 
             AssetDatabase.SaveAssets();
             Debug.Log("ProjectSetup applied");

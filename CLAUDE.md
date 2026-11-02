@@ -20,6 +20,7 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: ta
 
 ## Architecture
 - Game logic is plain C# in `Game.Core`, an assembly with no UnityEngine references and no MonoBehaviours. Damage, threat, healing, cooldowns, boss phase machines, telegraph timing, party AI and `GameServer` live there.
+- Local network sessions (no internet): `Game.Net` hosts a `GameServer` over UDP (`UdpGameHost`) and joins with `UdpClientTransport`; `LanScanner` finds hosts. See `docs/dev-loop.md`. Hosting, accounts and a backend are parked until the game is more polished.
 - Client/server split from day one, even offline. `GameServer` runs the authoritative fixed-tick simulation. `GameClient` handles input, display, prediction. They talk through `ITransport`. Solo uses an in-process loopback transport, so solo and co-op share one code path.
 - Clients send commands only (Move, Attack, Skill1-3), never results. The server validates range, cooldown, role and rate.
 - The simulation runs headless: no rendering, no real-time clock, time is passed in. Randomness is seeded and injected.
