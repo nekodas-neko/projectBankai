@@ -138,6 +138,7 @@ namespace Game.Core
                 StepDash(entities[i], dt);
             }
 
+            Separate();
             ResolvePendingAttacks(dt);
 
             for (var i = 0; i < entities.Count; i++)
@@ -354,7 +355,7 @@ namespace Game.Core
                     continue;
                 }
 
-                if (!InArea(ability, origin, direction, other.Position))
+                if (!InArea(ability, origin, direction, other.Position, other.Radius))
                 {
                     continue;
                 }
@@ -375,16 +376,16 @@ namespace Game.Core
             }
         }
 
-        static bool InArea(AbilityDef ability, Vec2 origin, Vec2 direction, Vec2 point)
+        static bool InArea(AbilityDef ability, Vec2 origin, Vec2 direction, Vec2 point, float bodyRadius)
         {
             var offset = point - origin;
             switch (ability.Shape)
             {
                 case AbilityShape.Circle:
-                    return offset.Length <= ability.Radius;
+                    return offset.Length <= ability.Radius + bodyRadius;
                 case AbilityShape.Cone:
                     var distance = offset.Length;
-                    if (distance > ability.Range)
+                    if (distance - bodyRadius > ability.Range)
                     {
                         return false;
                     }
@@ -397,18 +398,52 @@ namespace Game.Core
                     return Vec2.Dot(offset * (1f / distance), direction) >= MathF.Cos(ability.Angle * 0.5f * (MathF.PI / 180f));
                 default:
                     var along = Vec2.Dot(offset, direction);
-                    if (along < 0f || along > ability.Range)
+                    if (along + bodyRadius < 0f || along - bodyRadius > ability.Range)
                     {
                         return false;
                     }
 
-                    return (offset - direction * along).Length <= ability.Radius;
+                    return (offset - direction * along).Length <= ability.Radius + bodyRadius;
             }
         }
 
         static float Reach(AbilityDef ability)
         {
             return ability.Shape == AbilityShape.Circle ? ability.Radius : ability.Range;
+        }
+
+        void Separate()
+        {
+            for (var i = 0; i < entities.Count; i++)
+            {
+                var a = entities[i];
+                if (!a.IsAlive || a.Radius <= 0f || a.HasStatus(StatusType.Dashing))
+                {
+                    continue;
+                }
+
+                for (var j = i + 1; j < entities.Count; j++)
+                {
+                    var b = entities[j];
+                    if (!b.IsAlive || b.Radius <= 0f || b.HasStatus(StatusType.Dashing))
+                    {
+                        continue;
+                    }
+
+                    var minimum = a.Radius + b.Radius;
+                    var offset = b.Position - a.Position;
+                    var distance = offset.Length;
+                    if (distance >= minimum)
+                    {
+                        continue;
+                    }
+
+                    var normal = distance > 1e-4f ? offset * (1f / distance) : new Vec2(1f, 0f);
+                    var push = (minimum - distance) * 0.5f;
+                    a.Position = (a.Position - normal * push).ClampLength(config.Simulation.ArenaRadius);
+                    b.Position = (b.Position + normal * push).ClampLength(config.Simulation.ArenaRadius);
+                }
+            }
         }
 
         void ApplyHeal(Entity source, Entity target, float amount, int slot, int abilityId)
@@ -675,7 +710,7 @@ namespace Game.Core
                     continue;
                 }
 
-                var reach = Reach(attack) * 0.85f;
+                var reach = (Reach(attack) + target.Radius) * 0.85f;
                 stopAt = MathF.Min(stopAt, reach);
                 if (npc.Cooldowns[slot] <= 0f && distance <= reach)
                 {
@@ -684,6 +719,7 @@ namespace Game.Core
                 }
             }
 
+            stopAt = MathF.Max(stopAt, npc.Radius + target.Radius + 0.05f);
             if (distance > stopAt)
             {
                 var speed = npc.Stats.MoveSpeed * (phase != null ? phase.SpeedScale : 1f);

@@ -22,6 +22,8 @@ MonoBehaviour:
   defense: {fileID: 11400000, guid: 1f489b8572b7f78488fa2bd7702f141e, type: 2}
   aggroRange: 0
   threatMultiplier: 3
+  bodyRadius: 0.5
+  phases: []
   hasResource: 1
   resourceId: rage
   resourceMax: 100

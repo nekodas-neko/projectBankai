@@ -64,6 +64,7 @@ namespace Game.Core
         public float Winding;
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
+        public float Radius;
         public int Phase = -1;
         public EntityId ForcedTarget;
         public float ForcedSeconds;
@@ -95,6 +96,7 @@ namespace Game.Core
                 Health = def.Stats.MaxHealth,
                 ResourceSpec = def.Resource,
                 ThreatMultiplier = def.ThreatMultiplier,
+                Radius = def.BodyRadius,
                 Resource = def.Resource != null ? System.Math.Min(def.Resource.Start, def.Resource.Max) : 0f,
             };
 
