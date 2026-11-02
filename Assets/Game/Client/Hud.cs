@@ -8,11 +8,11 @@ namespace Game.Client
 {
     public static class HudSettings
     {
-        const string MoveOnRightKey = "hud.moveOnRight";
+        const string MoveOnRightKey = "hud.moveOnRight.v2";
 
         public static bool MoveOnRight
         {
-            get => PlayerPrefs.GetInt(MoveOnRightKey, 1) == 1;
+            get => PlayerPrefs.GetInt(MoveOnRightKey, 0) == 1;
             set => PlayerPrefs.SetInt(MoveOnRightKey, value ? 1 : 0);
         }
     }
