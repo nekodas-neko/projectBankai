@@ -36,6 +36,7 @@ namespace Game.Client
         Registry<ClassDef> classDefs;
         EntityViews views;
         AimIndicator aimIndicator;
+        Telegraphs telegraphs;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
         Camera viewCamera;
@@ -65,6 +66,7 @@ namespace Game.Client
             playerClass = classDefs.Get(className);
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
+            telegraphs = new Telegraphs(transform, assets.cube, assets.telegraph, assets.telegraphFill);
             viewCamera = Camera.main;
             BuildHud();
 
@@ -132,6 +134,7 @@ namespace Game.Client
             }
 
             UpdateMenu(dt);
+            telegraphs.Tick(dt);
 
             if (LocalClient == null || !LocalClient.HasLocalEntity)
             {
@@ -359,6 +362,7 @@ namespace Game.Client
         {
             Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
             Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
+            Hud.Defense.Fired += aim => LocalClient?.Defend(DefendDirection(aim));
         }
 
         void UpdateButtons()
@@ -366,6 +370,9 @@ namespace Game.Client
             var hasState = LocalClient.TryGetLocalState(out var state);
             UpdateButton(Hud.Attack, hasState, state, 0, playerClass.AutoAttack);
             UpdateButton(Hud.Special, hasState, state, 1, playerClass.Skills.Length > 0 ? playerClass.Skills[0] : null);
+            UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
+            Hud.Defense.SetLabel(DefenseLabel());
+            UpdateResource(hasState, state);
 
             var aiming = Hud.Attack.IsAiming ? Hud.Attack : Hud.Special.IsAiming ? Hud.Special : null;
             if (aiming == null || views.LocalRoot == null)
@@ -393,6 +400,49 @@ namespace Game.Client
             button.SetCooldown(state.GetCooldown(slot) / ability.Cooldown);
         }
 
+        string DefenseLabel()
+        {
+            if (!abilityDefs.TryGet(playerClass.Defense, out var defense))
+            {
+                return "-";
+            }
+
+            switch (defense.Kind)
+            {
+                case AbilityKind.Dodge: return "Dodge";
+                case AbilityKind.Block: return "Block";
+                case AbilityKind.Shield: return "Ward";
+                default: return "Defend";
+            }
+        }
+
+        void UpdateResource(bool hasState, EntityState state)
+        {
+            if (!hasState || playerClass.Resource == null)
+            {
+                Hud.Resource.Hide();
+                return;
+            }
+
+            Hud.Resource.Show(playerClass.Resource.Id, state.Resource, state.MaxResource);
+        }
+
+        Vec2 DefendDirection(Vector2 dragAim)
+        {
+            if (dragAim.sqrMagnitude > 1e-6f)
+            {
+                return ToWorld(dragAim);
+            }
+
+            var stick = Hud.MoveStick.Value;
+            if (stick == Vector2.zero)
+            {
+                stick = KeyboardInput();
+            }
+
+            return ToWorld(stick);
+        }
+
         Vec2 ToWorld(Vector2 screenAim)
         {
             if (screenAim.sqrMagnitude < 1e-6f)
@@ -414,12 +464,32 @@ namespace Game.Client
             }
 
             var direction = new Vector3(use.Direction.X, 0f, use.Direction.Y);
+            if (ability.windup > 0f)
+            {
+                telegraphs.Add(position, new Vector2(use.Direction.X, use.Direction.Y), ability.range, ability.radius, ability.windup);
+            }
+
             var rotation = direction.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(direction) : Quaternion.identity;
             EffectPlayer.Play(ability.castEffect, position + new Vector3(0f, 1f, 0f) + direction * 0.8f, rotation);
         }
 
         void PlayHit(DamageEvent hit)
         {
+            if (hit.Outcome == HitOutcome.Dodged || hit.Outcome == HitOutcome.Absorbed)
+            {
+                return;
+            }
+
+            if (hit.Outcome == HitOutcome.Healed)
+            {
+                if (AbilityCatalog.TryGet(hit.Ability, out var healing) && healing.hitEffect != null && views.TryGetPosition(hit.Target, out var healed))
+                {
+                    EffectPlayer.Play(healing.hitEffect, healed + new Vector3(0f, 1f, 0f), Quaternion.identity);
+                }
+
+                return;
+            }
+
             views.OnHit(hit.Target);
             if (AbilityCatalog.TryGet(hit.Ability, out var ability) && ability.hitEffect != null && views.TryGetPosition(hit.Target, out var position))
             {

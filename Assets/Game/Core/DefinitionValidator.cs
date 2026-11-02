@@ -29,6 +29,23 @@ namespace Game.Core
                 {
                     errors.Add($"Ability '{ability.Id}': damage must not be negative");
                 }
+
+                if (ability.Heal < 0f || ability.Taunt < 0f)
+                {
+                    errors.Add($"Ability '{ability.Id}': heal and taunt must not be negative");
+                }
+
+                if (ability.Windup < 0f)
+                {
+                    errors.Add($"Ability '{ability.Id}': windup must not be negative");
+                }
+
+                if (!string.IsNullOrEmpty(ability.Rider) && !abilities.TryGet(ability.Rider, out _))
+                {
+                    errors.Add($"Ability '{ability.Id}': unknown rider '{ability.Rider}'");
+                }
+
+                ValidateKind(ability, errors);
             }
 
             foreach (var def in classes.All)
@@ -60,9 +77,103 @@ namespace Game.Core
                         errors.Add($"Class '{def.Id}': unknown skill '{skill}'");
                     }
                 }
+
+                if (!string.IsNullOrEmpty(def.Defense))
+                {
+                    if (!abilities.TryGet(def.Defense, out var defense))
+                    {
+                        errors.Add($"Class '{def.Id}': unknown defense '{def.Defense}'");
+                    }
+                    else if (defense.Kind == AbilityKind.Attack)
+                    {
+                        errors.Add($"Class '{def.Id}': defense '{def.Defense}' must be a dodge, block or shield");
+                    }
+                }
+
+                if (def.ThreatMultiplier < 0f)
+                {
+                    errors.Add($"Class '{def.Id}': threat multiplier must not be negative");
+                }
+
+                if (def.AggroRange > 0f && string.IsNullOrEmpty(def.AutoAttack))
+                {
+                    errors.Add($"Class '{def.Id}': aggro range needs an auto attack");
+                }
+
+                ValidateResource(def, abilities, errors);
             }
 
             return errors;
+        }
+
+        static void ValidateKind(AbilityDef ability, List<string> errors)
+        {
+            switch (ability.Kind)
+            {
+                case AbilityKind.Dodge:
+                    if (ability.Duration <= 0f)
+                    {
+                        errors.Add($"Ability '{ability.Id}': a dodge needs a duration");
+                    }
+
+                    if (ability.DashDistance < 0f || ability.PerfectWindow < 0f)
+                    {
+                        errors.Add($"Ability '{ability.Id}': dash distance and perfect window must not be negative");
+                    }
+
+                    break;
+                case AbilityKind.Block:
+                    if (ability.Duration <= 0f || ability.Reduction <= 0f || ability.Reduction > 1f)
+                    {
+                        errors.Add($"Ability '{ability.Id}': a block needs a duration and a reduction between 0 and 1");
+                    }
+
+                    break;
+                case AbilityKind.Shield:
+                    if (ability.Duration <= 0f || ability.Absorb <= 0f)
+                    {
+                        errors.Add($"Ability '{ability.Id}': a shield needs a duration and an absorb amount");
+                    }
+
+                    break;
+            }
+        }
+
+        static void ValidateResource(ClassDef def, Registry<AbilityDef> abilities, List<string> errors)
+        {
+            var resource = def.Resource;
+            if (resource != null)
+            {
+                if (string.IsNullOrEmpty(resource.Id))
+                {
+                    errors.Add($"Class '{def.Id}': resource needs an id");
+                }
+
+                if (resource.Max <= 0f || resource.Start < 0f || resource.Start > resource.Max)
+                {
+                    errors.Add($"Class '{def.Id}': resource max must be above zero and start must fit inside it");
+                }
+
+                if (resource.GainDealt < 0f || resource.GainTaken < 0f || resource.GainBlocked < 0f)
+                {
+                    errors.Add($"Class '{def.Id}': resource gains must not be negative");
+                }
+            }
+
+            if (resource != null)
+            {
+                return;
+            }
+
+            var ids = new List<string> { def.AutoAttack, def.Defense };
+            ids.AddRange(def.Skills);
+            foreach (var id in ids)
+            {
+                if (abilities.TryGet(id, out var ability) && ability.ResourceCost > 0f)
+                {
+                    errors.Add($"Class '{def.Id}': ability '{id}' costs a resource but the class has none");
+                }
+            }
         }
     }
 }

@@ -19,3 +19,14 @@ MonoBehaviour:
   autoAttack: {fileID: 11400000, guid: ac1e1a724b1688749bb6e8de5cafe0bf, type: 2}
   skills:
   - {fileID: 11400000, guid: 7aa853d5eb6f8c14f9d4d526ac238a3e, type: 2}
+  defense: {fileID: 11400000, guid: 1f489b8572b7f78488fa2bd7702f141e, type: 2}
+  aggroRange: 0
+  threatMultiplier: 3
+  hasResource: 1
+  resourceId: rage
+  resourceMax: 100
+  resourceStart: 0
+  resourceRegen: -2
+  resourceGainDealt: 0.4
+  resourceGainTaken: 0.6
+  resourceGainBlocked: 1.2

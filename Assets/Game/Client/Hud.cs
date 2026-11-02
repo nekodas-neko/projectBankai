@@ -84,13 +84,15 @@ namespace Game.Client
         const float StickRadius = 130f;
         const float KnobSize = 120f;
 
-        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, bool moveOnRight)
+        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton defense, ResourceBar resource, bool moveOnRight)
         {
             Root = root;
             SafeArea = safeArea;
             MoveStick = moveStick;
             Attack = attack;
             Special = special;
+            Defense = defense;
+            Resource = resource;
             MoveOnRight = moveOnRight;
         }
 
@@ -103,6 +105,10 @@ namespace Game.Client
         public ActionButton Attack { get; }
 
         public ActionButton Special { get; }
+
+        public ActionButton Defense { get; }
+
+        public ResourceBar Resource { get; }
 
         public bool MoveOnRight { get; }
 
@@ -134,7 +140,9 @@ namespace Game.Client
             BuildTextButton(safeArea, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -390f), callbacks.ToggleSession);
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
-            return new Hud(root, safeArea, stick, attack, special, moveOnRight);
+            var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 530f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);
+            var resource = ResourceBar.Build(safeArea);
+            return new Hud(root, safeArea, stick, attack, special, defense, resource, moveOnRight);
         }
 
         public static RectTransform NewRect(string name, Transform parent)

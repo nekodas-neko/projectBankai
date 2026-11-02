@@ -23,6 +23,7 @@ namespace Game.Client
         float punch;
         float hit;
         float clock;
+        bool blinking;
 
         CharacterVisual(Transform body, Renderer[] renderers, Animator animator, Vector3 baseScale, Vector3 basePosition, float bobHeight)
         {
@@ -144,6 +145,21 @@ namespace Game.Client
             var pulse = 1f + 0.28f * Mathf.Sin(Mathf.PI * (punch / PunchSeconds));
             var squash = hit > 0f ? 1f - 0.18f * Mathf.Sin(Mathf.PI * (hit / HitSeconds)) : 1f;
             Body.localScale = new Vector3(baseScale.x * pulse / squash, baseScale.y * pulse * squash, baseScale.z * pulse / squash);
+        }
+
+        public void SetBlink(bool on)
+        {
+            if (!on && !blinking)
+            {
+                return;
+            }
+
+            blinking = on;
+            var visible = !on || Mathf.FloorToInt(clock * 18f) % 2 == 0;
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].enabled = visible;
+            }
         }
 
         public void SetFlash(Material flash, bool on)

@@ -12,9 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f163ad990b858e444a427c5a66f8a819, type: 3}
   m_Name: fireball
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
+  kind: 0
   cooldown: 3
   range: 18
   radius: 1
   damage: 30
+  windup: 0
+  resourceCost: 35
+  duration: 0
+  dashDistance: 0
+  reduction: 0
+  absorb: 0
+  perfectWindow: 0
+  heal: 0
+  taunt: 0
+  rider: {fileID: 0}
   castEffect: {fileID: 5559672738365469740, guid: 995bd20bcc1f6d7459ab2ea5e7141ce8, type: 3}
   hitEffect: {fileID: 587756144387011988, guid: 6f4a075f9c0af374e89b9ba89f5348a4, type: 3}

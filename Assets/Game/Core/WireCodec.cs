@@ -10,8 +10,8 @@ namespace Game.Core
 
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 2;
-        const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 16;
-        const int EventSize = 4 + 4 + 4 + 1 + 4;
+        const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
+        const int EventSize = 4 + 4 + 4 + 1 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 8;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
@@ -42,7 +42,7 @@ namespace Game.Core
             var type = reader.ReadByte();
             var aim = ReadVec2(reader);
 
-            if (type < (byte)CommandType.Move || type > (byte)CommandType.Skill3 || !aim.IsFinite)
+            if (type < (byte)CommandType.Move || type > (byte)CommandType.Defend || !aim.IsFinite)
             {
                 return false;
             }
@@ -76,6 +76,11 @@ namespace Game.Core
                 writer.Write(e.Cooldown1);
                 writer.Write(e.Cooldown2);
                 writer.Write(e.Cooldown3);
+                writer.Write(e.Cooldown4);
+                writer.Write(e.Resource);
+                writer.Write(e.MaxResource);
+                writer.Write(e.ResourceId);
+                writer.Write(e.Effects);
             }
 
             writer.Write((ushort)snapshot.Events.Count);
@@ -87,6 +92,7 @@ namespace Game.Core
                 writer.Write(ev.Amount);
                 writer.Write(ev.Slot);
                 writer.Write(ev.Ability);
+                writer.Write((byte)ev.Outcome);
             }
 
             writer.Write((ushort)snapshot.Uses.Count);
@@ -138,6 +144,11 @@ namespace Game.Core
                     Cooldown1 = reader.ReadSingle(),
                     Cooldown2 = reader.ReadSingle(),
                     Cooldown3 = reader.ReadSingle(),
+                    Cooldown4 = reader.ReadSingle(),
+                    Resource = reader.ReadSingle(),
+                    MaxResource = reader.ReadSingle(),
+                    ResourceId = reader.ReadInt32(),
+                    Effects = reader.ReadByte(),
                 });
             }
 
@@ -156,6 +167,7 @@ namespace Game.Core
                     Amount = reader.ReadSingle(),
                     Slot = reader.ReadByte(),
                     Ability = reader.ReadInt32(),
+                    Outcome = (HitOutcome)reader.ReadByte(),
                 });
             }
 

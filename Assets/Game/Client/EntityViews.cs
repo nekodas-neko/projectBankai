@@ -20,6 +20,8 @@ namespace Game.Client
         public Material flash;
         public Material barBackground;
         public Material aim;
+        public Material telegraph;
+        public Material telegraphFill;
     }
 
     public sealed class EntityViews
@@ -159,6 +161,7 @@ namespace Game.Client
             view.Speed = Mathf.Lerp(view.Speed, moved, 1f - Mathf.Exp(-SpeedSmoothing * dt));
 
             var alive = state.Health > 0f;
+            view.Visual.SetBlink(alive && (state.Effects & EffectFlags.Invulnerable) != 0);
             view.Visual.SetFacing(new Vector2(state.Facing.X, state.Facing.Y));
             view.Visual.Tick(dt, view.Speed, !alive);
 
@@ -171,6 +174,9 @@ namespace Game.Client
             }
 
             view.Ring.gameObject.SetActive(alive);
+            var guarded = (state.Effects & (EffectFlags.Blocking | EffectFlags.Shielded)) != 0;
+            var ringScale = view.RingSize * (guarded ? 1.45f : 1f);
+            view.Ring.localScale = new Vector3(ringScale, 0.02f, ringScale);
             view.BarBackground.gameObject.SetActive(alive);
             view.BarFill.gameObject.SetActive(alive);
             var fraction = state.MaxHealth > 0f ? Mathf.Clamp01(state.Health / state.MaxHealth) : 0f;
@@ -204,7 +210,7 @@ namespace Game.Client
             var fill = CharacterVisual.Part(assets.cube, root, "BarFill");
             fill.GetComponent<Renderer>().sharedMaterial = teamMaterial;
 
-            return new View { Root = root, Visual = visual, Ring = ring, BarBackground = background, BarFill = fill, BarHeight = barHeight };
+            return new View { Root = root, Visual = visual, Ring = ring, RingSize = ringSize, BarBackground = background, BarFill = fill, BarHeight = barHeight };
         }
 
         sealed class View
@@ -212,6 +218,7 @@ namespace Game.Client
             public Transform Root;
             public CharacterVisual Visual;
             public Transform Ring;
+            public float RingSize;
             public Transform BarBackground;
             public Transform BarFill;
             public float BarHeight;

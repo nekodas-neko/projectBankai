@@ -36,6 +36,14 @@ namespace Game.Client
             this.label = label;
         }
 
+        public void SetLabel(string text)
+        {
+            if (label.text != text)
+            {
+                label.text = text;
+            }
+        }
+
         public void SetCooldown(float fraction)
         {
             fraction = Mathf.Clamp01(fraction);

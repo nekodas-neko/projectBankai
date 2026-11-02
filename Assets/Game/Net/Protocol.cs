@@ -29,7 +29,7 @@ namespace Game.Net
 
         const byte MagicA = 0xB4;
         const byte MagicB = 0x4B;
-        const byte Version = 1;
+        const byte Version = 2;
 
         public static bool TryReadHeader(byte[] buffer, int length, out byte type)
         {

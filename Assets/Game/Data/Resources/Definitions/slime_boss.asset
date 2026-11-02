@@ -14,7 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
   role: 0
   maxHealth: 800
-  moveSpeed: 0
+  moveSpeed: 2.2
   power: 1
   autoAttack: {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
   skills: []
+  defense: {fileID: 0}
+  aggroRange: 22
+  hasResource: 0
+  resourceId: 
+  resourceMax: 100
+  resourceStart: 0
+  resourceRegen: 0
+  resourceGainDealt: 0
+  resourceGainTaken: 0
+  resourceGainBlocked: 0

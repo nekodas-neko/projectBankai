@@ -36,7 +36,8 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: ta
 ## Game design decisions
 - Dungeons are the only game mode for now. No PvP or open-world entries in the hub.
 - Controls, two hands: a floating move stick (left by default after Delan tried both on an S25; the "Swap sides" button flips it; `HudSettings.MoveOnRight`), and on the other side an attack button, one special skill and a dodge/block button. Attack and special: tap fires along facing or at the nearest enemy, drag aims, release fires.
-- Defensive skills are class-specific and are the only way besides movement to avoid damage: DPS dodge, tank block, healer conversion shield (issue 19). Classes get their own resource (issue 20). Several skills on one button with priority is an idea to try later (issue 21).
+- Defensive skills are class-specific and are the only way besides movement to avoid damage: DPS dodge (dash, brief invulnerability, counter rider on a well-timed dodge), tank block, healer conversion shield. They are ability kinds in `GameServer`, bound to `CommandType.Defend` and the fourth button. Classes get their own resource (mage focus, tank rage, healer mana), defined as data on the class. Several skills on one button with priority is an idea to try later (issue 21).
+- Attacks can have a windup: the hit lands that long after it starts, from where it started, and every client draws the warning area. Enemies with an aggro range chase and attack on their own.
 
 ## Layout
 - `Assets/Game/Core` — `Game.Core` (no engine references)

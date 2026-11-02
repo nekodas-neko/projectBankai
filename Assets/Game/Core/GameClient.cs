@@ -76,6 +76,11 @@ namespace Game.Core
             Send((CommandType)((int)CommandType.Attack + slot), aim);
         }
 
+        public void Defend(Vec2 direction)
+        {
+            Send(CommandType.Defend, direction);
+        }
+
         public void Update(float dt)
         {
             accumulator += dt;
