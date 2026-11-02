@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: shield_bash
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   kind: 0
+  shape: 0
+  angle: 0
   cooldown: 6
   range: 3.5
   radius: 1.8

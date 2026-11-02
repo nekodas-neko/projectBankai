@@ -17,9 +17,39 @@ MonoBehaviour:
   moveSpeed: 2.2
   power: 1
   autoAttack: {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
-  skills: []
+  skills:
+  - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+  - {fileID: 11400000, guid: 516de0c70c998724599f11690487ed02, type: 2}
   defense: {fileID: 0}
   aggroRange: 22
+  threatMultiplier: 1
+  phases:
+  - healthBelow: 1
+    attacks:
+    - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+    - {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
+    speedScale: 1
+    spawnClass: {fileID: 0}
+    spawnCount: 0
+    spawnSkin: 
+  - healthBelow: 0.65
+    attacks:
+    - {fileID: 11400000, guid: 516de0c70c998724599f11690487ed02, type: 2}
+    - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+    - {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
+    speedScale: 1
+    spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    spawnCount: 2
+    spawnSkin: slime_green
+  - healthBelow: 0.3
+    attacks:
+    - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+    - {fileID: 11400000, guid: 516de0c70c998724599f11690487ed02, type: 2}
+    - {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
+    speedScale: 1.5
+    spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    spawnCount: 3
+    spawnSkin: slime_green
   hasResource: 0
   resourceId: 
   resourceMax: 100

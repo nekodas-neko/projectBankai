@@ -35,6 +35,16 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': heal and taunt must not be negative");
                 }
 
+                if (ability.Shape == AbilityShape.Circle && ability.Radius <= 0f)
+                {
+                    errors.Add($"Ability '{ability.Id}': a circle needs a radius");
+                }
+
+                if (ability.Shape == AbilityShape.Cone && (ability.Angle <= 0f || ability.Angle > 360f))
+                {
+                    errors.Add($"Ability '{ability.Id}': a cone needs an angle between 0 and 360");
+                }
+
                 if (ability.Windup < 0f)
                 {
                     errors.Add($"Ability '{ability.Id}': windup must not be negative");
@@ -101,9 +111,44 @@ namespace Game.Core
                 }
 
                 ValidateResource(def, abilities, errors);
+                ValidatePhases(def, classes, abilities, errors);
             }
 
             return errors;
+        }
+
+        static void ValidatePhases(ClassDef def, Registry<ClassDef> classes, Registry<AbilityDef> abilities, List<string> errors)
+        {
+            var previous = float.PositiveInfinity;
+            for (var i = 0; i < def.Phases.Length; i++)
+            {
+                var phase = def.Phases[i];
+                if (phase.HealthBelow <= 0f || phase.HealthBelow > 1f || phase.HealthBelow >= previous)
+                {
+                    errors.Add($"Class '{def.Id}': phase {i} health threshold must be between 0 and 1 and lower than the phase before it");
+                }
+
+                previous = phase.HealthBelow;
+
+                if (phase.Attacks.Length == 0 || phase.SpeedScale <= 0f || phase.SpawnCount < 0)
+                {
+                    errors.Add($"Class '{def.Id}': phase {i} needs attacks, a positive speed scale and a non-negative spawn count");
+                }
+
+                foreach (var attack in phase.Attacks)
+                {
+                    var owned = attack == def.AutoAttack || System.Array.IndexOf(def.Skills, attack) >= 0;
+                    if (!owned || !abilities.TryGet(attack, out _))
+                    {
+                        errors.Add($"Class '{def.Id}': phase {i} uses '{attack}', which is not one of its attacks");
+                    }
+                }
+
+                if (phase.SpawnCount > 0 && !classes.TryGet(phase.SpawnClass, out _))
+                {
+                    errors.Add($"Class '{def.Id}': phase {i} spawns unknown class '{phase.SpawnClass}'");
+                }
+            }
         }
 
         static void ValidateKind(AbilityDef ability, List<string> errors)

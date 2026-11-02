@@ -12,6 +12,8 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "mend", Cooldown = 1f, Range = 8f, Radius = 1.5f, Heal = 20f });
             registry.Add(new AbilityDef { Id = "pulse", Cooldown = 1f, Range = 6f, Radius = 2f, Damage = 10f, Heal = 15f });
             registry.Add(new AbilityDef { Id = "provoke", Cooldown = 1f, Range = 5f, Radius = 2f, Damage = 5f, Taunt = 3f });
+            registry.Add(new AbilityDef { Id = "nova", Shape = AbilityShape.Circle, Cooldown = 2f, Range = 4f, Radius = 4f, Damage = 10f, Windup = 0.3f });
+            registry.Add(new AbilityDef { Id = "wave", Shape = AbilityShape.Cone, Cooldown = 2f, Range = 8f, Radius = 0f, Angle = 90f, Damage = 10f });
             registry.Add(new AbilityDef { Id = "jab", Cooldown = 0.1f, Range = 8f, Radius = 1f, Damage = 10f });
             registry.Add(new AbilityDef { Id = "heavy", Cooldown = 0.1f, Range = 8f, Radius = 1f, Damage = 10f, ResourceCost = 50f });
             registry.Add(new AbilityDef { Id = "smash", Cooldown = 2f, Range = 3f, Radius = 2f, Damage = 20f, Windup = 0.5f });
@@ -84,6 +86,29 @@ namespace Game.Core.Tests
                 AutoAttack = "basic",
                 Skills = new[] { "provoke" },
                 ThreatMultiplier = 3f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "shaman",
+                Role = Role.Dps,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
+                AutoAttack = "nova",
+                Skills = new[] { "wave" },
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "boss",
+                Role = Role.None,
+                Stats = new Stats { MaxHealth = 1000f, MoveSpeed = 3f, Power = 1f },
+                AutoAttack = "basic",
+                Skills = new[] { "nova", "wave" },
+                AggroRange = 30f,
+                Phases = new[]
+                {
+                    new PhaseDef { HealthBelow = 1f, Attacks = new[] { "basic" } },
+                    new PhaseDef { HealthBelow = 0.6f, Attacks = new[] { "nova", "basic" }, SpawnClass = "dummy", SpawnCount = 2 },
+                    new PhaseDef { HealthBelow = 0.3f, Attacks = new[] { "wave", "nova" }, SpeedScale = 2f, SpawnClass = "dummy", SpawnCount = 1 },
+                },
             });
             registry.Add(new ClassDef
             {

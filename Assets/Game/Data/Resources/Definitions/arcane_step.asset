@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: arcane_step
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   kind: 1
+  shape: 0
+  angle: 0
   cooldown: 3.5
   range: 1
   radius: 0

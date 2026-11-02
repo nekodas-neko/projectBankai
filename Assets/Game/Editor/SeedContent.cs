@@ -39,6 +39,11 @@ namespace Game.Editor
             var fireball = Ability("fireball", cooldown: 3f, range: 18f, radius: 1f, damage: 30f);
             var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 8f);
 
+            var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 20f);
+            var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 14f);
+            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; });
+            Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
+
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
             var arcaneStep = Ability("arcane_step", cooldown: 3.5f, range: 1f, radius: 0f, damage: 0f);
             var shieldWall = Ability("shield_wall", cooldown: 5f, range: 1f, radius: 0f, damage: 0f);
@@ -94,6 +99,18 @@ namespace Game.Editor
                 c.resourceGainDealt = 0.8f;
             });
             Tune("tank", c => c.threatMultiplier <= 1f, c => c.threatMultiplier = 3f);
+            Tune("slime_boss", c => c.skills.Length == 0, c => c.skills = new[] { kingSmash, kingWave });
+            Tune("slime_boss", c => c.phases.Length == 0, c =>
+            {
+                var slime = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
+                var slam = AssetDatabase.LoadAssetAtPath<AbilityAsset>($"{DefinitionsRoot}/slime_slam.asset");
+                c.phases = new[]
+                {
+                    new PhaseData { healthBelow = 1f, attacks = new[] { kingSmash, slam } },
+                    new PhaseData { healthBelow = 0.65f, attacks = new[] { kingWave, kingSmash, slam }, spawnClass = slime, spawnCount = 2, spawnSkin = "slime_green" },
+                    new PhaseData { healthBelow = 0.3f, attacks = new[] { kingSmash, kingWave, slam }, speedScale = 1.5f, spawnClass = slime, spawnCount = 3, spawnSkin = "slime_green" },
+                };
+            });
             Tune("slime", c => c.aggroRange <= 0f, c => { c.aggroRange = 12f; c.moveSpeed = 2.8f; });
             Tune("slime_boss", c => c.aggroRange <= 0f, c => { c.aggroRange = 22f; c.moveSpeed = 2.2f; });
 
@@ -139,6 +156,8 @@ namespace Game.Editor
             Link("arcane_bolt", arcane, hitArcane);
             Link("fireball", fire, hitFire);
             Link("slime_slam", slime, hitSlime);
+            Link("king_smash", slime, hitSlime);
+            Link("king_wave", slime, hitSlime);
             Link("arcane_step", arcane, hitSpark);
             Link("arcane_counter", fire, hitArcane);
             Link("shield_wall", shield, hitSpark);
@@ -167,9 +186,11 @@ namespace Game.Editor
                 flash = SeedMaterial($"{MaterialsRoot}/Flash.mat", Color.white),
                 barBackground = SeedMaterial($"{MaterialsRoot}/BarBackground.mat", new Color(0.1f, 0.1f, 0.12f)),
                 aim = SeedMaterial($"{MaterialsRoot}/Aim.mat", new Color(0.78f, 0.88f, 1f)),
-                telegraph = SeedMaterial($"{MaterialsRoot}/Telegraph.mat", new Color(0.45f, 0.1f, 0.1f), "Universal Render Pipeline/Unlit"),
-                telegraphFill = SeedMaterial($"{MaterialsRoot}/TelegraphFill.mat", new Color(0.95f, 0.25f, 0.15f), "Universal Render Pipeline/Unlit"),
+                telegraph = SeedMaterial($"{MaterialsRoot}/Telegraph.mat", new Color(0.55f, 0.2f, 0.62f), "Universal Render Pipeline/Unlit"),
+                telegraphFill = SeedMaterial($"{MaterialsRoot}/TelegraphFill.mat", new Color(1f, 0.95f, 0.35f), "Universal Render Pipeline/Unlit"),
             };
+            SetColor(assets.telegraph, new Color(0.55f, 0.2f, 0.62f));
+            SetColor(assets.telegraphFill, new Color(1f, 0.95f, 0.35f));
             var ground = SeedMaterial($"{MaterialsRoot}/Ground.mat", new Color(0.23f, 0.25f, 0.29f));
             var rim = SeedMaterial($"{MaterialsRoot}/Rim.mat", new Color(0.55f, 0.58f, 0.64f));
 
@@ -210,6 +231,12 @@ namespace Game.Editor
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, scenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(scenePath, true) };
             AssetDatabase.SaveAssets();
+        }
+
+        static void SetColor(Material material, Color color)
+        {
+            material.SetColor("_BaseColor", color);
+            EditorUtility.SetDirty(material);
         }
 
         static Mesh PrimitiveMesh(PrimitiveType type)

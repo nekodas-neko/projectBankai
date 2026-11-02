@@ -7,6 +7,8 @@ namespace Game.Client
     public class AbilityAsset : DefinitionAsset
     {
         public AbilityKind kind = AbilityKind.Attack;
+        public AbilityShape shape = AbilityShape.Line;
+        [Range(0f, 360f)] public float angle;
         [Min(0f)] public float cooldown = 1f;
         [Min(0.1f)] public float range = 3f;
         [Min(0f)] public float radius = 0.5f;
@@ -30,6 +32,8 @@ namespace Game.Client
             {
                 Id = Id,
                 Kind = kind,
+                Shape = shape,
+                Angle = angle,
                 Cooldown = cooldown,
                 Range = range,
                 Radius = radius,

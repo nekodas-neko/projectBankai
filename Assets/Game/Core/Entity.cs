@@ -64,6 +64,7 @@ namespace Game.Core
         public float Winding;
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
+        public int Phase = -1;
         public EntityId ForcedTarget;
         public float ForcedSeconds;
         public readonly List<StatusEffect> Statuses = new List<StatusEffect>();
@@ -116,6 +117,7 @@ namespace Game.Core
             RecentHits.Clear();
             Threat.Clear();
             ForcedSeconds = 0f;
+            Phase = -1;
             System.Array.Clear(Cooldowns, 0, Cooldowns.Length);
             DashSpeed = 0f;
             PerfectRemaining = 0f;
@@ -174,6 +176,19 @@ namespace Game.Core
             }
 
             return 0f;
+        }
+
+        public int SlotOf(string abilityId)
+        {
+            for (var i = 0; i < AbilityIds.Length; i++)
+            {
+                if (AbilityIds[i] == abilityId)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         public float TopThreat()

@@ -354,15 +354,7 @@ namespace Game.Core
                     continue;
                 }
 
-                var offset = other.Position - origin;
-                var along = Vec2.Dot(offset, direction);
-                if (along < 0f || along > ability.Range)
-                {
-                    continue;
-                }
-
-                var across = (offset - direction * along).Length;
-                if (across > ability.Radius)
+                if (!InArea(ability, origin, direction, other.Position))
                 {
                     continue;
                 }
@@ -381,6 +373,42 @@ namespace Game.Core
                     other.RaiseThreatTo(user.Id, other.TopThreat() + 1f);
                 }
             }
+        }
+
+        static bool InArea(AbilityDef ability, Vec2 origin, Vec2 direction, Vec2 point)
+        {
+            var offset = point - origin;
+            switch (ability.Shape)
+            {
+                case AbilityShape.Circle:
+                    return offset.Length <= ability.Radius;
+                case AbilityShape.Cone:
+                    var distance = offset.Length;
+                    if (distance > ability.Range)
+                    {
+                        return false;
+                    }
+
+                    if (distance < 1e-4f)
+                    {
+                        return true;
+                    }
+
+                    return Vec2.Dot(offset * (1f / distance), direction) >= MathF.Cos(ability.Angle * 0.5f * (MathF.PI / 180f));
+                default:
+                    var along = Vec2.Dot(offset, direction);
+                    if (along < 0f || along > ability.Range)
+                    {
+                        return false;
+                    }
+
+                    return (offset - direction * along).Length <= ability.Radius;
+            }
+        }
+
+        static float Reach(AbilityDef ability)
+        {
+            return ability.Shape == AbilityShape.Circle ? ability.Radius : ability.Range;
         }
 
         void ApplyHeal(Entity source, Entity target, float amount, int slot, int abilityId)
@@ -614,7 +642,12 @@ namespace Game.Core
                 return;
             }
 
-            if (npc.Winding > 0f || !abilities.TryGet(npc.AbilityIds[0], out var attack))
+            if (def.Phases.Length > 0)
+            {
+                EnterPhases(npc, def);
+            }
+
+            if (npc.Winding > 0f)
             {
                 return;
             }
@@ -630,17 +663,67 @@ namespace Game.Core
             var direction = distance > 1e-4f ? offset * (1f / distance) : npc.Facing;
             npc.Facing = direction;
 
-            if (distance <= attack.Range * 0.85f)
+            var phase = npc.Phase >= 0 && npc.Phase < def.Phases.Length ? def.Phases[npc.Phase] : null;
+            var stopAt = float.PositiveInfinity;
+            var count = phase != null ? phase.Attacks.Length : 1;
+            for (var i = 0; i < count; i++)
             {
-                if (npc.Cooldowns[0] <= 0f)
+                var attackId = phase != null ? phase.Attacks[i] : def.AutoAttack;
+                var slot = npc.SlotOf(attackId);
+                if (slot < 0 || !abilities.TryGet(attackId, out var attack))
                 {
-                    UseAbility(npc, 0, direction);
+                    continue;
                 }
 
+                var reach = Reach(attack) * 0.85f;
+                stopAt = MathF.Min(stopAt, reach);
+                if (npc.Cooldowns[slot] <= 0f && distance <= reach)
+                {
+                    UseAbility(npc, slot, direction);
+                    return;
+                }
+            }
+
+            if (distance > stopAt)
+            {
+                var speed = npc.Stats.MoveSpeed * (phase != null ? phase.SpeedScale : 1f);
+                npc.Position = Movement.Step(npc.Position, direction, speed, config.Simulation);
+            }
+        }
+
+        void EnterPhases(Entity npc, ClassDef def)
+        {
+            var fraction = npc.Health / npc.Stats.MaxHealth;
+            var reached = npc.Phase;
+            for (var i = 0; i < def.Phases.Length; i++)
+            {
+                if (fraction <= def.Phases[i].HealthBelow)
+                {
+                    reached = i;
+                }
+            }
+
+            while (npc.Phase < reached)
+            {
+                npc.Phase++;
+                SpawnPhaseMinions(npc, def.Phases[npc.Phase]);
+            }
+        }
+
+        void SpawnPhaseMinions(Entity boss, PhaseDef phase)
+        {
+            if (phase.SpawnCount <= 0 || string.IsNullOrEmpty(phase.SpawnClass))
+            {
                 return;
             }
 
-            npc.Position = Movement.Step(npc.Position, direction, npc.Stats.MoveSpeed, config.Simulation);
+            var appearance = StableId.From(phase.SpawnSkin);
+            for (var i = 0; i < phase.SpawnCount; i++)
+            {
+                var angle = (float)i / phase.SpawnCount * MathF.PI * 2f;
+                var spot = boss.Position + new Vec2(MathF.Cos(angle), MathF.Sin(angle)) * 3.5f;
+                SpawnNpc(phase.SpawnClass, boss.Team, spot.ClampLength(config.Simulation.ArenaRadius), appearance);
+            }
         }
 
         static float Clamp01(float value)
