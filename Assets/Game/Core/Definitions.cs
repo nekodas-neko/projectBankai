@@ -101,6 +101,7 @@ namespace Game.Core
         public ResourceDef Resource { get; set; }
         public float AggroRange { get; set; }
         public float ThreatMultiplier { get; set; } = 1f;
+        public float BodyRadius { get; set; }
         public PhaseDef[] Phases { get; set; } = Array.Empty<PhaseDef>();
     }
 

@@ -100,6 +100,11 @@ namespace Game.Core
                     }
                 }
 
+                if (def.BodyRadius < 0f)
+                {
+                    errors.Add($"Class '{def.Id}': body radius must not be negative");
+                }
+
                 if (def.ThreatMultiplier < 0f)
                 {
                     errors.Add($"Class '{def.Id}': threat multiplier must not be negative");

@@ -27,6 +27,7 @@ namespace Game.Client
         public AbilityAsset defense;
         [Min(0f)] public float aggroRange;
         [Min(0f)] public float threatMultiplier = 1f;
+        [Min(0f)] public float bodyRadius;
         public PhaseData[] phases = new PhaseData[0];
         public bool hasResource;
         public string resourceId = "";
@@ -49,6 +50,7 @@ namespace Game.Client
                 Defense = defense != null ? defense.Id : null,
                 AggroRange = aggroRange,
                 ThreatMultiplier = threatMultiplier,
+                BodyRadius = bodyRadius,
                 Phases = phases.Select(phase => new PhaseDef
                 {
                     HealthBelow = phase.healthBelow,

@@ -20,6 +20,9 @@ MonoBehaviour:
   skills: []
   defense: {fileID: 0}
   aggroRange: 12
+  threatMultiplier: 1
+  bodyRadius: 0.7
+  phases: []
   hasResource: 0
   resourceId: 
   resourceMax: 100

@@ -21,6 +21,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 971c79afea78ac549a4a289aac689271, type: 2}
   defense: {fileID: 11400000, guid: 6ff79eb3868adf3478639e90e51e3b2b, type: 2}
   aggroRange: 0
+  threatMultiplier: 1
+  bodyRadius: 0.5
+  phases: []
   hasResource: 1
   resourceId: mana
   resourceMax: 100

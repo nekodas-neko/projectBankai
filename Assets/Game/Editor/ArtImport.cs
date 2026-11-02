@@ -375,7 +375,7 @@ namespace Game.Editor
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(model, parent);
             instance.transform.localPosition = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
             instance.transform.localRotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
-            instance.transform.localScale = Vector3.one * scale;
+            instance.transform.localScale = Vector3.one * (model.name.StartsWith("Rock_") ? scale * 0.4f : scale);
             GameObjectUtility.SetStaticEditorFlags(instance, StaticEditorFlags.BatchingStatic);
         }
 

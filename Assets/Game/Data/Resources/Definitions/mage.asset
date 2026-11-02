@@ -21,6 +21,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f7c6fa52e3e51034d94395b1d147d6b5, type: 2}
   defense: {fileID: 11400000, guid: 119348fd6f1b911448c656fc25c5cc33, type: 2}
   aggroRange: 0
+  threatMultiplier: 1
+  bodyRadius: 0.5
+  phases: []
   hasResource: 1
   resourceId: focus
   resourceMax: 100

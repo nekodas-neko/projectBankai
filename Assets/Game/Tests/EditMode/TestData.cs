@@ -112,6 +112,22 @@ namespace Game.Core.Tests
             });
             registry.Add(new ClassDef
             {
+                Id = "giant",
+                Role = Role.None,
+                Stats = new Stats { MaxHealth = 500f, MoveSpeed = 3f, Power = 1f },
+                AutoAttack = "basic",
+                AggroRange = 30f,
+                BodyRadius = 1.8f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "bulky",
+                Role = Role.None,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 0f, Power = 1f },
+                BodyRadius = 0.5f,
+            });
+            registry.Add(new ClassDef
+            {
                 Id = "brute",
                 Role = Role.None,
                 Stats = new Stats { MaxHealth = 500f, MoveSpeed = 3f, Power = 1f },
