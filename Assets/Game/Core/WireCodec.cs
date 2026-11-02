@@ -9,7 +9,7 @@ namespace Game.Core
         public const byte SnapshotMessage = 2;
 
         const int CommandSize = 1 + 4 + 1 + 8;
-        const int SnapshotHeaderSize = 1 + 4 + 4 + 2;
+        const int SnapshotHeaderSize = 1 + 4 + 4 + 1 + 1 + 1 + 4 + 2;
         const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 8;
@@ -42,7 +42,7 @@ namespace Game.Core
             var type = reader.ReadByte();
             var aim = ReadVec2(reader);
 
-            if (type < (byte)CommandType.Move || type > (byte)CommandType.Defend || !aim.IsFinite)
+            if (type < (byte)CommandType.Move || type > (byte)CommandType.Restart || !aim.IsFinite)
             {
                 return false;
             }
@@ -59,6 +59,10 @@ namespace Game.Core
             writer.Write(SnapshotMessage);
             writer.Write(snapshot.Tick);
             writer.Write(snapshot.AckedSequence);
+            writer.Write(snapshot.Room);
+            writer.Write(snapshot.RoomCount);
+            writer.Write((byte)snapshot.Dungeon);
+            writer.Write(snapshot.DungeonTimer);
             writer.Write((ushort)snapshot.Entities.Count);
             for (var i = 0; i < snapshot.Entities.Count; i++)
             {
@@ -119,7 +123,15 @@ namespace Game.Core
             using var stream = new MemoryStream(data);
             using var reader = new BinaryReader(stream);
             reader.ReadByte();
-            var result = new Snapshot { Tick = reader.ReadInt32(), AckedSequence = reader.ReadInt32() };
+            var result = new Snapshot
+            {
+                Tick = reader.ReadInt32(),
+                AckedSequence = reader.ReadInt32(),
+                Room = reader.ReadByte(),
+                RoomCount = reader.ReadByte(),
+                Dungeon = (DungeonPhase)reader.ReadByte(),
+                DungeonTimer = reader.ReadSingle(),
+            };
 
             int entityCount = reader.ReadUInt16();
             if (entityCount > MaxEntities || Remaining(stream) < entityCount * EntitySize + 4)

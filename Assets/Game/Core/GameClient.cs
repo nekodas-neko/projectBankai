@@ -76,6 +76,11 @@ namespace Game.Core
             Send((CommandType)((int)CommandType.Attack + slot), aim);
         }
 
+        public void Restart()
+        {
+            Send(CommandType.Restart, Vec2.Zero);
+        }
+
         public void Defend(Vec2 direction)
         {
             Send(CommandType.Defend, direction);

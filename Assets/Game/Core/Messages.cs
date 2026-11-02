@@ -10,6 +10,7 @@ namespace Game.Core
         Skill2 = 4,
         Skill3 = 5,
         Defend = 6,
+        Restart = 7,
     }
 
     public readonly struct Command
@@ -29,7 +30,7 @@ namespace Game.Core
 
         public Command WithPlayer(PlayerId player) => new Command(player, Sequence, Type, Aim);
 
-        public int AbilitySlot => Type == CommandType.Move ? -1 : (int)Type - (int)CommandType.Attack;
+        public int AbilitySlot => Type == CommandType.Move || Type == CommandType.Restart ? -1 : (int)Type - (int)CommandType.Attack;
     }
 
     public struct EntityState
@@ -120,6 +121,10 @@ namespace Game.Core
     {
         public int Tick;
         public int AckedSequence;
+        public byte Room;
+        public byte RoomCount;
+        public DungeonPhase Dungeon;
+        public float DungeonTimer;
         public readonly List<EntityState> Entities = new List<EntityState>();
         public readonly List<DamageEvent> Events = new List<DamageEvent>();
         public readonly List<UseEvent> Uses = new List<UseEvent>();

@@ -88,6 +88,36 @@ namespace Game.Core
         public string SpawnSkin { get; set; }
     }
 
+    public sealed class SpawnDef
+    {
+        public string Class { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public string Skin { get; set; }
+    }
+
+    public sealed class RoomDef
+    {
+        public string Name { get; set; }
+        public SpawnDef[] Spawns { get; set; } = Array.Empty<SpawnDef>();
+    }
+
+    public sealed class DungeonDef : IDefinition
+    {
+        public string Id { get; set; }
+        public float ClearDelaySeconds { get; set; } = 3f;
+        public RoomDef[] Rooms { get; set; } = Array.Empty<RoomDef>();
+    }
+
+    public enum DungeonPhase : byte
+    {
+        None = 0,
+        Fighting = 1,
+        Cleared = 2,
+        Victory = 3,
+        Defeat = 4,
+    }
+
     public sealed class ClassDef : IDefinition
     {
         public const int SkillSlots = 3;

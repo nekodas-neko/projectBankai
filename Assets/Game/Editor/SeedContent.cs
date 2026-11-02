@@ -19,6 +19,7 @@ namespace Game.Editor
             SeedDefinitions();
             SeedCosmetics();
             ArtImport.ImportAll();
+            SeedDungeon();
             SeedArena();
         }
 
@@ -175,6 +176,58 @@ namespace Game.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        [MenuItem("Game/Seed slime cave dungeon")]
+        public static void SeedDungeon()
+        {
+            var path = $"{DefinitionsRoot}/slime_cave.asset";
+            if (AssetDatabase.LoadAssetAtPath<DungeonAsset>(path) != null)
+            {
+                return;
+            }
+
+            var slime = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
+            var boss = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime_boss.asset");
+            var asset = ScriptableObject.CreateInstance<DungeonAsset>();
+            asset.clearDelaySeconds = 3f;
+            asset.rooms = new[]
+            {
+                new RoomData
+                {
+                    name = "Slime pit",
+                    spawns = new[]
+                    {
+                        Spawn(slime, 0f, 8f, "slime_green"),
+                        Spawn(slime, -8f, 4f, "slime_green"),
+                        Spawn(slime, 7f, -2f, "slime_green"),
+                    },
+                },
+                new RoomData
+                {
+                    name = "The swarm",
+                    spawns = new[]
+                    {
+                        Spawn(slime, 0f, 10f, "slime_green"),
+                        Spawn(slime, -8f, 7f, "slime_green"),
+                        Spawn(slime, 8f, 7f, "slime_green"),
+                        Spawn(slime, -10f, -1f, "slime_green"),
+                        Spawn(slime, 10f, -1f, "slime_green"),
+                    },
+                },
+                new RoomData
+                {
+                    name = "King's hall",
+                    spawns = new[] { Spawn(boss, 0f, 15f, "boss_greendemon") },
+                },
+            };
+            AssetDatabase.CreateAsset(asset, path);
+            AssetDatabase.SaveAssets();
+        }
+
+        static SpawnData Spawn(ClassAsset spawnClass, float x, float y, string skin)
+        {
+            return new SpawnData { spawnClass = spawnClass, position = new Vector2(x, y), skin = skin };
         }
 
         [MenuItem("Game/Seed arena scene")]

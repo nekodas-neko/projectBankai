@@ -77,6 +77,7 @@ namespace Game.Client
         public Action CycleSkin;
         public Action CycleClass;
         public Action ToggleSession;
+        public Action Restart;
     }
 
     public sealed class Hud
@@ -84,7 +85,7 @@ namespace Game.Client
         const float StickRadius = 130f;
         const float KnobSize = 120f;
 
-        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton defense, ResourceBar resource, bool moveOnRight)
+        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton defense, ResourceBar resource, DungeonBanner banner, bool moveOnRight)
         {
             Root = root;
             SafeArea = safeArea;
@@ -93,6 +94,7 @@ namespace Game.Client
             Special = special;
             Defense = defense;
             Resource = resource;
+            Banner = banner;
             MoveOnRight = moveOnRight;
         }
 
@@ -109,6 +111,8 @@ namespace Game.Client
         public ActionButton Defense { get; }
 
         public ResourceBar Resource { get; }
+
+        public DungeonBanner Banner { get; }
 
         public bool MoveOnRight { get; }
 
@@ -142,7 +146,8 @@ namespace Game.Client
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
             var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 530f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);
             var resource = ResourceBar.Build(safeArea);
-            return new Hud(root, safeArea, stick, attack, special, defense, resource, moveOnRight);
+            var banner = DungeonBanner.Build(safeArea, callbacks.Restart);
+            return new Hud(root, safeArea, stick, attack, special, defense, resource, banner, moveOnRight);
         }
 
         public static RectTransform NewRect(string name, Transform parent)

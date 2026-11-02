@@ -34,7 +34,7 @@ namespace Game.Client
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            rect.sizeDelta = new Vector2(420f, 44f);
+            rect.sizeDelta = new Vector2(320f, 44f);
             rect.anchoredPosition = new Vector2(40f, -60f);
 
             var fill = Hud.NewImage("Fill", rect, null, Color.white, false);

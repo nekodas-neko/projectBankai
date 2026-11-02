@@ -24,6 +24,18 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheSlimeCaveLoadsWithThreeRoomsEndingInTheBoss()
+        {
+            DefinitionLoader.Load(out _, out _, out var dungeons);
+
+            Assert.IsTrue(dungeons.TryGet("slime_cave", out var cave));
+            Assert.AreEqual(3, cave.Rooms.Length);
+            Assert.AreEqual(3, cave.Rooms[0].Spawns.Length);
+            Assert.AreEqual(5, cave.Rooms[1].Spawns.Length);
+            Assert.AreEqual("slime_boss", cave.Rooms[2].Spawns[0].Class);
+        }
+
+        [Test]
         public void LoadedDefinitions_DriveAServer()
         {
             DefinitionLoader.Load(out var classes, out var abilities);
