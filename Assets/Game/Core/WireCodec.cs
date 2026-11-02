@@ -10,7 +10,7 @@ namespace Game.Core
 
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 2;
-        const int EntitySize = 4 + 4 + 1 + 1 + 8 + 8 + 4 + 4;
+        const int EntitySize = 4 + 4 + 1 + 1 + 8 + 8 + 4 + 4 + 16;
         const int EventSize = 4 + 4 + 4 + 1;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
@@ -70,6 +70,10 @@ namespace Game.Core
                 Write(writer, e.Facing);
                 writer.Write(e.Health);
                 writer.Write(e.MaxHealth);
+                writer.Write(e.Cooldown0);
+                writer.Write(e.Cooldown1);
+                writer.Write(e.Cooldown2);
+                writer.Write(e.Cooldown3);
             }
 
             writer.Write((ushort)snapshot.Events.Count);
@@ -116,6 +120,10 @@ namespace Game.Core
                     Facing = ReadVec2(reader),
                     Health = reader.ReadSingle(),
                     MaxHealth = reader.ReadSingle(),
+                    Cooldown0 = reader.ReadSingle(),
+                    Cooldown1 = reader.ReadSingle(),
+                    Cooldown2 = reader.ReadSingle(),
+                    Cooldown3 = reader.ReadSingle(),
                 });
             }
 

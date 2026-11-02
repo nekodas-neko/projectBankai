@@ -234,12 +234,14 @@ namespace Game.Core
             else
             {
                 var target = NearestHostile(user, ability.Range);
-                if (target == null)
+                if (target != null)
                 {
-                    return;
+                    direction = (target.Position - user.Position).Normalized;
                 }
-
-                direction = (target.Position - user.Position).Normalized;
+                else
+                {
+                    direction = user.Facing.SqrLength > 1e-6f ? user.Facing : new Vec2(0f, 1f);
+                }
             }
 
             user.Facing = direction;
@@ -311,6 +313,10 @@ namespace Game.Core
                     Facing = e.Facing,
                     Health = e.Health,
                     MaxHealth = e.Stats.MaxHealth,
+                    Cooldown0 = e.Cooldowns[0],
+                    Cooldown1 = e.Cooldowns[1],
+                    Cooldown2 = e.Cooldowns[2],
+                    Cooldown3 = e.Cooldowns[3],
                 });
             }
 

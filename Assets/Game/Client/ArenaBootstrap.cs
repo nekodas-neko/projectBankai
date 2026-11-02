@@ -18,6 +18,9 @@ namespace Game.Client
         readonly List<DamageEvent> events = new List<DamageEvent>();
         LocalSession session;
         EntityViews views;
+        AimIndicator aimIndicator;
+        ClassDef playerClass;
+        Registry<AbilityDef> abilityDefs;
         Camera viewCamera;
         bool swapRequested;
 
@@ -39,8 +42,12 @@ namespace Game.Client
             session.Server.SpawnNpc(DummyClass, Team.Enemies, new Vec2(-8f, 4f));
             session.Server.SpawnNpc(DummyClass, Team.Enemies, new Vec2(7f, -2f));
 
+            playerClass = classes.Get(PlayerClass);
+            abilityDefs = abilities;
             views = new EntityViews(transform, assets);
+            aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides);
+            WireButtons();
             viewCamera = Camera.main;
         }
 
@@ -57,6 +64,7 @@ namespace Game.Client
                 HudSettings.MoveOnRight = !HudSettings.MoveOnRight;
                 Destroy(Hud.Root);
                 Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides);
+                WireButtons();
             }
 
             var dt = Mathf.Min(Time.deltaTime, MaxFrameSeconds);
@@ -69,6 +77,8 @@ namespace Game.Client
             LocalClient.SetMoveInput(new Vec2(input.x, input.y));
             session.Advance(dt);
             views.Sync(LocalClient, dt);
+
+            UpdateButtons();
 
             events.Clear();
             LocalClient.DrainEvents(events);
@@ -87,6 +97,56 @@ namespace Game.Client
 
             var target = views.LocalRoot.position + cameraOffset;
             viewCamera.transform.position = Vector3.Lerp(viewCamera.transform.position, target, 1f - Mathf.Exp(-CameraSmoothing * Time.deltaTime));
+        }
+
+        void WireButtons()
+        {
+            Hud.Attack.Fired += aim => LocalClient.Attack(ToWorld(aim));
+            Hud.Special.Fired += aim => LocalClient.Skill(1, ToWorld(aim));
+        }
+
+        void UpdateButtons()
+        {
+            var hasState = LocalClient.TryGetLocalState(out var state);
+            UpdateButton(Hud.Attack, hasState, state, 0, playerClass.AutoAttack);
+            UpdateButton(Hud.Special, hasState, state, 1, playerClass.Skills.Length > 0 ? playerClass.Skills[0] : null);
+
+            var aiming = Hud.Attack.IsAiming ? Hud.Attack : Hud.Special.IsAiming ? Hud.Special : null;
+            if (aiming == null || views.LocalRoot == null)
+            {
+                aimIndicator.Hide();
+                return;
+            }
+
+            var id = aiming == Hud.Attack ? playerClass.AutoAttack : playerClass.Skills[0];
+            if (abilityDefs.TryGet(id, out var ability))
+            {
+                var world = ToWorld(aiming.Aim);
+                aimIndicator.Show(views.LocalRoot.position, new Vector2(world.X, world.Y), ability.Range, ability.Radius);
+            }
+        }
+
+        void UpdateButton(ActionButton button, bool hasState, EntityState state, int slot, string abilityId)
+        {
+            if (!hasState || !abilityDefs.TryGet(abilityId, out var ability) || ability.Cooldown <= 0f)
+            {
+                button.SetCooldown(0f);
+                return;
+            }
+
+            button.SetCooldown(state.GetCooldown(slot) / ability.Cooldown);
+        }
+
+        Vec2 ToWorld(Vector2 screenAim)
+        {
+            if (screenAim.sqrMagnitude < 1e-6f)
+            {
+                return Vec2.Zero;
+            }
+
+            var pitch = viewCamera != null ? viewCamera.transform.eulerAngles.x : 60f;
+            var scale = Mathf.Max(0.3f, Mathf.Sin(pitch * Mathf.Deg2Rad));
+            return new Vec2(screenAim.x, screenAim.y / scale).Normalized;
         }
 
         void RequestSwapSides()

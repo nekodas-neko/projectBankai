@@ -47,6 +47,12 @@ namespace Game.Core
 
         public bool HasLocalEntity => LocalEntity.IsValid;
 
+        public bool TryGetLocalState(out EntityState state)
+        {
+            state = default;
+            return Latest != null && HasLocalEntity && Latest.TryFind(LocalEntity, out state);
+        }
+
         public int PendingMoveCount => pendingMoves.Count;
 
         public void SetMoveInput(Vec2 input)

@@ -22,11 +22,13 @@ namespace Game.Client
         const float StickRadius = 130f;
         const float KnobSize = 120f;
 
-        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, bool moveOnRight)
+        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, bool moveOnRight)
         {
             Root = root;
             SafeArea = safeArea;
             MoveStick = moveStick;
+            Attack = attack;
+            Special = special;
             MoveOnRight = moveOnRight;
         }
 
@@ -35,6 +37,10 @@ namespace Game.Client
         public RectTransform SafeArea { get; }
 
         public VirtualStick MoveStick { get; }
+
+        public ActionButton Attack { get; }
+
+        public ActionButton Special { get; }
 
         public bool MoveOnRight { get; }
 
@@ -59,7 +65,9 @@ namespace Game.Client
 
             var stick = BuildMoveStick(safeArea, moveOnRight);
             BuildSwapButton(safeArea, onSwapSides);
-            return new Hud(root, safeArea, stick, moveOnRight);
+            var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
+            var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
+            return new Hud(root, safeArea, stick, attack, special, moveOnRight);
         }
 
         public static RectTransform NewRect(string name, Transform parent)
@@ -107,6 +115,39 @@ namespace Game.Client
             var stick = zone.gameObject.AddComponent<VirtualStick>();
             stick.Initialize(zone, ring, knob, group, StickRadius, moveOnRight);
             return stick;
+        }
+
+        static ActionButton BuildActionButton(RectTransform parent, bool moveOnRight, string text, Vector2 offset, float radius, Color color, bool repeat)
+        {
+            var onLeft = moveOnRight;
+            var image = NewImage(text, parent, ProceduralSprites.Disc, color, true);
+            var rect = image.rectTransform;
+            var corner = new Vector2(onLeft ? 0f : 1f, 0f);
+            rect.anchorMin = corner;
+            rect.anchorMax = corner;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(radius * 2f, radius * 2f);
+            rect.anchoredPosition = new Vector2(onLeft ? offset.x : -offset.x, offset.y);
+
+            var fill = NewImage("Cooldown", rect, ProceduralSprites.Disc, new Color(0f, 0f, 0f, 0.6f), false);
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Radial360;
+            fill.fillOrigin = (int)Image.Origin360.Top;
+            fill.fillClockwise = false;
+            fill.fillAmount = 0f;
+
+            var label = NewRect("Label", rect).gameObject.AddComponent<Text>();
+            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.fontSize = radius > 80f ? 38 : 30;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            label.text = text;
+
+            var button = rect.gameObject.AddComponent<ActionButton>();
+            button.Initialize(fill, label);
+            button.RepeatWhileHeld = repeat;
+            return button;
         }
 
         static void BuildSwapButton(RectTransform parent, Action onSwapSides)
