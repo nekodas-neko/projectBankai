@@ -37,6 +37,7 @@ namespace Game.Core
         public PlayerId Owner;
         public Team Team;
         public Role Role;
+        public int Appearance;
         public Vec2 Position;
         public Vec2 Facing;
         public float Health;
@@ -67,12 +68,42 @@ namespace Game.Core
         public byte Slot;
     }
 
+    public struct UseEvent
+    {
+        public EntityId User;
+        public byte Slot;
+        public Vec2 Direction;
+    }
+
+    public static class AppearanceId
+    {
+        public static int From(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return 0;
+            }
+
+            unchecked
+            {
+                var hash = (uint)2166136261;
+                for (var i = 0; i < id.Length; i++)
+                {
+                    hash = (hash ^ id[i]) * 16777619;
+                }
+
+                return (int)hash;
+            }
+        }
+    }
+
     public sealed class Snapshot
     {
         public int Tick;
         public int AckedSequence;
         public readonly List<EntityState> Entities = new List<EntityState>();
         public readonly List<DamageEvent> Events = new List<DamageEvent>();
+        public readonly List<UseEvent> Uses = new List<UseEvent>();
 
         public bool TryFind(EntityId id, out EntityState state)
         {

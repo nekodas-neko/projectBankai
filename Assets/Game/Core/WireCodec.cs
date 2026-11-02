@@ -10,8 +10,9 @@ namespace Game.Core
 
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 2;
-        const int EntitySize = 4 + 4 + 1 + 1 + 8 + 8 + 4 + 4 + 16;
+        const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 16;
         const int EventSize = 4 + 4 + 4 + 1;
+        const int UseSize = 4 + 1 + 8;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
 
@@ -52,7 +53,7 @@ namespace Game.Core
 
         public static byte[] Encode(Snapshot snapshot)
         {
-            var size = SnapshotHeaderSize + snapshot.Entities.Count * EntitySize + 2 + snapshot.Events.Count * EventSize;
+            var size = SnapshotHeaderSize + snapshot.Entities.Count * EntitySize + 2 + snapshot.Events.Count * EventSize + 2 + snapshot.Uses.Count * UseSize;
             using var stream = new MemoryStream(size);
             using var writer = new BinaryWriter(stream);
             writer.Write(SnapshotMessage);
@@ -66,6 +67,7 @@ namespace Game.Core
                 writer.Write(e.Owner.Value);
                 writer.Write((byte)e.Team);
                 writer.Write((byte)e.Role);
+                writer.Write(e.Appearance);
                 Write(writer, e.Position);
                 Write(writer, e.Facing);
                 writer.Write(e.Health);
@@ -86,6 +88,15 @@ namespace Game.Core
                 writer.Write(ev.Slot);
             }
 
+            writer.Write((ushort)snapshot.Uses.Count);
+            for (var i = 0; i < snapshot.Uses.Count; i++)
+            {
+                var use = snapshot.Uses[i];
+                writer.Write(use.User.Value);
+                writer.Write(use.Slot);
+                Write(writer, use.Direction);
+            }
+
             return stream.ToArray();
         }
 
@@ -103,7 +114,7 @@ namespace Game.Core
             var result = new Snapshot { Tick = reader.ReadInt32(), AckedSequence = reader.ReadInt32() };
 
             int entityCount = reader.ReadUInt16();
-            if (entityCount > MaxEntities || Remaining(stream) < entityCount * EntitySize + 2)
+            if (entityCount > MaxEntities || Remaining(stream) < entityCount * EntitySize + 4)
             {
                 return false;
             }
@@ -116,6 +127,7 @@ namespace Game.Core
                     Owner = new PlayerId(reader.ReadInt32()),
                     Team = (Team)reader.ReadByte(),
                     Role = (Role)reader.ReadByte(),
+                    Appearance = reader.ReadInt32(),
                     Position = ReadVec2(reader),
                     Facing = ReadVec2(reader),
                     Health = reader.ReadSingle(),
@@ -128,7 +140,7 @@ namespace Game.Core
             }
 
             int eventCount = reader.ReadUInt16();
-            if (eventCount > MaxEvents || Remaining(stream) != eventCount * EventSize)
+            if (eventCount > MaxEvents || Remaining(stream) < eventCount * EventSize + 2)
             {
                 return false;
             }
@@ -141,6 +153,22 @@ namespace Game.Core
                     Target = new EntityId(reader.ReadInt32()),
                     Amount = reader.ReadSingle(),
                     Slot = reader.ReadByte(),
+                });
+            }
+
+            int useCount = reader.ReadUInt16();
+            if (useCount > MaxEvents || Remaining(stream) != useCount * UseSize)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < useCount; i++)
+            {
+                result.Uses.Add(new UseEvent
+                {
+                    User = new EntityId(reader.ReadInt32()),
+                    Slot = reader.ReadByte(),
+                    Direction = ReadVec2(reader),
                 });
             }
 

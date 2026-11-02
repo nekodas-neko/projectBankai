@@ -308,5 +308,41 @@ namespace Game.Core.Tests
 
             Assert.AreEqual(8, rig.Server.Tick);
         }
+
+        [Test]
+        public void UseEvents_ReportEveryUseIncludingWhiffs_ButNotRejections()
+        {
+            var session = TestData.Session(1);
+            var client = session.Clients[0];
+            session.Advance(0.2f, Tick);
+
+            client.Attack(Vec2.Zero);
+            client.Attack(Vec2.Zero);
+            session.Advance(0.2f, Tick);
+
+            var uses = new System.Collections.Generic.List<UseEvent>();
+            client.DrainUses(uses);
+
+            Assert.AreEqual(1, uses.Count);
+            Assert.AreEqual(client.LocalEntity, uses[0].User);
+            Assert.AreEqual(0, uses[0].Slot);
+        }
+
+        [Test]
+        public void Appearance_TravelsToEveryClient()
+        {
+            var session = new LocalSession(new ServerConfig(), TestData.Classes(), TestData.Abilities(), 1);
+            var a = session.AddPlayer(new PlayerId(1), "fighter", AppearanceId.From("skin_ember"));
+            var b = session.AddPlayer(new PlayerId(2), "fighter", AppearanceId.From("skin_frost"));
+            session.Server.SpawnNpc("dummy", Team.Enemies, new Vec2(5f, 5f), AppearanceId.From("slime"));
+
+            session.Advance(0.3f, Tick);
+
+            Assert.IsTrue(b.Latest.TryFind(a.LocalEntity, out var seenByB));
+            Assert.AreEqual(AppearanceId.From("skin_ember"), seenByB.Appearance);
+            Assert.IsTrue(a.Latest.TryFind(b.LocalEntity, out var seenByA));
+            Assert.AreEqual(AppearanceId.From("skin_frost"), seenByA.Appearance);
+            Assert.AreEqual(3, a.Latest.Entities.Count);
+        }
     }
 }
