@@ -18,6 +18,7 @@ namespace Game.Editor
         {
             SeedDefinitions();
             SeedCosmetics();
+            ArtImport.ImportAll();
             SeedArena();
         }
 
@@ -224,6 +225,10 @@ namespace Game.Editor
             floor.transform.localScale = new Vector3(40f, 0.05f, 40f);
             floor.transform.position = new Vector3(0f, -0.05f, 0f);
             floor.GetComponent<Renderer>().sharedMaterial = ground;
+
+            SetColor(ground, new Color(0.30f, 0.44f, 0.24f));
+            SetColor(rim, new Color(0.42f, 0.34f, 0.24f));
+            ArtImport.PlaceProps(null);
 
             var bootstrapObject = new GameObject("ArenaBootstrap");
             bootstrapObject.AddComponent<ArenaBootstrap>().assets = assets;
