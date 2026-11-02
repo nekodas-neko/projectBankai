@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
+  m_Name: fighter
+  m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
+  role: 2
+  maxHealth: 100
+  moveSpeed: 6
+  power: 1
+  autoAttack: {fileID: 11400000, guid: e54c7b883e0b9674582c5ae81ad87eb8, type: 2}
+  skills:
+  - {fileID: 11400000, guid: 6be204e22267a46459616a81c74df2ee, type: 2}
+  - {fileID: 11400000, guid: d2752aaf2faa3da419bde293016d453d, type: 2}
