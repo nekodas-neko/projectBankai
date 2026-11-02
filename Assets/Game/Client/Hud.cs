@@ -10,10 +10,21 @@ namespace Game.Client
     {
         const string MoveOnRightKey = "hud.moveOnRight.v2";
 
+        const string CameraZoomKey = "hud.cameraZoom";
+        public const float MinZoom = 0.6f;
+        public const float MaxZoom = 1.6f;
+        public const float ZoomStep = 0.15f;
+
         public static bool MoveOnRight
         {
             get => PlayerPrefs.GetInt(MoveOnRightKey, 0) == 1;
             set => PlayerPrefs.SetInt(MoveOnRightKey, value ? 1 : 0);
+        }
+
+        public static float CameraZoom
+        {
+            get => Mathf.Clamp(PlayerPrefs.GetFloat(CameraZoomKey, 1f), MinZoom, MaxZoom);
+            set => PlayerPrefs.SetFloat(CameraZoomKey, Mathf.Clamp(value, MinZoom, MaxZoom));
         }
     }
 
@@ -44,7 +55,7 @@ namespace Game.Client
 
         public bool MoveOnRight { get; }
 
-        public static Hud Create(bool moveOnRight, Action onSwapSides)
+        public static Hud Create(bool moveOnRight, Action onSwapSides, Action<int> onZoom)
         {
             var root = new GameObject("Hud");
             var canvas = root.AddComponent<Canvas>();
@@ -64,7 +75,9 @@ namespace Game.Client
             safeArea.gameObject.AddComponent<SafeAreaFitter>();
 
             var stick = BuildMoveStick(safeArea, moveOnRight);
-            BuildSwapButton(safeArea, onSwapSides);
+            BuildTextButton(safeArea, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -60f), onSwapSides);
+            BuildTextButton(safeArea, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -170f), () => onZoom?.Invoke(-1));
+            BuildTextButton(safeArea, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -170f), () => onZoom?.Invoke(1));
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
             return new Hud(root, safeArea, stick, attack, special, moveOnRight);
@@ -150,27 +163,27 @@ namespace Game.Client
             return button;
         }
 
-        static void BuildSwapButton(RectTransform parent, Action onSwapSides)
+        static void BuildTextButton(RectTransform parent, string name, string text, Vector2 size, Vector2 position, Action onClick)
         {
-            var image = NewImage("SwapSides", parent, null, new Color(1f, 1f, 1f, 0.15f), true);
+            var image = NewImage(name, parent, null, new Color(1f, 1f, 1f, 0.15f), true);
             var rect = image.rectTransform;
             rect.anchorMin = new Vector2(1f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = new Vector2(240f, 90f);
-            rect.anchoredPosition = new Vector2(-40f, -60f);
+            rect.sizeDelta = size;
+            rect.anchoredPosition = position;
 
             var button = rect.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
-            button.onClick.AddListener(() => onSwapSides?.Invoke());
+            button.onClick.AddListener(() => onClick?.Invoke());
 
             var label = NewRect("Label", rect).gameObject.AddComponent<Text>();
             label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 34;
+            label.fontSize = size.x > 200f ? 34 : 28;
             label.alignment = TextAnchor.MiddleCenter;
             label.color = new Color(1f, 1f, 1f, 0.9f);
             label.raycastTarget = false;
-            label.text = "Swap sides";
+            label.text = text;
         }
 
         static void EnsureEventSystem()
