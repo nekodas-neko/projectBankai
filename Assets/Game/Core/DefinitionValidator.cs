@@ -122,6 +122,46 @@ namespace Game.Core
             return errors;
         }
 
+        public static List<string> ValidateDungeons(Registry<DungeonDef> dungeons, Registry<ClassDef> classes)
+        {
+            var errors = new List<string>();
+            foreach (var dungeon in dungeons.All)
+            {
+                if (dungeon.Rooms.Length == 0 || dungeon.Rooms.Length > 250)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': needs between 1 and 250 rooms");
+                }
+
+                if (dungeon.ClearDelaySeconds < 0f)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': clear delay must not be negative");
+                }
+
+                for (var i = 0; i < dungeon.Rooms.Length; i++)
+                {
+                    var room = dungeon.Rooms[i];
+                    if (room.Spawns.Length == 0)
+                    {
+                        errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} has no enemies");
+                    }
+
+                    foreach (var spawn in room.Spawns)
+                    {
+                        if (!classes.TryGet(spawn.Class, out var def))
+                        {
+                            errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} spawns unknown class '{spawn.Class}'");
+                        }
+                        else if (def.Role != Role.None)
+                        {
+                            errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} spawns player class '{spawn.Class}'");
+                        }
+                    }
+                }
+            }
+
+            return errors;
+        }
+
         static void ValidatePhases(ClassDef def, Registry<ClassDef> classes, Registry<AbilityDef> abilities, List<string> errors)
         {
             var previous = float.PositiveInfinity;

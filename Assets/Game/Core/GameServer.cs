@@ -26,6 +26,9 @@ namespace Game.Core
         readonly List<DamageEvent> pendingEvents = new List<DamageEvent>();
         readonly List<UseEvent> pendingUses = new List<UseEvent>();
         readonly List<PendingAttack> pendingAttacks = new List<PendingAttack>();
+        DungeonDef dungeon;
+        int room;
+        float dungeonTimer;
         double accumulator;
         int nextEntityId = 1;
 
@@ -42,6 +45,16 @@ namespace Game.Core
         public int Tick { get; private set; }
 
         public IReadOnlyList<Entity> Entities => entities;
+
+        public DungeonPhase DungeonPhase { get; private set; }
+
+        public int Room => room;
+
+        public void StartDungeon(DungeonDef definition)
+        {
+            dungeon = definition;
+            ResetDungeon();
+        }
 
         public SimulationSettings Simulation => config.Simulation;
 
@@ -147,6 +160,7 @@ namespace Game.Core
                 TickRespawn(entities[i], dt);
             }
 
+            StepDungeon(dt);
             Tick++;
 
             if (Tick % config.SnapshotInterval == 0)
@@ -212,6 +226,16 @@ namespace Game.Core
 
                 processed++;
                 connection.LastSequence = command.Sequence;
+
+                if (command.Type == CommandType.Restart)
+                {
+                    if (dungeon != null && (DungeonPhase == DungeonPhase.Victory || DungeonPhase == DungeonPhase.Defeat))
+                    {
+                        ResetDungeon();
+                    }
+
+                    continue;
+                }
 
                 if (entity == null || !entity.IsAlive)
                 {
@@ -653,9 +677,98 @@ namespace Game.Core
             Strike(dodger, rider, Entity.DefenseSlot, direction);
         }
 
+        void ResetDungeon()
+        {
+            room = 0;
+            BeginRoom();
+        }
+
+        void BeginRoom()
+        {
+            entities.RemoveAll(e => !e.Owner.IsValid);
+            pendingAttacks.Clear();
+            for (var i = 0; i < connections.Count; i++)
+            {
+                var player = FindEntity(connections[i].Entity);
+                player?.Respawn(SpawnPoint(i));
+            }
+
+            var spawns = dungeon.Rooms[room].Spawns;
+            for (var i = 0; i < spawns.Length; i++)
+            {
+                var spawn = spawns[i];
+                SpawnNpc(spawn.Class, Team.Enemies, new Vec2(spawn.X, spawn.Y).ClampLength(config.Simulation.ArenaRadius), StableId.From(spawn.Skin));
+            }
+
+            DungeonPhase = DungeonPhase.Fighting;
+            dungeonTimer = 0f;
+        }
+
+        void StepDungeon(float dt)
+        {
+            if (dungeon == null)
+            {
+                return;
+            }
+
+            if (DungeonPhase == DungeonPhase.Cleared)
+            {
+                dungeonTimer -= dt;
+                if (dungeonTimer <= 0f)
+                {
+                    room++;
+                    BeginRoom();
+                }
+
+                return;
+            }
+
+            if (DungeonPhase != DungeonPhase.Fighting)
+            {
+                return;
+            }
+
+            var playersAlive = 0;
+            var playersTotal = 0;
+            var enemiesAlive = 0;
+            for (var i = 0; i < entities.Count; i++)
+            {
+                var e = entities[i];
+                if (e.Owner.IsValid)
+                {
+                    playersTotal++;
+                    if (e.IsAlive)
+                    {
+                        playersAlive++;
+                    }
+                }
+                else if (e.IsAlive && e.Team == Team.Enemies)
+                {
+                    enemiesAlive++;
+                }
+            }
+
+            if (playersTotal > 0 && playersAlive == 0)
+            {
+                DungeonPhase = DungeonPhase.Defeat;
+            }
+            else if (enemiesAlive == 0)
+            {
+                if (room + 1 >= dungeon.Rooms.Length)
+                {
+                    DungeonPhase = DungeonPhase.Victory;
+                }
+                else
+                {
+                    DungeonPhase = DungeonPhase.Cleared;
+                    dungeonTimer = dungeon.ClearDelaySeconds;
+                }
+            }
+        }
+
         void TickRespawn(Entity entity, float dt)
         {
-            if (entity.IsAlive || !entity.Owner.IsValid)
+            if (dungeon != null || entity.IsAlive || !entity.Owner.IsValid)
             {
                 return;
             }
@@ -792,7 +905,14 @@ namespace Game.Core
 
         void BroadcastSnapshot()
         {
-            var snapshot = new Snapshot { Tick = Tick };
+            var snapshot = new Snapshot
+            {
+                Tick = Tick,
+                Room = dungeon != null ? (byte)(room + 1) : (byte)0,
+                RoomCount = dungeon != null ? (byte)dungeon.Rooms.Length : (byte)0,
+                Dungeon = dungeon != null ? DungeonPhase : DungeonPhase.None,
+                DungeonTimer = dungeonTimer > 0f ? dungeonTimer : 0f,
+            };
             for (var i = 0; i < entities.Count; i++)
             {
                 var e = entities[i];

@@ -72,6 +72,44 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator Dungeon_ShowsTheRoomAdvancesAndOffersARestartAfterADefeat()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "mage";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.6f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Assert.AreEqual("Room 1 / 3", bootstrap.Hud.Banner.RoomText);
+            Assert.IsFalse(bootstrap.Hud.Banner.RestartVisible);
+
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (!entity.Owner.IsValid)
+                {
+                    entity.Health = 0f;
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            StringAssert.Contains("Room cleared", bootstrap.Hud.Banner.MessageText);
+
+            yield return new WaitForSeconds(3.5f);
+            Assert.AreEqual("Room 2 / 3", bootstrap.Hud.Banner.RoomText);
+
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (entity.Owner.IsValid)
+                {
+                    entity.Health = 0f;
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual("Defeat", bootstrap.Hud.Banner.MessageText);
+            Assert.IsTrue(bootstrap.Hud.Banner.RestartVisible);
+        }
+
+        [UnityTest]
         public IEnumerator HostMode_AcceptsAJoiningPlayerOverTheNetwork()
         {
             HudSettings.SessionMode = (int)SessionMode.Host;
@@ -88,7 +126,7 @@ namespace Game.PlayMode.Tests
                 joiner = new UdpClientTransport(new IPEndPoint(IPAddress.Loopback, bootstrap.Host.Port), "tank", 0, "Tester");
                 GameClient client = null;
                 var waited = 0f;
-                while (waited < 4f && (bootstrap.Views.Count < 6 || client == null || !client.HasLocalEntity))
+                while (waited < 4f && (bootstrap.Views.Count < 5 || client == null || !client.HasLocalEntity))
                 {
                     joiner.Update(Time.deltaTime);
                     if (client == null && joiner.State == ConnectionState.Connected)
@@ -102,7 +140,7 @@ namespace Game.PlayMode.Tests
                 }
 
                 Assert.AreEqual(ConnectionState.Connected, joiner.State);
-                Assert.AreEqual(6, bootstrap.Views.Count);
+                Assert.AreEqual(5, bootstrap.Views.Count);
                 Assert.IsTrue(client.HasLocalEntity);
             }
             finally
@@ -155,7 +193,7 @@ namespace Game.PlayMode.Tests
 
             yield return new WaitForSeconds(0.5f);
 
-            Assert.AreEqual(5, bootstrap.Views.Count);
+            Assert.AreEqual(4, bootstrap.Views.Count);
             Assert.IsNotNull(bootstrap.Views.LocalRoot);
             var before = bootstrap.Views.LocalRoot.position;
 

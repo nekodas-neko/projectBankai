@@ -48,6 +48,12 @@ A **Block** ability needs a duration and a **Reduction** between 0 and 1. A **Sh
 
 On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus`; the HUD colours these three), a max, a start value, **Regen** per second (negative decays), and the three gains. Abilities with a **Resource Cost** need the class to have a resource, and the validator says so if not. A negative cost grants resource instead of spending it.
 
+## Worked example: add a dungeon room
+
+A dungeon is one `DungeonAsset` (**Assets > Create > Game > Dungeon**, in `Assets/Game/Data/Resources/Definitions`). Add a room to **Rooms**, then add spawns: a class (not a player class), a position inside the arena (radius 20) and an optional skin id such as `slime_green`. Rooms run in order. The loader checks that every room has enemies and every class exists. The arena loads the dungeon named in `ArenaBootstrap` (`slime_cave`); a dungeon picker comes with the hub.
+
+Between rooms everyone is fully restored. That is a tuning choice, not a rule; changing it means editing `BeginRoom` in `GameServer`.
+
 ## Worked example: add a class
 
 1. **Assets > Create > Game > Class**, save as `Assets/Game/Data/Resources/Definitions/ranger.asset`.
@@ -100,7 +106,8 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 - Hits are line checks, instant or after a windup. No projectiles, no area shapes other than a wide line. A windup hit uses the position and direction from when the attack started.
 - Enemies have one behaviour: chase the nearest hostile inside the aggro range and use the auto-attack. Phases, target switching and threat come with the boss work (issues 29 and 30).
 - A dodge ignores Move commands while dashing, so the client briefly predicts movement the server discards. It snaps back on the next snapshot.
-- Dead players stay dead until the scene reloads; there is no respawn yet.
+- Outside a dungeon dead players respawn after 5 seconds. Inside one they stay down until the next room or a restart.
+- A dungeon is one arena with several waves (rooms); different layouts per room, doors and travel between rooms are not built.
 - State uses floats. The server is authoritative so cross-machine determinism is not required; tests only prove same-seed repeatability on one machine.
 - `WireCodec` allocates per message, so the combat allocation budget is not met.
 - The networking library is not chosen; everything sits behind `ITransport`.

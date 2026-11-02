@@ -16,8 +16,7 @@ namespace Game.Client
 
     public class ArenaBootstrap : MonoBehaviour
     {
-        const string SlimeClass = "slime";
-        const string BossClass = "slime_boss";
+        const string DungeonId = "slime_cave";
         const float MaxFrameSeconds = 0.1f;
         const float CameraSmoothing = 8f;
 
@@ -39,6 +38,7 @@ namespace Game.Client
         Telegraphs telegraphs;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
+        Registry<DungeonDef> dungeonDefs;
         Camera viewCamera;
         SessionMode mode;
         string hostAddress;
@@ -60,7 +60,7 @@ namespace Game.Client
 
         void Start()
         {
-            DefinitionLoader.Load(out classDefs, out abilityDefs);
+            DefinitionLoader.Load(out classDefs, out abilityDefs, out dungeonDefs);
 
             var className = HudSettings.ClassName;
             playerClass = classDefs.Get(className);
@@ -174,11 +174,7 @@ namespace Game.Client
         {
             session = new LocalSession(new ServerConfig(), classDefs, abilityDefs, seed: 1);
             LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)));
-            var slime = StableId.From("slime_green");
-            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(0f, 8f), slime);
-            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(-8f, 4f), slime);
-            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(7f, -2f), slime);
-            session.Server.SpawnNpc(BossClass, Team.Enemies, new Vec2(0f, 15f), StableId.From("boss_greendemon"));
+            session.Server.StartDungeon(dungeonDefs.Get(DungeonId));
         }
 
         bool StartHost()
@@ -255,6 +251,7 @@ namespace Game.Client
                 CycleSkin = CycleSkin,
                 CycleClass = CycleClass,
                 ToggleSession = ToggleMenu,
+                Restart = () => LocalClient?.Restart(),
             });
 
             menu = new SessionMenu(
@@ -373,6 +370,7 @@ namespace Game.Client
             UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
+            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f);
 
             var aiming = Hud.Attack.IsAiming ? Hud.Attack : Hud.Special.IsAiming ? Hud.Special : null;
             if (aiming == null || views.LocalRoot == null)
