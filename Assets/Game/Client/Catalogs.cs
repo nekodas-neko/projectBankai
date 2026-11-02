@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Core;
 using UnityEngine;
 
@@ -32,7 +33,7 @@ namespace Game.Client
                 }
             }
 
-            return result;
+            return result.OrderBy(skin => skin.prefab == null).ToList();
         }
 
         public static SkinAsset Get(int appearance)
