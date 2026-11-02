@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Net;
 using Game.Client;
 using Game.Core;
+using Game.Net;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -48,6 +50,47 @@ namespace Game.PlayMode.Tests
             yield return new WaitForSeconds(0.2f);
 
             Assert.Greater(Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None).Length, 0);
+        }
+
+        [UnityTest]
+        public IEnumerator HostMode_AcceptsAJoiningPlayerOverTheNetwork()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Host;
+            HudSettings.ClassName = "mage";
+            UdpClientTransport joiner = null;
+            try
+            {
+                SceneManager.LoadScene("Arena");
+                yield return new WaitForSeconds(0.5f);
+                var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+                Assert.IsNotNull(bootstrap.Host);
+
+                DefinitionLoader.Load(out var classes, out _);
+                joiner = new UdpClientTransport(new IPEndPoint(IPAddress.Loopback, bootstrap.Host.Port), "tank", 0, "Tester");
+                GameClient client = null;
+                var waited = 0f;
+                while (waited < 4f && (bootstrap.Views.Count < 6 || client == null || !client.HasLocalEntity))
+                {
+                    joiner.Update(Time.deltaTime);
+                    if (client == null && joiner.State == ConnectionState.Connected)
+                    {
+                        client = new GameClient(joiner.PlayerId, joiner, classes.Get("tank"), new ClientConfig { Simulation = joiner.Simulation });
+                    }
+
+                    client?.Update(Time.deltaTime);
+                    waited += Time.deltaTime;
+                    yield return null;
+                }
+
+                Assert.AreEqual(ConnectionState.Connected, joiner.State);
+                Assert.AreEqual(6, bootstrap.Views.Count);
+                Assert.IsTrue(client.HasLocalEntity);
+            }
+            finally
+            {
+                joiner?.Dispose();
+                HudSettings.SessionMode = (int)SessionMode.Solo;
+            }
         }
 
         [UnityTest]

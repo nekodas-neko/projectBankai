@@ -3,6 +3,7 @@
     "rootNamespace": "Game.Core.Tests",
     "references": [
         "Game.Core",
+        "Game.Net",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

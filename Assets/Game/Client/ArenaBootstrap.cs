@@ -1,32 +1,55 @@
 using System.Collections.Generic;
+using System.Net;
 using Game.Core;
+using Game.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Game.Client
 {
+    public enum SessionMode
+    {
+        Solo = 0,
+        Host = 1,
+        Join = 2,
+    }
+
     public class ArenaBootstrap : MonoBehaviour
     {
         const string SlimeClass = "slime";
         const string BossClass = "slime_boss";
-        static readonly string[] StarterClasses = { "tank", "healer", "mage" };
         const float MaxFrameSeconds = 0.1f;
         const float CameraSmoothing = 8f;
 
-        public ArenaAssets assets;
+        static readonly string[] StarterClasses = { "tank", "healer", "mage" };
         static readonly Vector3 CameraOffset = new Vector3(0f, 26f, -12f);
+
+        public ArenaAssets assets;
 
         readonly List<DamageEvent> events = new List<DamageEvent>();
         readonly List<UseEvent> uses = new List<UseEvent>();
         LocalSession session;
+        UdpGameHost host;
+        UdpClientTransport transport;
+        LanScanner scanner;
+        SessionMenu menu;
+        Registry<ClassDef> classDefs;
         EntityViews views;
         AimIndicator aimIndicator;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
         Camera viewCamera;
+        SessionMode mode;
+        string hostAddress;
+        string notice;
         bool swapRequested;
+        bool menuOpenedForFailure;
 
         public LocalSession Session => session;
+
+        public UdpGameHost Host => host;
+
+        public UdpClientTransport Transport => transport;
 
         public GameClient LocalClient { get; private set; }
 
@@ -36,40 +59,48 @@ namespace Game.Client
 
         void Start()
         {
-            DefinitionLoader.Load(out var classes, out var abilities);
+            DefinitionLoader.Load(out classDefs, out abilityDefs);
 
-            session = new LocalSession(new ServerConfig(), classes, abilities, seed: 1);
             var className = HudSettings.ClassName;
-            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)));
-            var slime = StableId.From("slime_green");
-            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(0f, 8f), slime);
-            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(-8f, 4f), slime);
-            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(7f, -2f), slime);
-            session.Server.SpawnNpc(BossClass, Team.Enemies, new Vec2(0f, 15f), StableId.From("slime_king"));
-
-            playerClass = classes.Get(className);
-            abilityDefs = abilities;
+            playerClass = classDefs.Get(className);
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
-            Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides, ChangeZoom, CycleSkin, CycleClass);
-            WireButtons();
             viewCamera = Camera.main;
+            BuildHud();
+
+            mode = (SessionMode)HudSettings.SessionMode;
+            if (mode == SessionMode.Join && !StartJoin(className))
+            {
+                mode = SessionMode.Solo;
+            }
+
+            if (mode != SessionMode.Join)
+            {
+                StartWorld(className);
+                if (mode == SessionMode.Host && !StartHost())
+                {
+                    mode = SessionMode.Solo;
+                }
+            }
+        }
+
+        void OnDestroy()
+        {
+            host?.Dispose();
+            transport?.Dispose();
+            scanner?.Dispose();
         }
 
         void Update()
         {
-            if (session == null)
-            {
-                return;
-            }
-
             if (swapRequested)
             {
                 swapRequested = false;
                 HudSettings.MoveOnRight = !HudSettings.MoveOnRight;
+                var open = menu != null && menu.IsOpen;
                 Destroy(Hud.Root);
-                Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides, ChangeZoom, CycleSkin, CycleClass);
-                WireButtons();
+                BuildHud();
+                menu.SetOpen(open);
             }
 
             var dt = Mathf.Min(Time.deltaTime, MaxFrameSeconds);
@@ -79,10 +110,35 @@ namespace Game.Client
                 input = KeyboardInput();
             }
 
-            LocalClient.SetMoveInput(new Vec2(input.x, input.y));
-            session.Advance(dt);
-            views.Sync(LocalClient, dt);
+            if (session != null)
+            {
+                host?.Poll(dt);
+                LocalClient.SetMoveInput(new Vec2(input.x, input.y));
+                session.Advance(dt);
+            }
+            else if (transport != null)
+            {
+                transport.Update(dt);
+                if (LocalClient == null && transport.State == ConnectionState.Connected)
+                {
+                    LocalClient = new GameClient(transport.PlayerId, transport, playerClass, new ClientConfig { Simulation = transport.Simulation });
+                }
 
+                if (LocalClient != null && transport.State == ConnectionState.Connected)
+                {
+                    LocalClient.SetMoveInput(new Vec2(input.x, input.y));
+                    LocalClient.Update(dt);
+                }
+            }
+
+            UpdateMenu(dt);
+
+            if (LocalClient == null || !LocalClient.HasLocalEntity)
+            {
+                return;
+            }
+
+            views.Sync(LocalClient, dt);
             UpdateButtons();
 
             uses.Clear();
@@ -111,10 +167,198 @@ namespace Game.Client
             viewCamera.transform.position = Vector3.Lerp(viewCamera.transform.position, target, 1f - Mathf.Exp(-CameraSmoothing * Time.deltaTime));
         }
 
+        void StartWorld(string className)
+        {
+            session = new LocalSession(new ServerConfig(), classDefs, abilityDefs, seed: 1);
+            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)));
+            var slime = StableId.From("slime_green");
+            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(0f, 8f), slime);
+            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(-8f, 4f), slime);
+            session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(7f, -2f), slime);
+            session.Server.SpawnNpc(BossClass, Team.Enemies, new Vec2(0f, 15f), StableId.From("slime_king"));
+        }
+
+        bool StartHost()
+        {
+            try
+            {
+                host = new UdpGameHost(session.Server, classDefs, Protocol.DefaultPort, DeviceName());
+                hostAddress = $"{LocalNetwork.PrimaryAddress()}:{host.Port}";
+                return true;
+            }
+            catch (System.Net.Sockets.SocketException exception)
+            {
+                notice = $"Could not host: {exception.SocketErrorCode}. Running solo.";
+                HudSettings.SessionMode = (int)SessionMode.Solo;
+                return false;
+            }
+        }
+
+        bool StartJoin(string className)
+        {
+            if (!TryParseEndpoint(HudSettings.JoinAddress, out var endpoint))
+            {
+                notice = string.IsNullOrWhiteSpace(HudSettings.JoinAddress)
+                    ? "Type the host's address first. Running solo."
+                    : $"'{HudSettings.JoinAddress}' is not a valid address. Running solo.";
+                HudSettings.SessionMode = (int)SessionMode.Solo;
+                return false;
+            }
+
+            try
+            {
+                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName());
+                return true;
+            }
+            catch (System.Net.Sockets.SocketException exception)
+            {
+                notice = $"Could not start joining: {exception.SocketErrorCode}. Running solo.";
+                HudSettings.SessionMode = (int)SessionMode.Solo;
+                return false;
+            }
+        }
+
+        static bool TryParseEndpoint(string text, out IPEndPoint endpoint)
+        {
+            endpoint = null;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            var parts = text.Trim().Split(':');
+            var port = Protocol.DefaultPort;
+            if (!IPAddress.TryParse(parts[0], out var address) || (parts.Length > 1 && !int.TryParse(parts[1], out port)) || port < 1 || port > 65535)
+            {
+                return false;
+            }
+
+            endpoint = new IPEndPoint(address, port);
+            return true;
+        }
+
+        static string DeviceName()
+        {
+            var name = SystemInfo.deviceModel;
+            return string.IsNullOrWhiteSpace(name) ? "Player" : name.Length > Protocol.MaxNameLength ? name.Substring(0, Protocol.MaxNameLength) : name;
+        }
+
+        void BuildHud()
+        {
+            Hud = Hud.Create(HudSettings.MoveOnRight, new HudCallbacks
+            {
+                SwapSides = RequestSwapSides,
+                Zoom = ChangeZoom,
+                CycleSkin = CycleSkin,
+                CycleClass = CycleClass,
+                ToggleSession = ToggleMenu,
+            });
+
+            menu = new SessionMenu(
+                (RectTransform)Hud.Root.transform,
+                () => SwitchMode(SessionMode.Solo, null),
+                () => SwitchMode(SessionMode.Host, null),
+                address => SwitchMode(SessionMode.Join, address),
+                ToggleMenu);
+            WireButtons();
+        }
+
+        void ToggleMenu()
+        {
+            var open = !menu.IsOpen;
+            menu.SetOpen(open);
+            scanner?.Dispose();
+            scanner = null;
+            if (open)
+            {
+                try
+                {
+                    scanner = new LanScanner();
+                }
+                catch (System.Net.Sockets.SocketException)
+                {
+                    notice = "Could not scan this network.";
+                }
+            }
+        }
+
+        void SwitchMode(SessionMode next, string address)
+        {
+            HudSettings.SessionMode = (int)next;
+            if (address != null)
+            {
+                HudSettings.JoinAddress = address;
+            }
+
+            Reload();
+        }
+
+        void UpdateMenu(float dt)
+        {
+            if (menu == null)
+            {
+                return;
+            }
+
+            if (transport != null && transport.State != ConnectionState.Connecting && transport.State != ConnectionState.Connected && !menuOpenedForFailure)
+            {
+                menuOpenedForFailure = true;
+                menu.SetOpen(true);
+            }
+
+            if (!menu.IsOpen)
+            {
+                return;
+            }
+
+            menu.SetStatus(StatusText());
+            if (scanner != null)
+            {
+                scanner.Update(dt);
+                menu.SetFound(scanner.Results);
+            }
+        }
+
+        string StatusText()
+        {
+            string text;
+            switch (mode)
+            {
+                case SessionMode.Host:
+                    text = $"Hosting at {hostAddress}\nPlayers: {host.RemotePlayerCount + 1}";
+                    break;
+                case SessionMode.Join:
+                    text = JoinStatus();
+                    break;
+                default:
+                    text = "Solo, offline";
+                    break;
+            }
+
+            return string.IsNullOrEmpty(notice) ? text : notice + "\n" + text;
+        }
+
+        string JoinStatus()
+        {
+            switch (transport.State)
+            {
+                case ConnectionState.Connecting:
+                    return $"Connecting to {HudSettings.JoinAddress}...";
+                case ConnectionState.Connected:
+                    return $"Joined {HudSettings.JoinAddress}";
+                case ConnectionState.Rejected:
+                    return transport.RejectReason == Protocol.RejectFull ? "That session is full." : "The host does not know this class.";
+                case ConnectionState.Failed:
+                    return $"No answer from {HudSettings.JoinAddress}. Is the host on the same Wi-Fi?";
+                default:
+                    return "Disconnected from the host.";
+            }
+        }
+
         void WireButtons()
         {
-            Hud.Attack.Fired += aim => LocalClient.Attack(ToWorld(aim));
-            Hud.Special.Fired += aim => LocalClient.Skill(1, ToWorld(aim));
+            Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
+            Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
         }
 
         void UpdateButtons()
