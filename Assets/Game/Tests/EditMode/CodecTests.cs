@@ -33,8 +33,8 @@ namespace Game.Core.Tests
                 Health = 42f,
                 MaxHealth = 100f,
             });
-            snapshot.Events.Add(new DamageEvent { Source = new EntityId(3), Target = new EntityId(4), Amount = 12.5f, Slot = 2 });
-            snapshot.Uses.Add(new UseEvent { User = new EntityId(3), Slot = 1, Direction = new Vec2(0f, 1f) });
+            snapshot.Events.Add(new DamageEvent { Source = new EntityId(3), Target = new EntityId(4), Amount = 12.5f, Slot = 2, Ability = 777 });
+            snapshot.Uses.Add(new UseEvent { User = new EntityId(3), Slot = 1, Ability = 888, Direction = new Vec2(0f, 1f) });
 
             var bytes = WireCodec.Encode(snapshot);
             Assert.IsTrue(WireCodec.TryDecode(bytes, out Snapshot decoded));
@@ -46,6 +46,8 @@ namespace Game.Core.Tests
             Assert.AreEqual(42f, decoded.Entities[0].Health);
             Assert.AreEqual(12.5f, decoded.Events[0].Amount);
             Assert.AreEqual(123456, decoded.Entities[0].Appearance);
+            Assert.AreEqual(777, decoded.Events[0].Ability);
+            Assert.AreEqual(888, decoded.Uses[0].Ability);
             Assert.AreEqual(1, decoded.Uses.Count);
             Assert.AreEqual(1, decoded.Uses[0].Slot);
             Assert.AreEqual(new Vec2(0f, 1f), decoded.Uses[0].Direction);
@@ -99,13 +101,13 @@ namespace Game.Core.Tests
         }
 
         [Test]
-        public void AppearanceId_IsStableAndDistinct()
+        public void StableId_IsStableAndDistinct()
         {
-            Assert.AreEqual(0, AppearanceId.From(null));
-            Assert.AreEqual(0, AppearanceId.From(""));
-            Assert.AreEqual(AppearanceId.From("skin_ember"), AppearanceId.From("skin_ember"));
-            Assert.AreNotEqual(AppearanceId.From("skin_ember"), AppearanceId.From("skin_frost"));
-            Assert.AreEqual(unchecked((int)0xE40C292C), AppearanceId.From("a"));
+            Assert.AreEqual(0, StableId.From(null));
+            Assert.AreEqual(0, StableId.From(""));
+            Assert.AreEqual(StableId.From("skin_ember"), StableId.From("skin_ember"));
+            Assert.AreNotEqual(StableId.From("skin_ember"), StableId.From("skin_frost"));
+            Assert.AreEqual(unchecked((int)0xE40C292C), StableId.From("a"));
         }
 
         [Test]

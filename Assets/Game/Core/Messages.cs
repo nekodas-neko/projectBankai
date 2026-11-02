@@ -66,16 +66,18 @@ namespace Game.Core
         public EntityId Target;
         public float Amount;
         public byte Slot;
+        public int Ability;
     }
 
     public struct UseEvent
     {
         public EntityId User;
         public byte Slot;
+        public int Ability;
         public Vec2 Direction;
     }
 
-    public static class AppearanceId
+    public static class StableId
     {
         public static int From(string id)
         {

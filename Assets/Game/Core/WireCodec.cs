@@ -11,8 +11,8 @@ namespace Game.Core
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 2;
         const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 16;
-        const int EventSize = 4 + 4 + 4 + 1;
-        const int UseSize = 4 + 1 + 8;
+        const int EventSize = 4 + 4 + 4 + 1 + 4;
+        const int UseSize = 4 + 1 + 4 + 8;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
 
@@ -86,6 +86,7 @@ namespace Game.Core
                 writer.Write(ev.Target.Value);
                 writer.Write(ev.Amount);
                 writer.Write(ev.Slot);
+                writer.Write(ev.Ability);
             }
 
             writer.Write((ushort)snapshot.Uses.Count);
@@ -94,6 +95,7 @@ namespace Game.Core
                 var use = snapshot.Uses[i];
                 writer.Write(use.User.Value);
                 writer.Write(use.Slot);
+                writer.Write(use.Ability);
                 Write(writer, use.Direction);
             }
 
@@ -153,6 +155,7 @@ namespace Game.Core
                     Target = new EntityId(reader.ReadInt32()),
                     Amount = reader.ReadSingle(),
                     Slot = reader.ReadByte(),
+                    Ability = reader.ReadInt32(),
                 });
             }
 
@@ -168,6 +171,7 @@ namespace Game.Core
                 {
                     User = new EntityId(reader.ReadInt32()),
                     Slot = reader.ReadByte(),
+                    Ability = reader.ReadInt32(),
                     Direction = ReadVec2(reader),
                 });
             }
