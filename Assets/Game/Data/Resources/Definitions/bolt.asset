@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: bolt
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   cooldown: 2
-  range: 12
+  range: 18
   radius: 0.6
   damage: 25

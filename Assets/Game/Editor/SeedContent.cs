@@ -57,7 +57,7 @@ namespace Game.Editor
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.06f, 0.065f, 0.08f);
             camera.fieldOfView = 45f;
-            cameraObject.transform.SetPositionAndRotation(new Vector3(0f, 26f, -15f), Quaternion.Euler(60f, 0f, 0f));
+            cameraObject.transform.SetPositionAndRotation(new Vector3(0f, 26f, -12f), Quaternion.Euler(60f, 0f, 0f));
 
             var lightObject = new GameObject("Directional Light");
             var light = lightObject.AddComponent<Light>();

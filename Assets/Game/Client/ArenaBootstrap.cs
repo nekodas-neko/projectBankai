@@ -13,7 +13,7 @@ namespace Game.Client
         const float CameraSmoothing = 8f;
 
         public ArenaAssets assets;
-        public Vector3 cameraOffset = new Vector3(0f, 26f, -15f);
+        static readonly Vector3 CameraOffset = new Vector3(0f, 26f, -12f);
 
         readonly List<DamageEvent> events = new List<DamageEvent>();
         LocalSession session;
@@ -46,7 +46,7 @@ namespace Game.Client
             abilityDefs = abilities;
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
-            Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides);
+            Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides, ChangeZoom);
             WireButtons();
             viewCamera = Camera.main;
         }
@@ -63,7 +63,7 @@ namespace Game.Client
                 swapRequested = false;
                 HudSettings.MoveOnRight = !HudSettings.MoveOnRight;
                 Destroy(Hud.Root);
-                Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides);
+                Hud = Hud.Create(HudSettings.MoveOnRight, RequestSwapSides, ChangeZoom);
                 WireButtons();
             }
 
@@ -95,7 +95,7 @@ namespace Game.Client
                 return;
             }
 
-            var target = views.LocalRoot.position + cameraOffset;
+            var target = views.LocalRoot.position + CameraOffset * HudSettings.CameraZoom;
             viewCamera.transform.position = Vector3.Lerp(viewCamera.transform.position, target, 1f - Mathf.Exp(-CameraSmoothing * Time.deltaTime));
         }
 
@@ -147,6 +147,11 @@ namespace Game.Client
             var pitch = viewCamera != null ? viewCamera.transform.eulerAngles.x : 60f;
             var scale = Mathf.Max(0.3f, Mathf.Sin(pitch * Mathf.Deg2Rad));
             return new Vec2(screenAim.x, screenAim.y / scale).Normalized;
+        }
+
+        void ChangeZoom(int direction)
+        {
+            HudSettings.CameraZoom -= direction * HudSettings.ZoomStep;
         }
 
         void RequestSwapSides()

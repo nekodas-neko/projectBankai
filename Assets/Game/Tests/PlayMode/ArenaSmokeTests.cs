@@ -20,6 +20,20 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator CameraZoom_ScalesTheCameraDistance()
+        {
+            HudSettings.CameraZoom = 1.6f;
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(1.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            var height = Camera.main.transform.position.y - bootstrap.Views.LocalRoot.position.y;
+            HudSettings.CameraZoom = 1f;
+
+            Assert.AreEqual(26f * 1.6f, height, 0.5f);
+        }
+
+        [UnityTest]
         public IEnumerator ActionButtons_TapAndDragFireThroughTheServer()
         {
             SceneManager.LoadScene("Arena");
