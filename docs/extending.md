@@ -63,6 +63,16 @@ On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus
 
 If the prefab has an **Animator**, it can use these parameters, and any it lacks are simply ignored: `Speed` (float), `Use` (trigger), `Slot` (int, 0 is the auto-attack), `Hit` (trigger), `Dead` (bool).
 
+## Worked example: swap temporary art for real art
+
+The imported characters, monsters and nature props under `Assets/Game/Art/Temp` are placeholders. To replace one character:
+
+1. Import the new model and its animations. Give the model a Generic or Humanoid rig and set the avatar to be created from the model.
+2. Make an Animator Controller with the parameters `Speed` (float), `Use` (trigger), `Slot` (int, 0 is the auto-attack, 4 is the defensive skill), `Hit` (trigger) and `Dead` (bool). `ArtImport` shows one way to build it; any controller with those parameters works.
+3. Save a prefab of the model with that Animator, then open the skin asset (for example `tank_warrior`) and set **Prefab** to it. Scale the prefab so the character is about 2 units tall.
+
+Class skins are found by the class id prefix (`tank_`, `healer_`, `mage_`), and skins with a prefab are listed before plain primitives, so a new `mage_` skin with a prefab becomes a choice with no other change.
+
 ## Worked example: change what a skill looks like
 
 Open the ability asset (for example `fireball.asset`) and set **Cast Effect** and **Hit Effect** to other prefabs. A particle prefab with a one-shot burst works well. Nothing else changes, and the skill's numbers are untouched. Skill-tree variants (a green bolt that becomes a red bolt) will extend this with a variant id; see issue 31.

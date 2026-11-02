@@ -60,4 +60,4 @@ Batch mode needs a signed-in Unity license on the machine. Close the Unity edito
 ## Docs
 - `docs/dev-loop.md` — Unity Remote and build loop (M0)
 - `docs/extending.md` — how to add a skill, boss or weapon
-- `docs/ASSET_LICENSES.md` — every third-party asset, with license and source
+- `docs/ASSET_LICENSES.md` — every third-party asset, with license and source. All art under `Assets/Game/Art/Temp` is temporary placeholder art and is expected to be replaced; keep gameplay independent of its models and animations.

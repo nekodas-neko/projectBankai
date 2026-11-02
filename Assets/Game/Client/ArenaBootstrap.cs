@@ -178,7 +178,7 @@ namespace Game.Client
             session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(0f, 8f), slime);
             session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(-8f, 4f), slime);
             session.Server.SpawnNpc(SlimeClass, Team.Enemies, new Vec2(7f, -2f), slime);
-            session.Server.SpawnNpc(BossClass, Team.Enemies, new Vec2(0f, 15f), StableId.From("slime_king"));
+            session.Server.SpawnNpc(BossClass, Team.Enemies, new Vec2(0f, 15f), StableId.From("boss_greendemon"));
         }
 
         bool StartHost()
