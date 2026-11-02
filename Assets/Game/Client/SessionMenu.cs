@@ -29,7 +29,7 @@ namespace Game.Client
             rect.anchoredPosition = Vector2.zero;
 
             Label(rect, "Title", "Session", 44, new Vector2(0f, -60f), new Vector2(800f, 70f));
-            status = Label(rect, "Status", string.Empty, 32, new Vector2(0f, -170f), new Vector2(820f, 150f));
+            status = Label(rect, "Status", string.Empty, 27, new Vector2(0f, -150f), new Vector2(840f, 175f));
 
             Button(rect, "Solo", "Solo (offline)", new Vector2(0f, -330f), new Vector2(800f, 100f), onSolo);
             Button(rect, "Host", "Host on Wi-Fi", new Vector2(0f, -450f), new Vector2(800f, 100f), onHost);

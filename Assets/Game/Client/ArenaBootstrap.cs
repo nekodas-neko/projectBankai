@@ -183,7 +183,7 @@ namespace Game.Client
             try
             {
                 host = new UdpGameHost(session.Server, classDefs, Protocol.DefaultPort, DeviceName());
-                hostAddress = $"{LocalNetwork.PrimaryAddress()}:{host.Port}";
+                hostAddress = string.Join("\n", LocalNetwork.Addresses(host.Port));
                 return true;
             }
             catch (System.Net.Sockets.SocketException exception)
@@ -325,7 +325,7 @@ namespace Game.Client
             switch (mode)
             {
                 case SessionMode.Host:
-                    text = $"Hosting at {hostAddress}\nPlayers: {host.RemotePlayerCount + 1}";
+                    text = $"Hosting. Others type one of:\n{hostAddress}\nPlayers: {host.RemotePlayerCount + 1}";
                     break;
                 case SessionMode.Join:
                     text = JoinStatus();
