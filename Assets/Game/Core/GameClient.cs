@@ -23,6 +23,7 @@ namespace Game.Core
         readonly List<PendingMove> pendingMoves = new List<PendingMove>();
         readonly List<Snapshot> history = new List<Snapshot>();
         readonly List<DamageEvent> events = new List<DamageEvent>();
+        readonly List<UseEvent> uses = new List<UseEvent>();
         double accumulator;
         double secondsSinceSnapshot;
         double clock;
@@ -94,6 +95,12 @@ namespace Game.Core
         {
             into.AddRange(events);
             events.Clear();
+        }
+
+        public void DrainUses(List<UseEvent> into)
+        {
+            into.AddRange(uses);
+            uses.Clear();
         }
 
         public bool TrySampleRemote(EntityId id, out Vec2 position)
@@ -192,6 +199,7 @@ namespace Game.Core
             Latest = snapshot;
             secondsSinceSnapshot = 0.0;
             events.AddRange(snapshot.Events);
+            uses.AddRange(snapshot.Uses);
 
             history.Add(snapshot);
             if (history.Count > config.SnapshotHistory)

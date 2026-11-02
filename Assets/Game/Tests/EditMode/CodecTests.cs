@@ -27,12 +27,14 @@ namespace Game.Core.Tests
                 Owner = new PlayerId(2),
                 Team = Team.Players,
                 Role = Role.Healer,
+                Appearance = 123456,
                 Position = new Vec2(1f, 2f),
                 Facing = new Vec2(0f, 1f),
                 Health = 42f,
                 MaxHealth = 100f,
             });
             snapshot.Events.Add(new DamageEvent { Source = new EntityId(3), Target = new EntityId(4), Amount = 12.5f, Slot = 2 });
+            snapshot.Uses.Add(new UseEvent { User = new EntityId(3), Slot = 1, Direction = new Vec2(0f, 1f) });
 
             var bytes = WireCodec.Encode(snapshot);
             Assert.IsTrue(WireCodec.TryDecode(bytes, out Snapshot decoded));
@@ -43,6 +45,10 @@ namespace Game.Core.Tests
             Assert.AreEqual(Role.Healer, decoded.Entities[0].Role);
             Assert.AreEqual(42f, decoded.Entities[0].Health);
             Assert.AreEqual(12.5f, decoded.Events[0].Amount);
+            Assert.AreEqual(123456, decoded.Entities[0].Appearance);
+            Assert.AreEqual(1, decoded.Uses.Count);
+            Assert.AreEqual(1, decoded.Uses[0].Slot);
+            Assert.AreEqual(new Vec2(0f, 1f), decoded.Uses[0].Direction);
             CollectionAssert.AreEqual(bytes, WireCodec.Encode(decoded));
         }
 
@@ -90,6 +96,16 @@ namespace Game.Core.Tests
                     WireCodec.TryDecode(data, out Snapshot _);
                 });
             }
+        }
+
+        [Test]
+        public void AppearanceId_IsStableAndDistinct()
+        {
+            Assert.AreEqual(0, AppearanceId.From(null));
+            Assert.AreEqual(0, AppearanceId.From(""));
+            Assert.AreEqual(AppearanceId.From("skin_ember"), AppearanceId.From("skin_ember"));
+            Assert.AreNotEqual(AppearanceId.From("skin_ember"), AppearanceId.From("skin_frost"));
+            Assert.AreEqual(unchecked((int)0xE40C292C), AppearanceId.From("a"));
         }
 
         [Test]

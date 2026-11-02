@@ -16,6 +16,7 @@ namespace Game.Core
         public EntityId Id;
         public PlayerId Owner;
         public Team Team;
+        public int Appearance;
         public string ClassId;
         public Role Role;
         public Vec2 Position;
@@ -28,13 +29,14 @@ namespace Game.Core
 
         public bool IsAlive => Health > 0f;
 
-        public static Entity FromClass(EntityId id, PlayerId owner, Team team, ClassDef def, Vec2 position)
+        public static Entity FromClass(EntityId id, PlayerId owner, Team team, ClassDef def, Vec2 position, int appearance = 0)
         {
             var entity = new Entity
             {
                 Id = id,
                 Owner = owner,
                 Team = team,
+                Appearance = appearance,
                 ClassId = def.Id,
                 Role = def.Role,
                 Position = position,

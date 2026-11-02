@@ -22,6 +22,7 @@ namespace Game.Core
         readonly List<Entity> entities = new List<Entity>();
         readonly List<Connection> connections = new List<Connection>();
         readonly List<DamageEvent> pendingEvents = new List<DamageEvent>();
+        readonly List<UseEvent> pendingUses = new List<UseEvent>();
         double accumulator;
         int nextEntityId = 1;
 
@@ -60,7 +61,7 @@ namespace Game.Core
             return connection == null ? null : FindEntity(connection.Entity);
         }
 
-        public Entity AddPlayer(PlayerId player, string classId, ITransport transport)
+        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0)
         {
             if (!player.IsValid)
             {
@@ -72,7 +73,7 @@ namespace Game.Core
                 throw new InvalidOperationException($"{player} is already connected");
             }
 
-            var entity = Spawn(player, Team.Players, classes.Get(classId), SpawnPoint(connections.Count));
+            var entity = Spawn(player, Team.Players, classes.Get(classId), SpawnPoint(connections.Count), appearance);
             connections.Add(new Connection { Player = player, Transport = transport, Entity = entity.Id });
             return entity;
         }
@@ -89,9 +90,9 @@ namespace Game.Core
             entities.RemoveAll(e => e.Id == connection.Entity);
         }
 
-        public Entity SpawnNpc(string classId, Team team, Vec2 position)
+        public Entity SpawnNpc(string classId, Team team, Vec2 position, int appearance = 0)
         {
-            return Spawn(PlayerId.None, team, classes.Get(classId), position);
+            return Spawn(PlayerId.None, team, classes.Get(classId), position, appearance);
         }
 
         public void Update(float dt)
@@ -149,9 +150,9 @@ namespace Game.Core
             return null;
         }
 
-        Entity Spawn(PlayerId owner, Team team, ClassDef def, Vec2 position)
+        Entity Spawn(PlayerId owner, Team team, ClassDef def, Vec2 position, int appearance)
         {
-            var entity = Entity.FromClass(new EntityId(nextEntityId++), owner, team, def, position);
+            var entity = Entity.FromClass(new EntityId(nextEntityId++), owner, team, def, position, appearance);
             entities.Add(entity);
             return entity;
         }
@@ -246,6 +247,7 @@ namespace Game.Core
 
             user.Facing = direction;
             user.Cooldowns[slot] = ability.Cooldown;
+            pendingUses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Direction = direction });
 
             var damage = ability.Damage * user.Stats.Power;
             for (var i = 0; i < entities.Count; i++)
@@ -309,6 +311,7 @@ namespace Game.Core
                     Owner = e.Owner,
                     Team = e.Team,
                     Role = e.Role,
+                    Appearance = e.Appearance,
                     Position = e.Position,
                     Facing = e.Facing,
                     Health = e.Health,
@@ -322,6 +325,8 @@ namespace Game.Core
 
             snapshot.Events.AddRange(pendingEvents);
             pendingEvents.Clear();
+            snapshot.Uses.AddRange(pendingUses);
+            pendingUses.Clear();
 
             for (var i = 0; i < connections.Count; i++)
             {
