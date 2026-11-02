@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -97,8 +98,15 @@ namespace Game.Net
 
     public static class LocalNetwork
     {
-        public static string PrimaryAddress()
+        public static bool IsTailscale(IPAddress address)
         {
+            var bytes = address.GetAddressBytes();
+            return bytes.Length == 4 && bytes[0] == 100 && bytes[1] >= 64 && bytes[1] <= 127;
+        }
+
+        public static List<string> Addresses(int port)
+        {
+            var lines = new List<string>();
             try
             {
                 foreach (var network in NetworkInterface.GetAllNetworkInterfaces())
@@ -110,15 +118,37 @@ namespace Game.Net
 
                     foreach (var address in network.GetIPProperties().UnicastAddresses)
                     {
-                        if (address.Address.AddressFamily == AddressFamily.InterNetwork)
+                        if (address.Address.AddressFamily != AddressFamily.InterNetwork || address.Address.ToString().StartsWith("169.254."))
                         {
-                            return address.Address.ToString();
+                            continue;
                         }
+
+                        var label = IsTailscale(address.Address) ? "Tailscale" : "same Wi-Fi";
+                        lines.Add($"{address.Address}:{port}  ({label})");
                     }
                 }
             }
             catch (System.Exception)
             {
+            }
+
+            if (lines.Count == 0)
+            {
+                lines.Add($"unknown:{port}");
+            }
+
+            return lines;
+        }
+
+        public static string PrimaryAddress()
+        {
+            foreach (var line in Addresses(0))
+            {
+                var colon = line.IndexOf(':');
+                if (colon > 0 && !line.Contains("Tailscale"))
+                {
+                    return line.Substring(0, colon);
+                }
             }
 
             return "unknown";

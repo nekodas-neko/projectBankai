@@ -54,7 +54,7 @@ Nothing goes on the internet. One device hosts and others join over the same Wi-
 
 Notes:
 - A phone hosting works with no setup. A **Windows PC hosting** can be blocked by Windows Firewall when the Wi-Fi is set to a **Public** network: Unity's firewall rules block incoming connections on Public networks, so phones cannot find or join it. Set the Wi-Fi's network profile to **Private** in Windows network settings, or let a phone host.
-- Everyone must be on the same Wi-Fi (or a private network such as Tailscale). Some routers isolate wireless devices from each other ("AP isolation"); turn that off or use a different network.
+- Everyone must be on the same Wi-Fi, or on a private network such as Tailscale (see `docs/remote-testing.md`). Some routers isolate wireless devices from each other ("AP isolation"); turn that off or use a different network.
 - Anyone on the same network can join; there is no password. Do not host on public Wi-Fi.
 - Ports: UDP 47777.
 

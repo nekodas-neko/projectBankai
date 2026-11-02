@@ -267,6 +267,29 @@ namespace Game.Core.Tests
             }
         }
 
+        [TestCase("100.64.0.1", true)]
+        [TestCase("100.101.102.103", true)]
+        [TestCase("100.127.255.254", true)]
+        [TestCase("100.128.0.1", false)]
+        [TestCase("100.63.0.1", false)]
+        [TestCase("192.168.1.20", false)]
+        public void Tailscale_AddressesAreRecognised(string address, bool expected)
+        {
+            Assert.AreEqual(expected, LocalNetwork.IsTailscale(IPAddress.Parse(address)));
+        }
+
+        [Test]
+        public void HostAddresses_AreListedWithThePort()
+        {
+            var lines = LocalNetwork.Addresses(47777);
+
+            Assert.GreaterOrEqual(lines.Count, 1);
+            foreach (var line in lines)
+            {
+                StringAssert.Contains(":47777", line);
+            }
+        }
+
         [Test]
         public void Scanner_ProbesEveryNetworkInterfaceNotJustTheDefault()
         {
