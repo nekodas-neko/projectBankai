@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: sword_slash
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   kind: 0
+  shape: 0
+  angle: 0
   cooldown: 0.6
   range: 2.8
   radius: 1.2

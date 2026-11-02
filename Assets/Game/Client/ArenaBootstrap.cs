@@ -66,7 +66,7 @@ namespace Game.Client
             playerClass = classDefs.Get(className);
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
-            telegraphs = new Telegraphs(transform, assets.cube, assets.telegraph, assets.telegraphFill);
+            telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
             viewCamera = Camera.main;
             BuildHud();
 
@@ -466,7 +466,7 @@ namespace Game.Client
             var direction = new Vector3(use.Direction.X, 0f, use.Direction.Y);
             if (ability.windup > 0f)
             {
-                telegraphs.Add(position, new Vector2(use.Direction.X, use.Direction.Y), ability.range, ability.radius, ability.windup);
+                telegraphs.Add(position, new Vector2(use.Direction.X, use.Direction.Y), ability.shape, ability.range, ability.radius, ability.angle, ability.windup);
             }
 
             var rotation = direction.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(direction) : Quaternion.identity;

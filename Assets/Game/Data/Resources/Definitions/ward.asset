@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: ward
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   kind: 3
+  shape: 0
+  angle: 0
   cooldown: 6
   range: 1
   radius: 0

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: arcane_bolt
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   kind: 0
+  shape: 0
+  angle: 0
   cooldown: 0.8
   range: 14
   radius: 0.5

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: fireball
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
   kind: 0
+  shape: 0
+  angle: 0
   cooldown: 3
   range: 18
   radius: 1

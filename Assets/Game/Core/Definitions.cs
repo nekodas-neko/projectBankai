@@ -38,10 +38,19 @@ namespace Game.Core
         Shield = 3,
     }
 
+    public enum AbilityShape : byte
+    {
+        Line = 0,
+        Circle = 1,
+        Cone = 2,
+    }
+
     public sealed class AbilityDef : IDefinition
     {
         public string Id { get; set; }
         public AbilityKind Kind { get; set; }
+        public AbilityShape Shape { get; set; }
+        public float Angle { get; set; }
         public float Cooldown { get; set; }
         public float Range { get; set; }
         public float Radius { get; set; }
@@ -69,6 +78,16 @@ namespace Game.Core
         public float GainBlocked { get; set; }
     }
 
+    public sealed class PhaseDef
+    {
+        public float HealthBelow { get; set; } = 1f;
+        public string[] Attacks { get; set; } = Array.Empty<string>();
+        public float SpeedScale { get; set; } = 1f;
+        public string SpawnClass { get; set; }
+        public int SpawnCount { get; set; }
+        public string SpawnSkin { get; set; }
+    }
+
     public sealed class ClassDef : IDefinition
     {
         public const int SkillSlots = 3;
@@ -82,6 +101,7 @@ namespace Game.Core
         public ResourceDef Resource { get; set; }
         public float AggroRange { get; set; }
         public float ThreatMultiplier { get; set; } = 1f;
+        public PhaseDef[] Phases { get; set; } = Array.Empty<PhaseDef>();
     }
 
     public sealed class Registry<T> where T : class, IDefinition

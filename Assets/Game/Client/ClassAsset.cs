@@ -4,6 +4,17 @@ using UnityEngine;
 
 namespace Game.Client
 {
+    [System.Serializable]
+    public class PhaseData
+    {
+        [Range(0.01f, 1f)] public float healthBelow = 1f;
+        public AbilityAsset[] attacks = new AbilityAsset[0];
+        [Min(0.1f)] public float speedScale = 1f;
+        public ClassAsset spawnClass;
+        [Min(0)] public int spawnCount;
+        public string spawnSkin = "";
+    }
+
     [CreateAssetMenu(menuName = "Game/Class", fileName = "new_class")]
     public class ClassAsset : DefinitionAsset
     {
@@ -16,6 +27,7 @@ namespace Game.Client
         public AbilityAsset defense;
         [Min(0f)] public float aggroRange;
         [Min(0f)] public float threatMultiplier = 1f;
+        public PhaseData[] phases = new PhaseData[0];
         public bool hasResource;
         public string resourceId = "";
         [Min(1f)] public float resourceMax = 100f;
@@ -37,6 +49,15 @@ namespace Game.Client
                 Defense = defense != null ? defense.Id : null,
                 AggroRange = aggroRange,
                 ThreatMultiplier = threatMultiplier,
+                Phases = phases.Select(phase => new PhaseDef
+                {
+                    HealthBelow = phase.healthBelow,
+                    Attacks = phase.attacks.Where(attack => attack != null).Select(attack => attack.Id).ToArray(),
+                    SpeedScale = phase.speedScale,
+                    SpawnClass = phase.spawnClass != null ? phase.spawnClass.Id : null,
+                    SpawnCount = phase.spawnCount,
+                    SpawnSkin = phase.spawnSkin,
+                }).ToArray(),
                 Resource = hasResource
                     ? new ResourceDef
                     {
