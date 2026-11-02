@@ -73,3 +73,5 @@ Thumbs.db
 !/tests/**/*.csproj
 /tests/**/bin/
 /tests/**/obj/
+
+/_art-incoming/
