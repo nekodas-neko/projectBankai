@@ -39,11 +39,63 @@ namespace Game.Editor
             var fireball = Ability("fireball", cooldown: 3f, range: 18f, radius: 1f, damage: 30f);
             var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 8f);
 
+            var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
+            var arcaneStep = Ability("arcane_step", cooldown: 3.5f, range: 1f, radius: 0f, damage: 0f);
+            var shieldWall = Ability("shield_wall", cooldown: 5f, range: 1f, radius: 0f, damage: 0f);
+            var ward = Ability("ward", cooldown: 6f, range: 1f, radius: 0f, damage: 0f);
+
+            Tune(arcaneStep, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Dodge; a.duration = 0.35f; a.dashDistance = 6f; a.perfectWindow = 0.18f; a.rider = arcaneCounter; });
+            Tune(shieldWall, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Block; a.duration = 1.5f; a.reduction = 0.65f; });
+            Tune(ward, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Shield; a.duration = 4f; a.absorb = 40f; });
+            Tune(slimeSlam, a => a.windup <= 0f, a => a.windup = 0.6f);
+            Tune(radiantPulse, a => a.heal <= 0f, a => a.heal = 20f);
+            Tune(shieldBash, a => a.taunt <= 0f, a => a.taunt = 3f);
+            Tune(shieldBash, a => a.resourceCost == 0f, a => a.resourceCost = 25f);
+            Tune(holyBolt, a => a.resourceCost == 0f, a => a.resourceCost = 8f);
+            Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
+            Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
+
             Class("tank", Role.Tank, 180f, 5f, 1f, swordSlash, shieldBash);
             Class("healer", Role.Healer, 100f, 6f, 1f, holyBolt, radiantPulse);
             Class("mage", Role.Dps, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", Role.None, 60f, 0f, 1f, slimeSlam);
             Class("slime_boss", Role.None, 800f, 0f, 1f, slimeSlam);
+
+            Tune("tank", c => c.defense == null, c =>
+            {
+                c.defense = shieldWall;
+                c.hasResource = true;
+                c.resourceId = "rage";
+                c.resourceMax = 100f;
+                c.resourceStart = 0f;
+                c.resourceRegen = -2f;
+                c.resourceGainDealt = 0.4f;
+                c.resourceGainTaken = 0.6f;
+                c.resourceGainBlocked = 1.2f;
+            });
+            Tune("healer", c => c.defense == null, c =>
+            {
+                c.defense = ward;
+                c.hasResource = true;
+                c.resourceId = "mana";
+                c.resourceMax = 100f;
+                c.resourceStart = 100f;
+                c.resourceRegen = 4f;
+                c.resourceGainBlocked = 0.6f;
+            });
+            Tune("mage", c => c.defense == null, c =>
+            {
+                c.defense = arcaneStep;
+                c.hasResource = true;
+                c.resourceId = "focus";
+                c.resourceMax = 100f;
+                c.resourceStart = 60f;
+                c.resourceRegen = 3f;
+                c.resourceGainDealt = 0.8f;
+            });
+            Tune("tank", c => c.threatMultiplier <= 1f, c => c.threatMultiplier = 3f);
+            Tune("slime", c => c.aggroRange <= 0f, c => { c.aggroRange = 12f; c.moveSpeed = 2.8f; });
+            Tune("slime_boss", c => c.aggroRange <= 0f, c => { c.aggroRange = 22f; c.moveSpeed = 2.2f; });
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -87,6 +139,10 @@ namespace Game.Editor
             Link("arcane_bolt", arcane, hitArcane);
             Link("fireball", fire, hitFire);
             Link("slime_slam", slime, hitSlime);
+            Link("arcane_step", arcane, hitSpark);
+            Link("arcane_counter", fire, hitArcane);
+            Link("shield_wall", shield, hitSpark);
+            Link("ward", holy, hitHoly);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -111,6 +167,8 @@ namespace Game.Editor
                 flash = SeedMaterial($"{MaterialsRoot}/Flash.mat", Color.white),
                 barBackground = SeedMaterial($"{MaterialsRoot}/BarBackground.mat", new Color(0.1f, 0.1f, 0.12f)),
                 aim = SeedMaterial($"{MaterialsRoot}/Aim.mat", new Color(0.78f, 0.88f, 1f)),
+                telegraph = SeedMaterial($"{MaterialsRoot}/Telegraph.mat", new Color(0.45f, 0.1f, 0.1f), "Universal Render Pipeline/Unlit"),
+                telegraphFill = SeedMaterial($"{MaterialsRoot}/TelegraphFill.mat", new Color(0.95f, 0.25f, 0.15f), "Universal Render Pipeline/Unlit"),
             };
             var ground = SeedMaterial($"{MaterialsRoot}/Ground.mat", new Color(0.23f, 0.25f, 0.29f));
             var rim = SeedMaterial($"{MaterialsRoot}/Rim.mat", new Color(0.55f, 0.58f, 0.64f));
@@ -285,6 +343,29 @@ namespace Game.Editor
             asset.damage = damage;
             AssetDatabase.CreateAsset(asset, path);
             return asset;
+        }
+
+        static void Tune(AbilityAsset asset, System.Func<AbilityAsset, bool> needed, System.Action<AbilityAsset> apply)
+        {
+            if (asset == null || !needed(asset))
+            {
+                return;
+            }
+
+            apply(asset);
+            EditorUtility.SetDirty(asset);
+        }
+
+        static void Tune(string classId, System.Func<ClassAsset, bool> needed, System.Action<ClassAsset> apply)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/{classId}.asset");
+            if (asset == null || !needed(asset))
+            {
+                return;
+            }
+
+            apply(asset);
+            EditorUtility.SetDirty(asset);
         }
 
         static void Class(string id, Role role, float health, float speed, float power, AbilityAsset auto, params AbilityAsset[] skills)

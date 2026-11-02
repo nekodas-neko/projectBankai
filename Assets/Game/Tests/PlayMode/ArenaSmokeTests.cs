@@ -53,6 +53,25 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator DefendButton_DodgesAndTheResourceShows()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "mage";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Press(bootstrap.Hud.Defense, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var state));
+            Assert.Greater(state.GetCooldown(Entity.DefenseSlot), 0f);
+            Assert.AreNotEqual(0, state.Effects & EffectFlags.Invulnerable);
+            Assert.Greater(state.MaxResource, 0f);
+            Assert.Greater(state.Resource, 0f);
+        }
+
+        [UnityTest]
         public IEnumerator HostMode_AcceptsAJoiningPlayerOverTheNetwork()
         {
             HudSettings.SessionMode = (int)SessionMode.Host;

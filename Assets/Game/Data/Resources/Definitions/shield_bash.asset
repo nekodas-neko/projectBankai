@@ -12,9 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f163ad990b858e444a427c5a66f8a819, type: 3}
   m_Name: shield_bash
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
+  kind: 0
   cooldown: 6
   range: 3.5
   radius: 1.8
   damage: 14
+  windup: 0
+  resourceCost: 25
+  duration: 0
+  dashDistance: 0
+  reduction: 0
+  absorb: 0
+  perfectWindow: 0
+  heal: 0
+  taunt: 3
+  rider: {fileID: 0}
   castEffect: {fileID: 1846483518111950945, guid: f94168cfe5341d944957f40a4bd2dce3, type: 3}
   hitEffect: {fileID: 4465893761992978395, guid: 33b9f5df61c2a214f9e0ac5373b2f08e, type: 3}

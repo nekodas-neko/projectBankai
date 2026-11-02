@@ -12,9 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f163ad990b858e444a427c5a66f8a819, type: 3}
   m_Name: sword_slash
   m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
+  kind: 0
   cooldown: 0.6
   range: 2.8
   radius: 1.2
   damage: 9
+  windup: 0
+  resourceCost: 0
+  duration: 0
+  dashDistance: 0
+  reduction: 0
+  absorb: 0
+  perfectWindow: 0
+  heal: 0
+  taunt: 0
+  rider: {fileID: 0}
   castEffect: {fileID: 2370515591234554031, guid: 1fbed1fd51ef8304082259bd5693396d, type: 3}
   hitEffect: {fileID: 4465893761992978395, guid: 33b9f5df61c2a214f9e0ac5373b2f08e, type: 3}

@@ -10,6 +10,8 @@ namespace Game.Core
         public int MaxQueuedCommands { get; set; } = 16;
         public int SnapshotInterval { get; set; } = 1;
         public int MaxTicksPerUpdate { get; set; } = 8;
+        public float RespawnSeconds { get; set; } = 5f;
+        public float DefenseLeniencySeconds { get; set; } = 0.2f;
     }
 
     public sealed class GameServer
@@ -23,6 +25,7 @@ namespace Game.Core
         readonly List<Connection> connections = new List<Connection>();
         readonly List<DamageEvent> pendingEvents = new List<DamageEvent>();
         readonly List<UseEvent> pendingUses = new List<UseEvent>();
+        readonly List<PendingAttack> pendingAttacks = new List<PendingAttack>();
         double accumulator;
         int nextEntityId = 1;
 
@@ -88,6 +91,7 @@ namespace Game.Core
 
             connections.Remove(connection);
             entities.RemoveAll(e => e.Id == connection.Entity);
+            pendingAttacks.RemoveAll(a => a.User == connection.Entity);
         }
 
         public Entity SpawnNpc(string classId, Team team, Vec2 position, int appearance = 0)
@@ -126,7 +130,20 @@ namespace Game.Core
 
             for (var i = 0; i < entities.Count; i++)
             {
+                RunBrain(entities[i]);
+            }
+
+            for (var i = 0; i < entities.Count; i++)
+            {
+                StepDash(entities[i], dt);
+            }
+
+            ResolvePendingAttacks(dt);
+
+            for (var i = 0; i < entities.Count; i++)
+            {
                 entities[i].TickTimers(dt);
+                TickRespawn(entities[i], dt);
             }
 
             Tick++;
@@ -202,6 +219,11 @@ namespace Game.Core
 
                 if (command.Type == CommandType.Move)
                 {
+                    if (entity.HasStatus(StatusType.Dashing))
+                    {
+                        continue;
+                    }
+
                     entity.Position = Movement.Step(entity.Position, command.Aim, entity.Stats.MoveSpeed, config.Simulation);
                     if (command.Aim.SqrLength > 1e-6f)
                     {
@@ -222,43 +244,117 @@ namespace Game.Core
                 return;
             }
 
-            if (!abilities.TryGet(user.AbilityIds[slot], out var ability))
+            if (!abilities.TryGet(user.AbilityIds[slot], out var ability) || !user.CanAfford(ability.ResourceCost))
             {
                 return;
             }
 
-            Vec2 direction;
-            if (aim.SqrLength > 1e-6f)
-            {
-                direction = aim.Normalized;
-            }
-            else
-            {
-                var target = NearestHostile(user, ability.Range);
-                if (target != null)
-                {
-                    direction = (target.Position - user.Position).Normalized;
-                }
-                else
-                {
-                    direction = user.Facing.SqrLength > 1e-6f ? user.Facing : new Vec2(0f, 1f);
-                }
-            }
-
-            user.Facing = direction;
+            var direction = ChooseDirection(user, ability, aim);
             user.Cooldowns[slot] = ability.Cooldown;
+            user.AddResource(-ability.ResourceCost);
             pendingUses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Direction = direction });
 
+            switch (ability.Kind)
+            {
+                case AbilityKind.Dodge:
+                    StartDodge(user, ability, direction);
+                    ForgiveRecentHits(user, ability);
+                    break;
+                case AbilityKind.Block:
+                    user.AddStatus(StatusType.Blocking, ability.Duration, ability.Reduction);
+                    ForgiveRecentHits(user, ability);
+                    break;
+                case AbilityKind.Shield:
+                    user.AddStatus(StatusType.Shield, ability.Duration, ability.Absorb * user.Stats.Power);
+                    ForgiveRecentHits(user, ability);
+                    break;
+                default:
+                    user.Facing = direction;
+                    Strike(user, ability, slot, direction);
+                    break;
+            }
+        }
+
+        Vec2 ChooseDirection(Entity user, AbilityDef ability, Vec2 aim)
+        {
+            if (aim.SqrLength > 1e-6f)
+            {
+                return aim.Normalized;
+            }
+
+            var facing = user.Facing.SqrLength > 1e-6f ? user.Facing : new Vec2(0f, 1f);
+            if (ability.Kind == AbilityKind.Dodge)
+            {
+                return facing * -1f;
+            }
+
+            if (ability.Kind != AbilityKind.Attack)
+            {
+                return facing;
+            }
+
+            var target = NearestHostile(user, ability.Range);
+            return target != null ? (target.Position - user.Position).Normalized : facing;
+        }
+
+        void Strike(Entity user, AbilityDef ability, int slot, Vec2 direction)
+        {
+            if (ability.Windup <= 0f)
+            {
+                ResolveAttack(user, user.Position, direction, ability, slot);
+                return;
+            }
+
+            user.Winding = ability.Windup;
+            pendingAttacks.Add(new PendingAttack
+            {
+                User = user.Id,
+                Origin = user.Position,
+                Direction = direction,
+                Ability = ability,
+                Slot = slot,
+                Remaining = ability.Windup,
+            });
+        }
+
+        void ResolvePendingAttacks(float dt)
+        {
+            for (var i = pendingAttacks.Count - 1; i >= 0; i--)
+            {
+                var attack = pendingAttacks[i];
+                attack.Remaining -= dt;
+                if (attack.Remaining > 1e-4f)
+                {
+                    pendingAttacks[i] = attack;
+                    continue;
+                }
+
+                pendingAttacks.RemoveAt(i);
+                var user = FindEntity(attack.User);
+                if (user != null && user.IsAlive)
+                {
+                    ResolveAttack(user, attack.Origin, attack.Direction, attack.Ability, attack.Slot);
+                }
+            }
+        }
+
+        void ResolveAttack(Entity user, Vec2 origin, Vec2 direction, AbilityDef ability, int slot)
+        {
             var damage = ability.Damage * user.Stats.Power;
+            var heal = ability.Heal * user.Stats.Power;
+            var abilityId = StableId.From(ability.Id);
+            var hitsEnemies = ability.Damage > 0f || ability.Heal <= 0f;
             for (var i = 0; i < entities.Count; i++)
             {
                 var other = entities[i];
-                if (!other.IsAlive || !Entity.AreHostile(user, other))
+                var hostile = Entity.AreHostile(user, other);
+                var friendly = !hostile && other.Team != Team.Neutral && other.Team == user.Team;
+                if (!other.IsAlive || !(hostile && hitsEnemies || friendly && heal > 0f))
                 {
                     continue;
                 }
 
-                var offset = other.Position - user.Position;
+                var offset = other.Position - origin;
                 var along = Vec2.Dot(offset, direction);
                 if (along < 0f || along > ability.Range)
                 {
@@ -271,9 +367,285 @@ namespace Game.Core
                     continue;
                 }
 
-                other.Health = MathF.Max(0f, other.Health - damage);
-                pendingEvents.Add(new DamageEvent { Source = user.Id, Target = other.Id, Amount = damage, Slot = (byte)slot, Ability = StableId.From(ability.Id) });
+                if (friendly)
+                {
+                    ApplyHeal(user, other, heal, slot, abilityId);
+                    continue;
+                }
+
+                ApplyDamage(user, other, damage, slot, abilityId);
+                if (ability.Taunt > 0f)
+                {
+                    other.ForcedTarget = user.Id;
+                    other.ForcedSeconds = ability.Taunt;
+                    other.RaiseThreatTo(user.Id, other.TopThreat() + 1f);
+                }
             }
+        }
+
+        void ApplyHeal(Entity source, Entity target, float amount, int slot, int abilityId)
+        {
+            var healed = MathF.Min(amount, target.Stats.MaxHealth - target.Health);
+            if (healed <= 0f)
+            {
+                return;
+            }
+
+            target.Health += healed;
+            pendingEvents.Add(new DamageEvent
+            {
+                Source = source.Id,
+                Target = target.Id,
+                Amount = healed,
+                Slot = (byte)slot,
+                Ability = abilityId,
+                Outcome = HitOutcome.Healed,
+            });
+        }
+
+        Entity PickTarget(Entity npc, float aggroRange)
+        {
+            if (npc.ForcedSeconds > 0f)
+            {
+                var forced = FindEntity(npc.ForcedTarget);
+                if (forced != null && forced.IsAlive && Entity.AreHostile(npc, forced))
+                {
+                    return forced;
+                }
+            }
+
+            Entity best = null;
+            var bestThreat = 0f;
+            for (var i = 0; i < npc.Threat.Count; i++)
+            {
+                var candidate = FindEntity(npc.Threat[i].Source);
+                if (candidate != null && candidate.IsAlive && Entity.AreHostile(npc, candidate) && npc.Threat[i].Amount > bestThreat)
+                {
+                    bestThreat = npc.Threat[i].Amount;
+                    best = candidate;
+                }
+            }
+
+            return best ?? NearestHostile(npc, aggroRange);
+        }
+
+        void StartDodge(Entity user, AbilityDef ability, Vec2 direction)
+        {
+            var duration = MathF.Max(ability.Duration, config.Simulation.TickSeconds);
+            user.Facing = direction;
+            user.DashDirection = direction;
+            user.DashSpeed = ability.DashDistance / duration;
+            user.AddStatus(StatusType.Dashing, duration, 0f);
+            user.AddStatus(StatusType.Invulnerable, duration, 0f);
+            user.PerfectRemaining = ability.PerfectWindow;
+            user.PerfectRider = ability.Rider;
+        }
+
+        void StepDash(Entity entity, float dt)
+        {
+            if (!entity.IsAlive || !entity.HasStatus(StatusType.Dashing))
+            {
+                return;
+            }
+
+            var moved = entity.Position + entity.DashDirection * (entity.DashSpeed * dt);
+            entity.Position = moved.ClampLength(config.Simulation.ArenaRadius);
+        }
+
+        void ApplyDamage(Entity source, Entity target, float amount, int slot, int abilityId)
+        {
+            var outcome = HitOutcome.Hit;
+            var health = amount;
+            var spec = target.ResourceSpec;
+
+            if (target.HasStatus(StatusType.Invulnerable))
+            {
+                health = 0f;
+                outcome = HitOutcome.Dodged;
+                TriggerRider(target, source);
+            }
+            else
+            {
+                if (target.HasStatus(StatusType.Blocking))
+                {
+                    var blocked = health * Clamp01(target.StatusMagnitude(StatusType.Blocking));
+                    health -= blocked;
+                    outcome = HitOutcome.Blocked;
+                    if (spec != null)
+                    {
+                        target.AddResource(blocked * spec.GainBlocked);
+                    }
+                }
+
+                var absorbed = target.AbsorbWithShield(health);
+                if (absorbed > 0f)
+                {
+                    health -= absorbed;
+                    outcome = health > 0f ? outcome : HitOutcome.Absorbed;
+                    if (spec != null)
+                    {
+                        target.AddResource(absorbed * spec.GainBlocked);
+                    }
+                }
+            }
+
+            if (health > 0f)
+            {
+                target.Health = MathF.Max(0f, target.Health - health);
+                target.RecentHits.Add(new RecentHit { Amount = health, Source = source.Id });
+                target.AddThreat(source.Id, health * source.ThreatMultiplier);
+                if (spec != null)
+                {
+                    target.AddResource(health * spec.GainTaken);
+                }
+
+                var dealt = source.ResourceSpec;
+                if (dealt != null)
+                {
+                    source.AddResource(health * dealt.GainDealt);
+                }
+            }
+
+            pendingEvents.Add(new DamageEvent
+            {
+                Source = source.Id,
+                Target = target.Id,
+                Amount = health,
+                Slot = (byte)slot,
+                Ability = abilityId,
+                Outcome = outcome,
+            });
+        }
+
+        void ForgiveRecentHits(Entity user, AbilityDef ability)
+        {
+            if (!user.IsAlive)
+            {
+                return;
+            }
+
+            var total = user.TakeRecentHits(config.DefenseLeniencySeconds, out var attackerId);
+            if (total <= 0f)
+            {
+                return;
+            }
+
+            var refund = 0f;
+            var outcome = HitOutcome.Hit;
+            switch (ability.Kind)
+            {
+                case AbilityKind.Dodge:
+                    refund = total;
+                    outcome = HitOutcome.Dodged;
+                    break;
+                case AbilityKind.Block:
+                    refund = total * Clamp01(ability.Reduction);
+                    outcome = HitOutcome.Blocked;
+                    break;
+                case AbilityKind.Shield:
+                    refund = user.AbsorbWithShield(total);
+                    outcome = HitOutcome.Absorbed;
+                    break;
+            }
+
+            if (refund <= 0f)
+            {
+                return;
+            }
+
+            user.Health = MathF.Min(user.Stats.MaxHealth, user.Health + refund);
+            if (user.ResourceSpec != null && ability.Kind != AbilityKind.Dodge)
+            {
+                user.AddResource(refund * user.ResourceSpec.GainBlocked);
+            }
+
+            var attacker = FindEntity(attackerId);
+            if (ability.Kind == AbilityKind.Dodge && attacker != null)
+            {
+                TriggerRider(user, attacker);
+            }
+
+            pendingEvents.Add(new DamageEvent
+            {
+                Source = attackerId,
+                Target = user.Id,
+                Amount = 0f,
+                Slot = (byte)Entity.DefenseSlot,
+                Ability = StableId.From(ability.Id),
+                Outcome = outcome,
+            });
+        }
+
+        void TriggerRider(Entity dodger, Entity attacker)
+        {
+            if (dodger.PerfectRemaining <= 0f || string.IsNullOrEmpty(dodger.PerfectRider) || !abilities.TryGet(dodger.PerfectRider, out var rider))
+            {
+                return;
+            }
+
+            dodger.PerfectRemaining = 0f;
+            var offset = attacker.Position - dodger.Position;
+            var direction = offset.SqrLength > 1e-6f ? offset.Normalized : dodger.Facing;
+            pendingUses.Add(new UseEvent { User = dodger.Id, Slot = (byte)Entity.DefenseSlot, Ability = StableId.From(rider.Id), Direction = direction });
+            Strike(dodger, rider, Entity.DefenseSlot, direction);
+        }
+
+        void TickRespawn(Entity entity, float dt)
+        {
+            if (entity.IsAlive || !entity.Owner.IsValid)
+            {
+                return;
+            }
+
+            entity.DeadSeconds += dt;
+            if (entity.DeadSeconds < config.RespawnSeconds)
+            {
+                return;
+            }
+
+            var index = connections.FindIndex(c => c.Entity == entity.Id);
+            entity.Respawn(SpawnPoint(index < 0 ? 0 : index));
+        }
+
+        void RunBrain(Entity npc)
+        {
+            if (npc.Owner.IsValid || !npc.IsAlive || !classes.TryGet(npc.ClassId, out var def) || def.AggroRange <= 0f)
+            {
+                return;
+            }
+
+            if (npc.Winding > 0f || !abilities.TryGet(npc.AbilityIds[0], out var attack))
+            {
+                return;
+            }
+
+            var target = PickTarget(npc, def.AggroRange);
+            if (target == null)
+            {
+                return;
+            }
+
+            var offset = target.Position - npc.Position;
+            var distance = offset.Length;
+            var direction = distance > 1e-4f ? offset * (1f / distance) : npc.Facing;
+            npc.Facing = direction;
+
+            if (distance <= attack.Range * 0.85f)
+            {
+                if (npc.Cooldowns[0] <= 0f)
+                {
+                    UseAbility(npc, 0, direction);
+                }
+
+                return;
+            }
+
+            npc.Position = Movement.Step(npc.Position, direction, npc.Stats.MoveSpeed, config.Simulation);
+        }
+
+        static float Clamp01(float value)
+        {
+            return value < 0f ? 0f : value > 1f ? 1f : value;
         }
 
         Entity NearestHostile(Entity user, float range)
@@ -320,6 +692,11 @@ namespace Game.Core
                     Cooldown1 = e.Cooldowns[1],
                     Cooldown2 = e.Cooldowns[2],
                     Cooldown3 = e.Cooldowns[3],
+                    Cooldown4 = e.Cooldowns[4],
+                    Resource = e.Resource,
+                    MaxResource = e.MaxResource,
+                    ResourceId = e.ResourceSpec != null ? StableId.From(e.ResourceSpec.Id) : 0,
+                    Effects = e.EffectFlagsNow(),
                 });
             }
 
@@ -333,6 +710,16 @@ namespace Game.Core
                 snapshot.AckedSequence = connections[i].LastSequence;
                 connections[i].Transport.Send(WireCodec.Encode(snapshot));
             }
+        }
+
+        struct PendingAttack
+        {
+            public EntityId User;
+            public Vec2 Origin;
+            public Vec2 Direction;
+            public AbilityDef Ability;
+            public int Slot;
+            public float Remaining;
         }
 
         sealed class Connection

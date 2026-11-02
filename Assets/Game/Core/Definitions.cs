@@ -30,13 +30,43 @@ namespace Game.Core
         string Id { get; }
     }
 
+    public enum AbilityKind : byte
+    {
+        Attack = 0,
+        Dodge = 1,
+        Block = 2,
+        Shield = 3,
+    }
+
     public sealed class AbilityDef : IDefinition
     {
         public string Id { get; set; }
+        public AbilityKind Kind { get; set; }
         public float Cooldown { get; set; }
         public float Range { get; set; }
         public float Radius { get; set; }
         public float Damage { get; set; }
+        public float Windup { get; set; }
+        public float ResourceCost { get; set; }
+        public float Duration { get; set; }
+        public float DashDistance { get; set; }
+        public float Reduction { get; set; }
+        public float Absorb { get; set; }
+        public float PerfectWindow { get; set; }
+        public float Heal { get; set; }
+        public float Taunt { get; set; }
+        public string Rider { get; set; }
+    }
+
+    public sealed class ResourceDef
+    {
+        public string Id { get; set; }
+        public float Max { get; set; } = 100f;
+        public float Start { get; set; }
+        public float Regen { get; set; }
+        public float GainDealt { get; set; }
+        public float GainTaken { get; set; }
+        public float GainBlocked { get; set; }
     }
 
     public sealed class ClassDef : IDefinition
@@ -48,6 +78,10 @@ namespace Game.Core
         public Stats Stats { get; set; }
         public string AutoAttack { get; set; }
         public string[] Skills { get; set; } = Array.Empty<string>();
+        public string Defense { get; set; }
+        public ResourceDef Resource { get; set; }
+        public float AggroRange { get; set; }
+        public float ThreatMultiplier { get; set; } = 1f;
     }
 
     public sealed class Registry<T> where T : class, IDefinition

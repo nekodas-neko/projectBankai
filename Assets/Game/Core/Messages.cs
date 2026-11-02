@@ -9,6 +9,7 @@ namespace Game.Core
         Skill1 = 3,
         Skill2 = 4,
         Skill3 = 5,
+        Defend = 6,
     }
 
     public readonly struct Command
@@ -46,6 +47,11 @@ namespace Game.Core
         public float Cooldown1;
         public float Cooldown2;
         public float Cooldown3;
+        public float Cooldown4;
+        public float Resource;
+        public float MaxResource;
+        public int ResourceId;
+        public byte Effects;
 
         public float GetCooldown(int slot)
         {
@@ -55,9 +61,19 @@ namespace Game.Core
                 case 1: return Cooldown1;
                 case 2: return Cooldown2;
                 case 3: return Cooldown3;
+                case 4: return Cooldown4;
                 default: return 0f;
             }
         }
+    }
+
+    public enum HitOutcome : byte
+    {
+        Hit = 0,
+        Dodged = 1,
+        Blocked = 2,
+        Absorbed = 3,
+        Healed = 4,
     }
 
     public struct DamageEvent
@@ -67,6 +83,7 @@ namespace Game.Core
         public float Amount;
         public byte Slot;
         public int Ability;
+        public HitOutcome Outcome;
     }
 
     public struct UseEvent

@@ -6,13 +6,18 @@ The rule: adding a skill, class or boss means adding files, not editing the fram
 
 | Thing | Where it lives | Status |
 |---|---|---|
-| Abilities (cooldown, range, width, damage) | `AbilityAsset` files in `Assets/Game/Data/Resources/Definitions` | Data. One file each. |
-| Classes (role, stats, auto-attack, up to 3 skills) | `ClassAsset` files in the same folder | Data. One file each. |
-| Ability behaviour beyond "damage along a line" (dash, shield, heal, projectile) | `Game.Core` | Not built yet. Needs an effect extension point (see issues #19, #20). |
+| Abilities (cooldown, range, width, damage, windup, resource cost) | `AbilityAsset` files in `Assets/Game/Data/Resources/Definitions` | Data. One file each. |
+| Classes (role, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range) | `ClassAsset` files in the same folder | Data. One file each. |
+| Defensive skills: dodge (dash and brief invulnerability, optional counter rider), block (damage reduction), shield (absorb) | Ability `kind` plus its numbers | Data. The three kinds are code in `GameServer`; a fourth kind is a `core-change`. |
+| Class resource (mana, rage, focus): max, start, regen or decay, gain per damage dealt, taken and blocked | `ClassAsset` resource fields | Data. Abilities spend it with `resourceCost`. |
+| Windup (delay between starting an attack and it landing) | `windup` on an ability | Data. Clients draw the warning area while it counts down. |
+| Healing (`heal` on an ability heals allies in its line, the caster included, clamped to max health; an ability with damage and heal does both) | Ability numbers | Data. |
+| Taunt and threat (`taunt` seconds on an ability forces enemies hit to target the caster and lifts the caster's threat above everyone's; `threatMultiplier` on a class scales threat from its damage; enemies attack whoever has the most threat) | Ability and class numbers | Data. |
+| Ability behaviour beyond the above (projectile, area shapes) | `Game.Core` | Not built yet. |
 | Skins (look of a character) | `SkinAsset` files in `Assets/Game/Data/Resources/Skins` | Data. One file each. A skin is either a prefab with an Animator or a coloured primitive. |
 | Skill effects | `castEffect` and `hitEffect` prefabs on each `AbilityAsset` | Data. Played on every client from use and hit events. |
 | Bosses, telegraph shapes, phases | `Game.Core` | Not built yet. Milestone M2. |
-| Status effects | `Entity.Statuses` exists; no effects use it yet | Stub. |
+| Status effects | `Entity.Statuses` (invulnerable, blocking, shield, dashing) | Used by the defensive skills. Generic debuffs are not built yet. |
 
 The loader reads every asset under `Resources/Definitions` and validates the lot. Unknown ability ids, a class with more than 3 skills, non-positive health and similar mistakes fail loudly with a list of every problem.
 
@@ -28,6 +33,20 @@ Goal: a new `fighter` skill called `whirl`, a short wide hit.
 No code changed. Only one existing file was touched (`fighter.asset`, to list the skill). To avoid even that, create a new class that lists the skill, as in the next example.
 
 Tuning an existing value is the same: edit the asset. Reports of the form "value, current, wanted" from the tuning issue template are one-line asset edits.
+
+## Worked example: add a defensive skill
+
+Goal: a `roll` dodge for a new class, with a counter when it is timed well.
+
+1. Create an ability `counter_strike` (kind **Attack**, cooldown `0`, range `6`, radius `1`, damage `30`). This is the rider.
+2. Create an ability `roll`: kind **Dodge**, cooldown `3`, **Duration** `0.4` (how long you are invulnerable and dashing), **Dash Distance** `5`, **Perfect Window** `0.15` (a hit that lands this soon after the dodge starts fires the rider), **Rider** `counter_strike`.
+3. Set the class **Defense** to `roll`.
+
+A **Block** ability needs a duration and a **Reduction** between 0 and 1. A **Shield** needs a duration and an **Absorb** amount. Both feed the class resource through its **Gain Blocked** value, which is how a tank builds rage and a healer converts absorbed damage into mana.
+
+## Worked example: give a class a resource
+
+On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus`; the HUD colours these three), a max, a start value, **Regen** per second (negative decays), and the three gains. Abilities with a **Resource Cost** need the class to have a resource, and the validator says so if not. A negative cost grants resource instead of spending it.
 
 ## Worked example: add a class
 
@@ -68,7 +87,10 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 
 - Client and server tick clocks are not synchronised. No clock offset estimation yet; needed before two phones play together (M1.5).
 - Move commands are one tick each, capped at 2 per tick. Reconciliation replays unacknowledged moves and drops ones older than 1 second.
-- Hits are instant line checks. No projectiles, no area shapes other than a wide line.
+- Hits are line checks, instant or after a windup. No projectiles, no area shapes other than a wide line. A windup hit uses the position and direction from when the attack started.
+- Enemies have one behaviour: chase the nearest hostile inside the aggro range and use the auto-attack. Phases, target switching and threat come with the boss work (issues 29 and 30).
+- A dodge ignores Move commands while dashing, so the client briefly predicts movement the server discards. It snaps back on the next snapshot.
+- Dead players stay dead until the scene reloads; there is no respawn yet.
 - State uses floats. The server is authoritative so cross-machine determinism is not required; tests only prove same-seed repeatability on one machine.
 - `WireCodec` allocates per message, so the combat allocation budget is not met.
 - The networking library is not chosen; everything sits behind `ITransport`.
