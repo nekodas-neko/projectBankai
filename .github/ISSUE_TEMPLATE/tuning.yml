@@ -1,0 +1,25 @@
+name: Tuning
+description: Change a number or timing
+labels: [tuning]
+body:
+  - type: input
+    id: value
+    attributes:
+      label: Value to change
+      description: For example boss cone telegraph time, tank taunt cooldown
+    validations:
+      required: true
+  - type: input
+    id: current
+    attributes:
+      label: Current value
+  - type: input
+    id: wanted
+    attributes:
+      label: Wanted value
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: Build number
