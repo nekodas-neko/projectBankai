@@ -42,11 +42,12 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: ta
 - `docs/`, `tools/`, `.github/`
 
 ## Build and test
-Unity 6000.3.27f2 (6.3 LTS), URP. Exact commands are added in the M0 PR; until then:
-- EditMode tests: `Unity.exe -batchmode -nographics -runTests -testPlatform EditMode -projectPath . -testResults results.xml`
-- Android build and install: wrapper script in `tools/` (added in M0).
+Unity 6000.3.27f2 (6.3 LTS), URP. Windows, PowerShell.
+- EditMode tests: `tools\run-tests.ps1` (`-Platform PlayMode` for Play Mode tests). Results in `Logs\`.
+- Android APK: `tools\build-android.ps1 -Development`; add `-Install` to `adb install -r` and launch on the phone.
+- Details and Unity Remote steps: `docs/dev-loop.md`.
 
-Batch mode needs a signed-in Unity license on the machine. Claude cannot play the game; say so when something needs a phone.
+Batch mode needs a signed-in Unity license on the machine. Close the Unity editor on the project before running batch commands. Claude cannot play the game; say so when something needs a phone.
 
 ## Docs
 - `docs/dev-loop.md` — Unity Remote and build loop (M0)
