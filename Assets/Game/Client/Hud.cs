@@ -15,6 +15,7 @@ namespace Game.Client
         const string ClassKey = "player.class";
         const string ModeKey = "session.mode";
         const string JoinKey = "session.joinAddress";
+        const string StyleKey = "player.style";
         public const float MinZoom = 0.6f;
         public const float MaxZoom = 1.6f;
         public const float ZoomStep = 0.15f;
@@ -51,6 +52,16 @@ namespace Game.Client
             PlayerPrefs.SetString(SkinKey + "." + classId, skinName);
         }
 
+        public static int StyleFor(string classId)
+        {
+            return Mathf.Max(0, PlayerPrefs.GetInt(StyleKey + "." + classId, 0));
+        }
+
+        public static void SetStyle(string classId, int style)
+        {
+            PlayerPrefs.SetInt(StyleKey + "." + classId, style);
+        }
+
         public static int SessionMode
         {
             get => PlayerPrefs.GetInt(ModeKey, 0);
@@ -76,6 +87,7 @@ namespace Game.Client
         public Action<int> Zoom;
         public Action CycleSkin;
         public Action CycleClass;
+        public Action CycleStyle;
         public Action ToggleSession;
         public Action Restart;
     }
@@ -142,6 +154,7 @@ namespace Game.Client
             BuildTextButton(safeArea, "Class", "Class", new Vector2(115f, 90f), new Vector2(-40f, -280f), callbacks.CycleClass);
             BuildTextButton(safeArea, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -170f), () => callbacks.Zoom?.Invoke(1));
             BuildTextButton(safeArea, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -390f), callbacks.ToggleSession);
+            BuildTextButton(safeArea, "Style", "Style", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.CycleStyle);
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
             var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 530f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);

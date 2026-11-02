@@ -11,8 +11,8 @@ namespace Game.Core
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 1 + 1 + 1 + 4 + 2;
         const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
-        const int EventSize = 4 + 4 + 4 + 1 + 4 + 1;
-        const int UseSize = 4 + 1 + 4 + 8;
+        const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
+        const int UseSize = 4 + 1 + 4 + 4 + 8;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
 
@@ -96,6 +96,7 @@ namespace Game.Core
                 writer.Write(ev.Amount);
                 writer.Write(ev.Slot);
                 writer.Write(ev.Ability);
+                writer.Write(ev.Variant);
                 writer.Write((byte)ev.Outcome);
             }
 
@@ -106,6 +107,7 @@ namespace Game.Core
                 writer.Write(use.User.Value);
                 writer.Write(use.Slot);
                 writer.Write(use.Ability);
+                writer.Write(use.Variant);
                 Write(writer, use.Direction);
             }
 
@@ -179,6 +181,7 @@ namespace Game.Core
                     Amount = reader.ReadSingle(),
                     Slot = reader.ReadByte(),
                     Ability = reader.ReadInt32(),
+                    Variant = reader.ReadInt32(),
                     Outcome = (HitOutcome)reader.ReadByte(),
                 });
             }
@@ -196,6 +199,7 @@ namespace Game.Core
                     User = new EntityId(reader.ReadInt32()),
                     Slot = reader.ReadByte(),
                     Ability = reader.ReadInt32(),
+                    Variant = reader.ReadInt32(),
                     Direction = ReadVec2(reader),
                 });
             }

@@ -169,6 +169,18 @@ namespace Game.Editor
             Link("king_slam", slime, hitSlime);
             Link("king_smash", slime, hitSlime);
             Link("king_wave", slime, hitSlime);
+            var crimsonCast = Burst("fx_cast_crimson", new Color(0.95f, 0.2f, 0.3f), 24, 11f, 0.14f, 0.35f, 20f, cube);
+            var crimsonHit = Burst("fx_hit_crimson", new Color(1f, 0.3f, 0.35f), 16, 6f, 0.14f, 0.35f, 0f, cube);
+            var frostCast = Burst("fx_cast_frost", new Color(0.55f, 0.9f, 1f), 30, 12f, 0.2f, 0.4f, 25f, cube);
+            var frostHit = Burst("fx_hit_frost", new Color(0.7f, 0.95f, 1f), 28, 7f, 0.2f, 0.45f, 0f, cube);
+            var verdantCast = Burst("fx_cast_verdant", new Color(0.4f, 0.95f, 0.5f), 20, 8f, 0.16f, 0.35f, 25f, cube);
+            var verdantHit = Burst("fx_hit_verdant", new Color(0.5f, 1f, 0.55f), 16, 5f, 0.14f, 0.4f, 0f, cube);
+            var emberCast = Burst("fx_cast_ember", new Color(1f, 0.5f, 0.1f), 18, 9f, 0.16f, 0.25f, 35f, cube);
+            var emberHit = Burst("fx_hit_ember", new Color(1f, 0.6f, 0.15f), 14, 6f, 0.14f, 0.3f, 0f, cube);
+            Variant("arcane_bolt", "crimson", 1.15f, 1f, 1.1f, crimsonCast, crimsonHit);
+            Variant("fireball", "frost", 0.9f, 1.25f, 0.9f, frostCast, frostHit);
+            Variant("holy_bolt", "verdant", 1.1f, 1f, 1f, verdantCast, verdantHit);
+            Variant("sword_slash", "ember", 1.2f, 1f, 1.15f, emberCast, emberHit);
             Link("arcane_step", arcane, hitSpark);
             Link("arcane_counter", fire, hitArcane);
             Link("shield_wall", shield, hitSpark);
@@ -398,6 +410,22 @@ namespace Game.Editor
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
             Object.DestroyImmediate(go);
             return prefab;
+        }
+
+        static void Variant(string abilityId, string id, float damageScale, float rangeScale, float cooldownScale, GameObject cast, GameObject hit)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<AbilityAsset>($"{DefinitionsRoot}/{abilityId}.asset");
+            if (asset == null || System.Array.Exists(asset.variants, v => v.id == id))
+            {
+                return;
+            }
+
+            var list = new System.Collections.Generic.List<VariantData>(asset.variants)
+            {
+                new VariantData { id = id, damageScale = damageScale, rangeScale = rangeScale, cooldownScale = cooldownScale, castEffect = cast, hitEffect = hit },
+            };
+            asset.variants = list.ToArray();
+            EditorUtility.SetDirty(asset);
         }
 
         static void Link(string abilityId, GameObject cast, GameObject hit)

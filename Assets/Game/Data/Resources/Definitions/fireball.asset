@@ -29,5 +29,13 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
+  variants:
+  - id: frost
+    damageScale: 0.9
+    rangeScale: 1.25
+    cooldownScale: 0.9
+    costScale: 1
+    castEffect: {fileID: 4145129217571214346, guid: f7851ed72f4e9614b9f82c3515818fb0, type: 3}
+    hitEffect: {fileID: 5659436821195634873, guid: 630a09c9671a9f749834129285ac9da5, type: 3}
   castEffect: {fileID: 5559672738365469740, guid: 995bd20bcc1f6d7459ab2ea5e7141ce8, type: 3}
   hitEffect: {fileID: 587756144387011988, guid: 6f4a075f9c0af374e89b9ba89f5348a4, type: 3}

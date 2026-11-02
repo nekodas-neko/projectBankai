@@ -26,6 +26,7 @@ namespace Game.Core
         readonly List<DamageEvent> pendingEvents = new List<DamageEvent>();
         readonly List<UseEvent> pendingUses = new List<UseEvent>();
         readonly List<PendingAttack> pendingAttacks = new List<PendingAttack>();
+        readonly Dictionary<long, AbilityDef> effective = new Dictionary<long, AbilityDef>();
         DungeonDef dungeon;
         int room;
         float dungeonTimer;
@@ -77,7 +78,7 @@ namespace Game.Core
             return connection == null ? null : FindEntity(connection.Entity);
         }
 
-        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0)
+        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0, int[] variants = null)
         {
             if (!player.IsValid)
             {
@@ -90,6 +91,7 @@ namespace Game.Core
             }
 
             var entity = Spawn(player, Team.Players, classes.Get(classId), SpawnPoint(connections.Count), appearance);
+            ApplyLoadout(entity, variants);
             connections.Add(new Connection { Player = player, Transport = transport, Entity = entity.Id });
             return entity;
         }
@@ -262,6 +264,69 @@ namespace Game.Core
             }
         }
 
+        void ApplyLoadout(Entity entity, int[] variants)
+        {
+            if (variants == null)
+            {
+                return;
+            }
+
+            for (var slot = 0; slot < variants.Length && slot < Entity.AbilitySlots; slot++)
+            {
+                if (variants[slot] != 0 && abilities.TryGet(entity.AbilityIds[slot], out var ability) && FindVariant(ability, variants[slot]) != null)
+                {
+                    entity.Variants[slot] = variants[slot];
+                }
+            }
+        }
+
+        static VariantDef FindVariant(AbilityDef ability, int variantId)
+        {
+            for (var i = 0; i < ability.Variants.Length; i++)
+            {
+                if (StableId.From(ability.Variants[i].Id) == variantId)
+                {
+                    return ability.Variants[i];
+                }
+            }
+
+            return null;
+        }
+
+        AbilityDef EffectiveAbility(AbilityDef ability, int variantId)
+        {
+            if (variantId == 0)
+            {
+                return ability;
+            }
+
+            var key = ((long)StableId.From(ability.Id) << 32) | (uint)variantId;
+            if (effective.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            var variant = FindVariant(ability, variantId);
+            if (variant == null)
+            {
+                return ability;
+            }
+
+            var scaled = ability.Clone();
+            scaled.Damage *= variant.DamageScale;
+            scaled.Heal *= variant.DamageScale;
+            scaled.Range *= variant.RangeScale;
+            if (scaled.Shape == AbilityShape.Circle)
+            {
+                scaled.Radius *= variant.RangeScale;
+            }
+
+            scaled.Cooldown *= variant.CooldownScale;
+            scaled.ResourceCost *= variant.CostScale;
+            effective.Add(key, scaled);
+            return scaled;
+        }
+
         void UseAbility(Entity user, int slot, Vec2 aim)
         {
             if (slot < 0 || slot >= Entity.AbilitySlots || user.Cooldowns[slot] > 0f)
@@ -269,7 +334,14 @@ namespace Game.Core
                 return;
             }
 
-            if (!abilities.TryGet(user.AbilityIds[slot], out var ability) || !user.CanAfford(ability.ResourceCost))
+            if (!abilities.TryGet(user.AbilityIds[slot], out var baseAbility))
+            {
+                return;
+            }
+
+            var variantId = user.Variants[slot];
+            var ability = EffectiveAbility(baseAbility, variantId);
+            if (!user.CanAfford(ability.ResourceCost))
             {
                 return;
             }
@@ -277,7 +349,7 @@ namespace Game.Core
             var direction = ChooseDirection(user, ability, aim);
             user.Cooldowns[slot] = ability.Cooldown;
             user.AddResource(-ability.ResourceCost);
-            pendingUses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Direction = direction });
+            pendingUses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Variant = variantId, Direction = direction });
 
             switch (ability.Kind)
             {
@@ -295,7 +367,7 @@ namespace Game.Core
                     break;
                 default:
                     user.Facing = direction;
-                    Strike(user, ability, slot, direction);
+                    Strike(user, ability, slot, direction, variantId);
                     break;
             }
         }
@@ -322,11 +394,11 @@ namespace Game.Core
             return target != null ? (target.Position - user.Position).Normalized : facing;
         }
 
-        void Strike(Entity user, AbilityDef ability, int slot, Vec2 direction)
+        void Strike(Entity user, AbilityDef ability, int slot, Vec2 direction, int variantId)
         {
             if (ability.Windup <= 0f)
             {
-                ResolveAttack(user, user.Position, direction, ability, slot);
+                ResolveAttack(user, user.Position, direction, ability, slot, variantId);
                 return;
             }
 
@@ -338,6 +410,7 @@ namespace Game.Core
                 Direction = direction,
                 Ability = ability,
                 Slot = slot,
+                Variant = variantId,
                 Remaining = ability.Windup,
             });
         }
@@ -358,12 +431,12 @@ namespace Game.Core
                 var user = FindEntity(attack.User);
                 if (user != null && user.IsAlive)
                 {
-                    ResolveAttack(user, attack.Origin, attack.Direction, attack.Ability, attack.Slot);
+                    ResolveAttack(user, attack.Origin, attack.Direction, attack.Ability, attack.Slot, attack.Variant);
                 }
             }
         }
 
-        void ResolveAttack(Entity user, Vec2 origin, Vec2 direction, AbilityDef ability, int slot)
+        void ResolveAttack(Entity user, Vec2 origin, Vec2 direction, AbilityDef ability, int slot, int variantId)
         {
             var damage = ability.Damage * user.Stats.Power;
             var heal = ability.Heal * user.Stats.Power;
@@ -386,11 +459,11 @@ namespace Game.Core
 
                 if (friendly)
                 {
-                    ApplyHeal(user, other, heal, slot, abilityId);
+                    ApplyHeal(user, other, heal, slot, abilityId, variantId);
                     continue;
                 }
 
-                ApplyDamage(user, other, damage, slot, abilityId);
+                ApplyDamage(user, other, damage, slot, abilityId, variantId);
                 if (ability.Taunt > 0f)
                 {
                     other.ForcedTarget = user.Id;
@@ -470,7 +543,7 @@ namespace Game.Core
             }
         }
 
-        void ApplyHeal(Entity source, Entity target, float amount, int slot, int abilityId)
+        void ApplyHeal(Entity source, Entity target, float amount, int slot, int abilityId, int variantId)
         {
             var healed = MathF.Min(amount, target.Stats.MaxHealth - target.Health);
             if (healed <= 0f)
@@ -486,6 +559,7 @@ namespace Game.Core
                 Amount = healed,
                 Slot = (byte)slot,
                 Ability = abilityId,
+                Variant = variantId,
                 Outcome = HitOutcome.Healed,
             });
         }
@@ -539,7 +613,7 @@ namespace Game.Core
             entity.Position = moved.ClampLength(config.Simulation.ArenaRadius);
         }
 
-        void ApplyDamage(Entity source, Entity target, float amount, int slot, int abilityId)
+        void ApplyDamage(Entity source, Entity target, float amount, int slot, int abilityId, int variantId)
         {
             var outcome = HitOutcome.Hit;
             var health = amount;
@@ -600,6 +674,7 @@ namespace Game.Core
                 Amount = health,
                 Slot = (byte)slot,
                 Ability = abilityId,
+                Variant = variantId,
                 Outcome = outcome,
             });
         }
@@ -659,6 +734,7 @@ namespace Game.Core
                 Amount = 0f,
                 Slot = (byte)Entity.DefenseSlot,
                 Ability = StableId.From(ability.Id),
+                Variant = user.Variants[Entity.DefenseSlot],
                 Outcome = outcome,
             });
         }
@@ -674,7 +750,7 @@ namespace Game.Core
             var offset = attacker.Position - dodger.Position;
             var direction = offset.SqrLength > 1e-6f ? offset.Normalized : dodger.Facing;
             pendingUses.Add(new UseEvent { User = dodger.Id, Slot = (byte)Entity.DefenseSlot, Ability = StableId.From(rider.Id), Direction = direction });
-            Strike(dodger, rider, Entity.DefenseSlot, direction);
+            Strike(dodger, rider, Entity.DefenseSlot, direction, 0);
         }
 
         void ResetDungeon()
@@ -958,6 +1034,7 @@ namespace Game.Core
             public Vec2 Direction;
             public AbilityDef Ability;
             public int Slot;
+            public int Variant;
             public float Remaining;
         }
 

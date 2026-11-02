@@ -1,5 +1,6 @@
 using Game.Core;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Game.Client.Tests
 {
@@ -33,6 +34,29 @@ namespace Game.Client.Tests
             Assert.AreEqual(3, cave.Rooms[0].Spawns.Length);
             Assert.AreEqual(5, cave.Rooms[1].Spawns.Length);
             Assert.AreEqual("slime_boss", cave.Rooms[2].Spawns[0].Class);
+        }
+
+        [Test]
+        public void ShippedVariantsLoadAndEachHasItsOwnEffects()
+        {
+            DefinitionLoader.Load(out _, out var abilities);
+
+            Assert.AreEqual("crimson", abilities.Get("arcane_bolt").Variants[0].Id);
+            Assert.AreEqual("frost", abilities.Get("fireball").Variants[0].Id);
+
+            var variantCount = 0;
+            foreach (var ability in Resources.LoadAll<AbilityAsset>(DefinitionAsset.ResourcesFolder))
+            {
+                foreach (var variant in ability.variants)
+                {
+                    variantCount++;
+                    Assert.IsNotNull(variant.castEffect, $"{ability.Id}/{variant.id} cast effect");
+                    Assert.IsNotNull(variant.hitEffect, $"{ability.Id}/{variant.id} hit effect");
+                    Assert.AreNotSame(ability.castEffect, variant.castEffect, $"{ability.Id}/{variant.id} should look different");
+                }
+            }
+
+            Assert.GreaterOrEqual(variantCount, 4);
         }
 
         [Test]

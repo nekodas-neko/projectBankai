@@ -110,6 +110,28 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator Style_PicksTheVariantsTheServerUses()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "mage";
+            HudSettings.SetStyle("mage", 1);
+            try
+            {
+                SceneManager.LoadScene("Arena");
+                yield return new WaitForSeconds(0.5f);
+                var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+                var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+                Assert.AreEqual(StableId.From("crimson"), player.Variants[0]);
+                Assert.AreEqual(StableId.From("frost"), player.Variants[1]);
+            }
+            finally
+            {
+                HudSettings.SetStyle("mage", 0);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator HostMode_AcceptsAJoiningPlayerOverTheNetwork()
         {
             HudSettings.SessionMode = (int)SessionMode.Host;

@@ -156,6 +156,7 @@ namespace Game.Net
 
             string classId;
             int appearance;
+            int[] variants;
             try
             {
                 using var stream = new MemoryStream(buffer, Protocol.HeaderSize, length - Protocol.HeaderSize);
@@ -163,6 +164,19 @@ namespace Game.Net
                 classId = reader.ReadString();
                 appearance = reader.ReadInt32();
                 var name = reader.ReadString();
+                int count = reader.ReadByte();
+                if (count > Entity.AbilitySlots)
+                {
+                    Reject(from, Protocol.RejectBadRequest);
+                    return;
+                }
+
+                variants = new int[count];
+                for (var i = 0; i < count; i++)
+                {
+                    variants[i] = reader.ReadInt32();
+                }
+
                 if (!Protocol.ValidText(classId, Protocol.MaxClassLength) || !Protocol.ValidText(name, Protocol.MaxNameLength))
                 {
                     Reject(from, Protocol.RejectBadRequest);
@@ -189,7 +203,7 @@ namespace Game.Net
 
             var player = new PlayerId(nextPlayerId++);
             var transport = new PeerTransport(this, from);
-            server.AddPlayer(player, classId, transport, appearance);
+            server.AddPlayer(player, classId, transport, appearance, variants);
             peers.Add(from, new Peer { Player = player, Transport = transport, LastSeen = clock });
             SendAccept(from, player);
         }

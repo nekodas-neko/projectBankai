@@ -39,6 +39,7 @@ namespace Game.Client
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
+        int[] loadout = new int[0];
         Camera viewCamera;
         SessionMode mode;
         string hostAddress;
@@ -64,6 +65,7 @@ namespace Game.Client
 
             var className = HudSettings.ClassName;
             playerClass = classDefs.Get(className);
+            loadout = Loadout(className);
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
@@ -173,7 +175,7 @@ namespace Game.Client
         void StartWorld(string className)
         {
             session = new LocalSession(new ServerConfig(), classDefs, abilityDefs, seed: 1);
-            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)));
+            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)), loadout);
             session.Server.StartDungeon(dungeonDefs.Get(DungeonId));
         }
 
@@ -206,7 +208,7 @@ namespace Game.Client
 
             try
             {
-                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName());
+                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName(), loadout);
                 return true;
             }
             catch (System.Net.Sockets.SocketException exception)
@@ -250,6 +252,7 @@ namespace Game.Client
                 Zoom = ChangeZoom,
                 CycleSkin = CycleSkin,
                 CycleClass = CycleClass,
+                CycleStyle = CycleStyle,
                 ToggleSession = ToggleMenu,
                 Restart = () => LocalClient?.Restart(),
             });
@@ -383,7 +386,9 @@ namespace Game.Client
             if (abilityDefs.TryGet(id, out var ability))
             {
                 var world = ToWorld(aiming.Aim);
-                aimIndicator.Show(views.LocalRoot.position, new Vector2(world.X, world.Y), ability.Range, ability.Radius);
+                var variant = VariantOf(ability, aiming == Hud.Attack ? 0 : 1);
+                var rangeScale = variant != null ? variant.RangeScale : 1f;
+                aimIndicator.Show(views.LocalRoot.position, new Vector2(world.X, world.Y), ability.Range * rangeScale, ability.Radius);
             }
         }
 
@@ -395,7 +400,63 @@ namespace Game.Client
                 return;
             }
 
-            button.SetCooldown(state.GetCooldown(slot) / ability.Cooldown);
+            button.SetCooldown(state.GetCooldown(slot) / (ability.Cooldown * CooldownScale(ability, slot)));
+        }
+
+        int[] Loadout(string className)
+        {
+            var def = classDefs.Get(className);
+            var style = HudSettings.StyleFor(className);
+            return new[] { StyleVariant(def.AutoAttack, style), StyleVariant(def.Skills.Length > 0 ? def.Skills[0] : null, style) };
+        }
+
+        int StyleVariant(string abilityId, int style)
+        {
+            if (style <= 0 || !abilityDefs.TryGet(abilityId, out var ability) || ability.Variants.Length < style)
+            {
+                return 0;
+            }
+
+            return StableId.From(ability.Variants[style - 1].Id);
+        }
+
+        int StyleCount(string className)
+        {
+            var def = classDefs.Get(className);
+            var most = 0;
+            foreach (var id in new[] { def.AutoAttack, def.Skills.Length > 0 ? def.Skills[0] : null })
+            {
+                if (abilityDefs.TryGet(id, out var ability))
+                {
+                    most = Mathf.Max(most, ability.Variants.Length);
+                }
+            }
+
+            return 1 + most;
+        }
+
+        float CooldownScale(AbilityDef ability, int slot)
+        {
+            var variant = VariantOf(ability, slot);
+            return variant != null ? variant.CooldownScale : 1f;
+        }
+
+        VariantDef VariantOf(AbilityDef ability, int slot)
+        {
+            if (slot >= loadout.Length || loadout[slot] == 0)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < ability.Variants.Length; i++)
+            {
+                if (StableId.From(ability.Variants[i].Id) == loadout[slot])
+                {
+                    return ability.Variants[i];
+                }
+            }
+
+            return null;
         }
 
         string DefenseLabel()
@@ -462,13 +523,19 @@ namespace Game.Client
             }
 
             var direction = new Vector3(use.Direction.X, 0f, use.Direction.Y);
+            var cast = ability.castEffect;
+            if (ability.TryGetVariant(use.Variant, out var variant) && variant.castEffect != null)
+            {
+                cast = variant.castEffect;
+            }
+
             if (ability.windup > 0f)
             {
                 telegraphs.Add(position, new Vector2(use.Direction.X, use.Direction.Y), ability.shape, ability.range, ability.radius, ability.angle, ability.windup);
             }
 
             var rotation = direction.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(direction) : Quaternion.identity;
-            EffectPlayer.Play(ability.castEffect, position + new Vector3(0f, 1f, 0f) + direction * 0.8f, rotation);
+            EffectPlayer.Play(cast, position + new Vector3(0f, 1f, 0f) + direction * 0.8f, rotation);
         }
 
         void PlayHit(DamageEvent hit)
@@ -480,18 +547,26 @@ namespace Game.Client
 
             if (hit.Outcome == HitOutcome.Healed)
             {
-                if (AbilityCatalog.TryGet(hit.Ability, out var healing) && healing.hitEffect != null && views.TryGetPosition(hit.Target, out var healed))
+                if (AbilityCatalog.TryGet(hit.Ability, out var healing) && views.TryGetPosition(hit.Target, out var healed))
                 {
-                    EffectPlayer.Play(healing.hitEffect, healed + new Vector3(0f, 1f, 0f), Quaternion.identity);
+                    var healEffect = healing.TryGetVariant(hit.Variant, out var healVariant) && healVariant.hitEffect != null ? healVariant.hitEffect : healing.hitEffect;
+                    if (healEffect != null)
+                    {
+                        EffectPlayer.Play(healEffect, healed + new Vector3(0f, 1f, 0f), Quaternion.identity);
+                    }
                 }
 
                 return;
             }
 
             views.OnHit(hit.Target);
-            if (AbilityCatalog.TryGet(hit.Ability, out var ability) && ability.hitEffect != null && views.TryGetPosition(hit.Target, out var position))
+            if (AbilityCatalog.TryGet(hit.Ability, out var ability) && views.TryGetPosition(hit.Target, out var position))
             {
-                EffectPlayer.Play(ability.hitEffect, position + new Vector3(0f, 1f, 0f), Quaternion.identity);
+                var effect = ability.TryGetVariant(hit.Variant, out var variant) && variant.hitEffect != null ? variant.hitEffect : ability.hitEffect;
+                if (effect != null)
+                {
+                    EffectPlayer.Play(effect, position + new Vector3(0f, 1f, 0f), Quaternion.identity);
+                }
             }
         }
 
@@ -516,6 +591,13 @@ namespace Game.Client
             }
 
             HudSettings.SetSkin(className, skins[index].name);
+            Reload();
+        }
+
+        void CycleStyle()
+        {
+            var className = HudSettings.ClassName;
+            HudSettings.SetStyle(className, (HudSettings.StyleFor(className) + 1) % StyleCount(className));
             Reload();
         }
 

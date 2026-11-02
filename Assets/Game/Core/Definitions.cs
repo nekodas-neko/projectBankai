@@ -45,8 +45,24 @@ namespace Game.Core
         Cone = 2,
     }
 
+    public sealed class VariantDef
+    {
+        public string Id { get; set; }
+        public float DamageScale { get; set; } = 1f;
+        public float RangeScale { get; set; } = 1f;
+        public float CooldownScale { get; set; } = 1f;
+        public float CostScale { get; set; } = 1f;
+    }
+
     public sealed class AbilityDef : IDefinition
     {
+        public VariantDef[] Variants { get; set; } = Array.Empty<VariantDef>();
+
+        public AbilityDef Clone()
+        {
+            return (AbilityDef)MemberwiseClone();
+        }
+
         public string Id { get; set; }
         public AbilityKind Kind { get; set; }
         public AbilityShape Shape { get; set; }
