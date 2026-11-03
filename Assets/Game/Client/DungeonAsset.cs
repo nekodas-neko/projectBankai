@@ -44,6 +44,7 @@ namespace Game.Client
     public class DungeonAsset : DefinitionAsset
     {
         [Min(0f)] public float clearDelaySeconds = 3f;
+        [Min(0f)] public float healthPerExtraPlayer;
         public RoomData[] rooms = new RoomData[0];
         public ZoneData[] zones = new ZoneData[0];
         public GateData[] gates = new GateData[0];
@@ -54,6 +55,7 @@ namespace Game.Client
             {
                 Id = Id,
                 ClearDelaySeconds = clearDelaySeconds,
+                HealthPerExtraPlayer = healthPerExtraPlayer,
                 Zones = zones.Select(zone => new ZoneDef { Name = zone.name, MinX = zone.min.x, MinY = zone.min.y, MaxX = zone.max.x, MaxY = zone.max.y }).ToArray(),
                 Gates = gates.Select(gate => new GateDef { Name = gate.name, MinX = gate.min.x, MinY = gate.min.y, MaxX = gate.max.x, MaxY = gate.max.y, OpenAfter = gate.openAfter }).ToArray(),
                 Rooms = rooms.Select(room => new RoomDef

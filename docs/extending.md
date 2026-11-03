@@ -113,7 +113,13 @@ How it plays: every section's enemies are in the map from the start, and the sec
 
 The server and every client use the same walls (`WorldMap`), so movement prediction agrees with the server. A client that does not share the server's map object (a joining phone) builds its own from the dungeon asset and learns which gates are open from the snapshot's section number. The client draws the floors, walls and barriers from the same data (`MapView`), copies the arena's trees and rocks along the walls (`MapScenery`), and shows the mini map (`MiniMap`). A dungeon with no zones still plays as before: a round arena, one room at a time.
 
+**Shaping the map.** Zones are only rectangles, but they can overlap, so a dungeon does not have to be a straight line. A narrow zone that overlaps the end of two bigger ones is a passage; a zone that hangs off the side of a path is a side cave; turning a corner is two zones that overlap at the bend. The seeded cave winds north to the warden, east and north to the brood mother, then west and north to the king, with an optional cave off each side of the first room and a nook in the brood tunnels. Keep side caves from touching the next section's zones (even a 2 x 2 corner overlap is a shortcut around a gate). `CaveLayoutTests` walks the shipped map and fails if a pack cannot be reached or something can be reached around a closed gate, so run it after reshaping a map. Trash in a section is optional: only the boss ends the section.
+
 A map has many more enemies in view than a round room did, so a snapshot may not fit in one network message (about 1,400 bytes). A connection that cannot carry it all gets every player and the nearest other entities, so far-away enemies appear as you approach them.
+
+## Party size: enemies get tougher with each player
+
+A dungeon has **Health Per Extra Player** (0 means no scaling; the cave uses 0.8). Every enemy's health is multiplied by 1 + that number x (players - 1): a solo player meets the normal health, two players 1.8 times, three players 2.6 times. It follows the party while the dungeon runs: someone joining or leaving changes the maximum, and an enemy that was hurt keeps the same share of its health left; anything spawned later (a boss's minions) is scaled too. The design target is three players, tank, damage and healer, with solo and duo possible for a skilled or well-geared player, so the number is a tuning knob: if three players finish a boss too fast, raise it.
 
 ## Aggro rings
 

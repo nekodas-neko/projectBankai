@@ -80,6 +80,9 @@ namespace Game.Core
         // How close a player has to come before this enemy notices; 0 for players and things that never aggro.
         public float AggroRange;
         public bool Summoned;
+
+        // The party-size multiplier already applied to this enemy's health.
+        public float PartyScale = 1f;
         public int Section;
         public EntityId Target;
         public bool Leashing;

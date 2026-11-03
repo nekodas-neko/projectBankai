@@ -158,6 +158,10 @@ namespace Game.Core
     {
         public string Id { get; set; }
         public float ClearDelaySeconds { get; set; } = 3f;
+
+        // Every enemy's health is multiplied by 1 + this x (players - 1), so a party of three meets a tougher boss than a solo player.
+        // 0 keeps health the same whatever the party size.
+        public float HealthPerExtraPlayer { get; set; }
         public RoomDef[] Rooms { get; set; } = Array.Empty<RoomDef>();
         public ZoneDef[] Zones { get; set; } = Array.Empty<ZoneDef>();
         public GateDef[] Gates { get; set; } = Array.Empty<GateDef>();
