@@ -40,6 +40,7 @@ namespace Game.Core
                     ChargeMax = e.ChargeMax,
                     Target = e.IsAlive ? e.Target : default,
                     Effects = e.EffectFlagsNow(),
+                    ClassHash = e.ClassHash,
                     AggroQuarters = (byte)System.Math.Min(255f, System.Math.Max(0f, e.AggroRange * 4f + 0.5f)),
                 });
             }

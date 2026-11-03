@@ -164,6 +164,25 @@ namespace Game.Core
                     errors.Add($"Class '{def.Id}': recovery seconds must be between 0 and 10");
                 }
 
+                if (def.XpReward < 0 || def.XpReward > 100000)
+                {
+                    errors.Add($"Class '{def.Id}': XP reward must be between 0 and 100000");
+                }
+
+                if (float.IsNaN(def.DropChance) || def.DropChance < 0f || def.DropChance > 1f)
+                {
+                    errors.Add($"Class '{def.Id}': drop chance must be between 0 and 1");
+                }
+                else if (def.DropChance > 0f && string.IsNullOrEmpty(def.LootTable))
+                {
+                    errors.Add($"Class '{def.Id}': a drop chance needs a loot table");
+                }
+
+                if (def.Playable && (def.XpReward != 0 || def.DropChance != 0f || !string.IsNullOrEmpty(def.LootTable)))
+                {
+                    errors.Add($"Class '{def.Id}': a weapon cannot carry a reward");
+                }
+
                 ValidateResource(def, abilities, errors);
                 ValidatePhases(def, classes, abilities, errors);
             }

@@ -127,15 +127,15 @@ The character's own progress lives in a `PlayerProfile` (`Game.Core`): the weapo
 
 How mastery is earned is data: the `mastery` asset (`MasteryAsset`, in `Assets/Game/Data/Resources/Definitions`) lists the XP each of the 20 levels costs, the points a level gives (1) and what a kill (10) and a boss kill (150) are worth. `WeaponMastery.AddXp` fills the bar, `TryChoose` spends points on a tree node (the skill trees are not built yet, so a node is just an id), and `Reset` gives every point back for free.
 
-Kills train the weapon in hand. `KillTracker` watches the snapshots: an enemy that shows up with no health is a kill (a boss when it carries the boss flag), counted once, and enemies already down when the client joins are not. A fallen enemy stays in the snapshot, so a lost packet loses nothing. `MasteryProgress` turns kills into XP for the equipped weapon type, saves the profile at once on a level-up or boss kill and otherwise every 20 seconds, and when the game is paused or closed. The test overlay shows the weapon's mastery level and bar above the build number. Every player's own client counts its own kills, so each profile fills in co-op.
+Kills train the weapon in hand. `KillTracker` watches the snapshots: an enemy that shows up with no health is a kill (a boss when it carries the boss flag), counted once, and enemies already down when the client joins are not. Enemies a boss summoned (the `Summoned` flag) are skipped, so a summoning boss cannot be farmed. A fallen enemy stays in the snapshot, so a lost packet loses nothing. `MasteryProgress` turns kills into XP for the equipped weapon type, saves the profile at once on a level-up or boss kill and otherwise every 20 seconds, and when the game is paused or closed. The test overlay shows the weapon's mastery level and bar above the build number. Every player's own client counts its own kills, so each profile fills in co-op.
 
 ### Weapon power
 
-An owned weapon has a power scale (`OwnedWeapon.Power`, 1.0 for the starter weapons). It rides in the join message as thousandths (protocol version 10) and `GameServer.AddPlayer` multiplies the player's `Stats.Power` by it, which scales damage, healing and shield strength. The server clamps it to 0.8 to 1.3 (`MinWeaponPower`, `MaxWeaponPower`), so a client cannot claim more than a drop can roll. The scale is fixed for the whole session, like the variant loadout.
+An owned weapon has a power scale (`OwnedWeapon.Power`, 1.0 for the starter weapons). It rides in the join message as thousandths (protocol version 10; the class hash made it 11) and `GameServer.AddPlayer` multiplies the player's `Stats.Power` by it, which scales damage, healing and shield strength. The server clamps it to 0.8 to 1.3 (`MinWeaponPower`, `MaxWeaponPower`), so a client cannot claim more than a drop can roll. The scale is fixed for the whole session, like the variant loadout.
 
 ### Boss loot and the weapon bag
 
-Every boss that falls gives each player a drop of their own (no rolling against each other). `LootTableDef` lists the weapon types a drop can be and the power range (0.95 to 1.15 for the shipped `boss_drop` asset in `Definitions/Loot`; the validator keeps it inside what the server accepts). `LootRoller.Roll` picks a type and a power from a seeded random, and `MasteryProgress` adds the weapon to the profile, saves at once and shows `Dropped: Staff +8%` for five seconds. The roll number is saved with the profile (`loot` line) so every weapon id is unique. The bag holds 30 weapons; a drop that would not fit is lost and says so. There is one table for all bosses for now (the client does not learn which boss it was), and no modifiers yet, only the power scale.
+Every boss that falls gives each player a drop of their own (no rolling against each other). `LootTableDef` lists the weapon types a drop can be and the power range (0.95 to 1.15 for the shipped `boss_drop` asset in `Definitions/Loot`; the validator keeps it inside what the server accepts). `LootRoller.Roll` picks a type and a power from a seeded random, and `MasteryProgress` adds the weapon to the profile, saves at once and shows `Dropped: Staff +8%` for five seconds. The roll number is saved with the profile (`loot` line) so every weapon id is unique. The bag holds 30 weapons; a drop that would not fit is lost and says so. Which table an enemy rolls on is data on its class (see the next section). There are no modifiers yet, only the power scale.
 
 The **Weapon** button opens the bag: six weapons a page, tap one to carry it. The session restarts because the kit, skills and power are sent when it begins. Mastery and the skill tree belong to the weapon **type**, so a dropped staff uses the staff's points. Choosing a weapon type through `HudSettings.ClassName` keeps the weapon already in hand if it is that type, otherwise takes the strongest one owned.
 
@@ -145,7 +145,21 @@ A weapon type has a `SkillTreeDef` (its id is the weapon type). Each `SkillNodeD
 
 The shipped trees are `SkillTreeAsset`s in `Assets/Game/Data/Resources/Definitions/Trees`, one per weapon, named after the weapon type (at most six nodes: the panel shows six rows). To add a choice: add a variant to the ability asset (a variant with no effects of its own is numbers only and borrows the base skill's look), then add a node in the weapon's tree asset. `SkillTreeCatalog` validates every tree at start-up and ignores them all, with an error in the log, if one is wrong. The **Skills** button opens `SkillTreePanel` for the equipped weapon: tap a node to take it, **Reset points** gives everything back. The variants are sent when a session starts, so a change restarts the session (weapons will only change in the hub later). The old Style test button is gone; the tree replaces it.
 
-Not built yet: the equipped weapon still comes from the Weapon test button (the profile follows it), the skill-tree screen, and loot.
+### Enemy rewards: the template for a mob or a boss
+
+What a kill is worth is three fields on the enemy's class asset, so a new enemy never needs code:
+
+| Field | Meaning | Mob (`slime`) | Boss (`slime_boss`) |
+| --- | --- | --- | --- |
+| **Xp Reward** | mastery XP for the weapon in hand; 0 = the default in the `mastery` asset (10 for a mob, 150 for a boss) | 10 | 150 |
+| **Loot Table** | id of a loot table asset in `Definitions/Loot` | `mob_drop` | `boss_drop` |
+| **Drop Chance** | 0 to 1, rolled separately for every player | 0.03 | 1 |
+
+Every snapshot entity carries `ClassHash` (the `StableId` of its class id), so each client looks up what the dead enemy was worth with `RewardBook` and applies it to its own profile. An enemy the client does not know gives the default XP and no drop. A boss whose class names no table falls back to `boss_drop`. A weapon class cannot carry a reward (the validator refuses it), and a drop chance needs a table.
+
+To add a mob or a boss with rewards: copy `slime` (or `slime_boss`), change the numbers, and set the three fields above. To add a new kind of drop (an elite, a dungeon's own boss weapons), copy `mob_drop` or `boss_drop` in `Definitions/Loot`, rename it, change the weapon types and the power range (inside 0.8 to 1.3, which the validator enforces), and point the class at it. The test `EveryShippedEnemyHasARewardAndItsTableExists` fails when an enemy class has no XP value of its own or names a table that does not exist.
+
+Not built yet: the equipped weapon still comes from the Weapon test button (the profile follows it), modifiers on dropped weapons, and a drop that depends on the dungeon or the party size.
 
 ## The run summary
 

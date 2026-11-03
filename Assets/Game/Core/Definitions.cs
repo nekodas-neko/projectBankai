@@ -192,6 +192,12 @@ namespace Game.Core
         public float BodyRadius { get; set; }
         public float LeashRange { get; set; }
 
+        // What killing this enemy gives. XpReward is mastery XP for the weapon in hand (0 = the default in the mastery rules, which
+        // depends on whether it is a boss). LootTable names a loot table; DropChance (0 to 1) is the chance each player gets a drop.
+        public int XpReward { get; set; }
+        public string LootTable { get; set; } = string.Empty;
+        public float DropChance { get; set; }
+
         // After an attack lands, the enemy stays planted this long before it moves or attacks again, so a boss does not
         // chase and swing without a break. 0 keeps the old behaviour.
         public float RecoverySeconds { get; set; }
