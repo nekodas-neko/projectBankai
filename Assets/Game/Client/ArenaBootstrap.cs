@@ -37,6 +37,7 @@ namespace Game.Client
         AimIndicator aimIndicator;
         Telegraphs telegraphs;
         BossTargetMarker bossMarker;
+        MapView mapView;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
@@ -127,7 +128,7 @@ namespace Game.Client
                 transport.Update(dt);
                 if (LocalClient == null && transport.State == ConnectionState.Connected)
                 {
-                    LocalClient = new GameClient(transport.PlayerId, transport, playerClass, new ClientConfig { Simulation = transport.Simulation });
+                    LocalClient = new GameClient(transport.PlayerId, transport, playerClass, new ClientConfig { Simulation = transport.Simulation.WithMap(WorldMap.From(dungeonDefs.Get(DungeonId))) });
                 }
 
                 if (LocalClient != null && transport.State == ConnectionState.Connected)
@@ -146,6 +147,7 @@ namespace Game.Client
             }
 
             views.Sync(LocalClient, dt);
+            UpdateMap();
             SyncTelegraphs();
             UpdateBossTarget();
             UpdateButtons();
@@ -180,7 +182,7 @@ namespace Game.Client
         {
             session = new LocalSession(new ServerConfig(), classDefs, abilityDefs, seed: 1);
             LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)), loadout);
-            session.Server.StartDungeon(dungeonDefs.Get(DungeonId));
+            session.StartDungeon(dungeonDefs.Get(DungeonId));
         }
 
         bool StartHost()
@@ -379,7 +381,7 @@ namespace Game.Client
             UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
-            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f);
+            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null);
 
             var aiming = Hud.Attack.IsAiming ? Hud.Attack : Hud.Special.IsAiming ? Hud.Special : null;
             if (aiming == null || views.LocalRoot == null)
@@ -537,6 +539,44 @@ namespace Game.Client
             var pitch = viewCamera != null ? viewCamera.transform.eulerAngles.x : 60f;
             var scale = Mathf.Max(0.3f, Mathf.Sin(pitch * Mathf.Deg2Rad));
             return new Vec2(screenAim.x, screenAim.y / scale).Normalized;
+        }
+
+        // A dungeon with zones is drawn from its map: floors, walls and a barrier in every closed gate, plus the mini map.
+        void UpdateMap()
+        {
+            var map = LocalClient.Map;
+            if (map == null)
+            {
+                return;
+            }
+
+            if (mapView == null)
+            {
+                BuildMap(map);
+            }
+
+            mapView.Refresh();
+            Hud.MiniMap.Refresh(LocalClient.Latest, LocalClient.LocalEntity);
+        }
+
+        void BuildMap(WorldMap map)
+        {
+            var ground = GameObject.Find("Ground");
+            var groundMaterial = ground != null && ground.GetComponent<Renderer>() != null ? ground.GetComponent<Renderer>().sharedMaterial : assets.dead;
+            var props = GameObject.Find("TemporaryProps");
+            mapView = new MapView(transform, map, assets.cube, groundMaterial, assets.telegraphFill);
+            MapScenery.Decorate(mapView.Root, map, props != null ? props.transform : null);
+
+            foreach (var name in new[] { "Ground", "Rim", "TemporaryProps" })
+            {
+                var round = GameObject.Find(name);
+                if (round != null)
+                {
+                    round.SetActive(false);
+                }
+            }
+
+            Hud.MiniMap.Setup(map);
         }
 
         void UpdateBossTarget()

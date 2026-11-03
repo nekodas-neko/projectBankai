@@ -16,9 +16,27 @@ namespace Game.Client
     }
 
     [Serializable]
+    public class ZoneData
+    {
+        public string name = "";
+        public Vector2 min;
+        public Vector2 max;
+    }
+
+    [Serializable]
+    public class GateData
+    {
+        public string name = "";
+        public Vector2 min;
+        public Vector2 max;
+        [Min(0)] public int openAfter;
+    }
+
+    [Serializable]
     public class RoomData
     {
         public string name = "";
+        public Vector2 offset;
         public SpawnData[] spawns = new SpawnData[0];
     }
 
@@ -27,6 +45,8 @@ namespace Game.Client
     {
         [Min(0f)] public float clearDelaySeconds = 3f;
         public RoomData[] rooms = new RoomData[0];
+        public ZoneData[] zones = new ZoneData[0];
+        public GateData[] gates = new GateData[0];
 
         public DungeonDef ToDefinition()
         {
@@ -34,9 +54,13 @@ namespace Game.Client
             {
                 Id = Id,
                 ClearDelaySeconds = clearDelaySeconds,
+                Zones = zones.Select(zone => new ZoneDef { Name = zone.name, MinX = zone.min.x, MinY = zone.min.y, MaxX = zone.max.x, MaxY = zone.max.y }).ToArray(),
+                Gates = gates.Select(gate => new GateDef { Name = gate.name, MinX = gate.min.x, MinY = gate.min.y, MaxX = gate.max.x, MaxY = gate.max.y, OpenAfter = gate.openAfter }).ToArray(),
                 Rooms = rooms.Select(room => new RoomDef
                 {
                     Name = room.name,
+                    OffsetX = room.offset.x,
+                    OffsetY = room.offset.y,
                     Spawns = room.spawns.Where(spawn => spawn.spawnClass != null).Select(spawn => new SpawnDef
                     {
                         Class = spawn.spawnClass.Id,

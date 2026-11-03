@@ -10,6 +10,8 @@ namespace Game.Core
 
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 1 + 1 + 1 + 4 + 2;
+        public const int EntityBytes = EntitySize;
+
         const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 4 + 4 + 4 + 1;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 4 + 8;
@@ -52,9 +54,14 @@ namespace Game.Core
             return true;
         }
 
+        public static int EncodedSize(Snapshot snapshot)
+        {
+            return SnapshotHeaderSize + snapshot.Entities.Count * EntitySize + 2 + snapshot.Events.Count * EventSize + 2 + snapshot.Uses.Count * UseSize + 2 + snapshot.Windups.Count * WindupSize;
+        }
+
         public static byte[] Encode(Snapshot snapshot)
         {
-            var size = SnapshotHeaderSize + snapshot.Entities.Count * EntitySize + 2 + snapshot.Events.Count * EventSize + 2 + snapshot.Uses.Count * UseSize + 2 + snapshot.Windups.Count * WindupSize;
+            var size = EncodedSize(snapshot);
             using var stream = new MemoryStream(size);
             using var writer = new BinaryWriter(stream);
             writer.Write(SnapshotMessage);

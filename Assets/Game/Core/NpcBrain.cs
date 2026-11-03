@@ -326,7 +326,9 @@ namespace Game.Core
             {
                 var angle = (float)i / phase.SpawnCount * MathF.PI * 2f;
                 var spot = boss.Position + new Vec2(MathF.Cos(angle), MathF.Sin(angle)) * 3.5f;
-                world.Spawn(PlayerId.None, boss.Team, phase.SpawnClass, world.InsideArena(spot), appearance);
+                var minion = world.Spawn(PlayerId.None, boss.Team, phase.SpawnClass, world.InsideArena(spot), appearance);
+                minion.Summoned = true;
+                minion.Section = boss.Section;
             }
         }
     }

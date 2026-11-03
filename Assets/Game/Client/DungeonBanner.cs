@@ -56,7 +56,8 @@ namespace Game.Client
             restartButton.SetActive(false);
         }
 
-        public void Update(Snapshot snapshot, bool localDown)
+        // In a continuous dungeon nobody is moved when a boss falls: a gate opens, and the fallen get back up.
+        public void Update(Snapshot snapshot, bool localDown, bool continuous = false)
         {
             if (snapshot == null || snapshot.Dungeon == DungeonPhase.None || snapshot.RoomCount == 0)
             {
@@ -70,7 +71,7 @@ namespace Game.Client
             switch (snapshot.Dungeon)
             {
                 case DungeonPhase.Cleared:
-                    text = $"Room cleared!\nNext room in {Mathf.CeilToInt(snapshot.DungeonTimer)}";
+                    text = continuous ? "Boss down!\nThe way ahead is open" : $"Room cleared!\nNext room in {Mathf.CeilToInt(snapshot.DungeonTimer)}";
                     break;
                 case DungeonPhase.Victory:
                     text = "Victory!";
@@ -83,7 +84,7 @@ namespace Game.Client
                     restartLabel.text = "Try again";
                     break;
                 default:
-                    text = localDown ? "You are down\nHold on until the room is cleared" : string.Empty;
+                    text = localDown ? (continuous ? "You are down\nHold on until the boss falls" : "You are down\nHold on until the room is cleared") : string.Empty;
                     break;
             }
 

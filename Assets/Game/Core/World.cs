@@ -54,7 +54,7 @@ namespace Game.Core
 
         public Vec2 InsideArena(Vec2 position)
         {
-            return position.ClampLength(config.Simulation.ArenaRadius);
+            return config.Simulation.Constrain(position);
         }
 
         public Entity NearestHostile(Entity user, float range)

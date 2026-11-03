@@ -4,6 +4,9 @@ namespace Game.Core
 {
     public interface ITransport
     {
+        // The biggest message this connection can carry; a server fits its snapshots to it.
+        int MaxPayload { get; }
+
         void Send(byte[] payload);
 
         bool TryReceive(out byte[] payload);
@@ -23,6 +26,9 @@ namespace Game.Core
         readonly IRandom random;
         readonly Endpoint client;
         readonly Endpoint server;
+
+        // Lowering this makes the link behave like a network that cannot carry big messages.
+        public int MaxPayload { get; set; } = int.MaxValue;
 
         public LoopbackLink(IRandom random, NetworkConditions conditions)
         {
@@ -84,6 +90,8 @@ namespace Game.Core
             public Endpoint Peer;
 
             public readonly List<Packet> Inbox = new List<Packet>();
+
+            public int MaxPayload => link.MaxPayload;
 
             public void Send(byte[] payload)
             {

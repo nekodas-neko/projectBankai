@@ -135,6 +135,8 @@ namespace Game.Core
     public sealed class RoomDef
     {
         public string Name { get; set; }
+        public float OffsetX { get; set; }
+        public float OffsetY { get; set; }
         public SpawnDef[] Spawns { get; set; } = Array.Empty<SpawnDef>();
     }
 
@@ -143,6 +145,8 @@ namespace Game.Core
         public string Id { get; set; }
         public float ClearDelaySeconds { get; set; } = 3f;
         public RoomDef[] Rooms { get; set; } = Array.Empty<RoomDef>();
+        public ZoneDef[] Zones { get; set; } = Array.Empty<ZoneDef>();
+        public GateDef[] Gates { get; set; } = Array.Empty<GateDef>();
     }
 
     public enum DungeonPhase : byte

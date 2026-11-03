@@ -81,6 +81,20 @@ Every attack warning is **orange** or **red**. An ability has an **Avoidable** t
 
 The slime king's smash (the big circle around the boss) is the first red attack. A rule of thumb for fairness: attacks aimed at the people standing next to the boss are mostly orange (the tank has its answers), and the red ones should have a safe side (a cone, a line) or give enough time to step out and back without losing the rhythm.
 
+## Worked example: give a dungeon a map (zones and gates)
+
+A dungeon with **Zones** is one continuous map instead of a row of separate arenas. On the `DungeonAsset`:
+
+- **Zones:** rectangles (a **Min** and a **Max** corner, in world units, Y up the screen). Everything walkable is inside a zone, and bodies stay about half a unit from the edge. The players start near (0, 0), so the first zone has to contain that.
+- **Gates:** a rectangle that overlaps the end of two zones, like a corridor between them. It is a wall (drawn as a gold barrier) until the section named by **Open After** is cleared (0 is the first section, so the first gate opens when the first boss dies). A gate has to overlap two zones and open after a section that is not the last.
+- **Rooms** become sections: each room has an **Offset** that is added to all its spawn positions, so each section's enemies are authored in their own coordinates and placed in their own zone. Spawns have to end up inside a zone (the loader checks).
+
+How it plays: every section's enemies are in the map from the start, and the section is cleared when its boss dies (or when everything dies, if it has no boss). That opens the next gate. Nobody is moved or fully restored; downed players get back up with half health, whatever the boss summoned disappears, and the rest of the trash stays. Killing the last boss is the victory; if everyone is down it is a defeat, and Play again puts the whole cave back.
+
+The server and every client use the same walls (`WorldMap`), so movement prediction agrees with the server. A client that does not share the server's map object (a joining phone) builds its own from the dungeon asset and learns which gates are open from the snapshot's section number. The client draws the floors, walls and barriers from the same data (`MapView`), copies the arena's trees and rocks along the walls (`MapScenery`), and shows the mini map (`MiniMap`). A dungeon with no zones still plays as before: a round arena, one room at a time.
+
+A map has many more enemies in view than a round room did, so a snapshot may not fit in one network message (about 1,400 bytes). A connection that cannot carry it all gets every player and the nearest other entities, so far-away enemies appear as you approach them.
+
 ## Worked example: add a dungeon room
 
 A dungeon is one `DungeonAsset` (**Assets > Create > Game > Dungeon**, in `Assets/Game/Data/Resources/Definitions`). Add a room to **Rooms**, then add spawns: a class (not a player class), a position inside the arena (radius 20) and an optional skin id such as `slime_green`. Rooms run in order. The loader checks that every room has enemies and every class exists. The arena loads the dungeon named in `ArenaBootstrap` (`slime_cave`); a dungeon picker comes with the hub.

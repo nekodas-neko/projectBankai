@@ -118,6 +118,44 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator DungeonMap_IsDrawnAClosedGateStopsThePlayerAndABossOpensIt()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.6f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            var server = bootstrap.Session.Server;
+            var player = server.FindPlayerEntity(new PlayerId(1));
+
+            Assert.IsNotNull(server.Map);
+            Assert.IsNotNull(GameObject.Find("DungeonMap"));
+            Assert.IsNull(GameObject.Find("Ground"), "the round ground is hidden");
+            Assert.IsTrue(bootstrap.Hud.MiniMap.IsVisible);
+            Assert.Greater(bootstrap.Hud.MiniMap.VisibleDots, 1);
+
+            player.Position = new Vec2(0f, 19f);
+            bootstrap.Hud.MoveStick.Value = new Vector2(0f, 1f);
+            yield return new WaitForSeconds(1.5f);
+            Assert.Less(player.Position.Y, 22f, "the closed gate stops the player");
+
+            foreach (var entity in server.Entities)
+            {
+                if (!entity.Owner.IsValid && entity.IsBoss && entity.Section == 0)
+                {
+                    entity.Health = 0f;
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsTrue(server.Map.IsOpen(0));
+
+            yield return new WaitForSeconds(1.5f);
+            bootstrap.Hud.MoveStick.Value = Vector2.zero;
+            Assert.Greater(player.Position.Y, 24f, "the open gate lets the player through");
+        }
+
+        [UnityTest]
         public IEnumerator Dungeon_ShowsTheRoomAdvancesAndOffersARestartAfterADefeat()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
@@ -130,14 +168,15 @@ namespace Game.PlayMode.Tests
 
             foreach (var entity in bootstrap.Session.Server.Entities)
             {
-                if (!entity.Owner.IsValid)
+                if (!entity.Owner.IsValid && entity.IsBoss && entity.Section == 0)
                 {
                     entity.Health = 0f;
                 }
             }
 
             yield return new WaitForSeconds(0.5f);
-            StringAssert.Contains("Room cleared", bootstrap.Hud.Banner.MessageText);
+            StringAssert.Contains("Boss down", bootstrap.Hud.Banner.MessageText);
+            Assert.IsTrue(bootstrap.Session.Server.Map.IsOpen(0));
 
             yield return new WaitForSeconds(3.5f);
             Assert.AreEqual("Room 2 / 3", bootstrap.Hud.Banner.RoomText);
@@ -218,10 +257,23 @@ namespace Game.PlayMode.Tests
             }
         }
 
+        // A dungeon with a map has every section's enemies from the start; a round one only the first room's.
         static int FirstRoomEnemies()
         {
             DefinitionLoader.Load(out _, out _, out var dungeons);
-            return dungeons.Get("slime_cave").Rooms[0].Spawns.Length;
+            var cave = dungeons.Get("slime_cave");
+            if (cave.Zones.Length == 0)
+            {
+                return cave.Rooms[0].Spawns.Length;
+            }
+
+            var total = 0;
+            foreach (var room in cave.Rooms)
+            {
+                total += room.Spawns.Length;
+            }
+
+            return total;
         }
 
         [UnityTest]

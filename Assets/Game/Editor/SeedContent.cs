@@ -256,7 +256,7 @@ namespace Game.Editor
         {
             var path = $"{DefinitionsRoot}/slime_cave.asset";
             var asset = AssetDatabase.LoadAssetAtPath<DungeonAsset>(path);
-            if (asset != null && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
+            if (asset != null && asset.zones.Length > 0 && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
             {
                 return;
             }
@@ -290,6 +290,7 @@ namespace Game.Editor
                 new RoomData
                 {
                     name = "The swarm",
+                    offset = new Vector2(0f, 34f),
                     spawns = new[]
                     {
                         Spawn(slime, -10f, 6f, "slime_green", pack: 1),
@@ -306,6 +307,7 @@ namespace Game.Editor
                 new RoomData
                 {
                     name = "King's hall",
+                    offset = new Vector2(0f, 68f),
                     spawns = new[]
                     {
                         Spawn(slime, -6f, 9f, "slime_green", pack: 1),
@@ -315,6 +317,17 @@ namespace Game.Editor
                         Spawn(king, 0f, 16f, "boss_greendemon", boss: true),
                     },
                 },
+            };
+            asset.zones = new[]
+            {
+                new ZoneData { name = "Slime pit", min = new Vector2(-14f, -8f), max = new Vector2(14f, 22f) },
+                new ZoneData { name = "The swarm", min = new Vector2(-16f, 28f), max = new Vector2(16f, 56f) },
+                new ZoneData { name = "King's hall", min = new Vector2(-14f, 62f), max = new Vector2(14f, 90f) },
+            };
+            asset.gates = new[]
+            {
+                new GateData { name = "First gate", min = new Vector2(-3f, 21f), max = new Vector2(3f, 29f), openAfter = 0 },
+                new GateData { name = "Second gate", min = new Vector2(-3f, 55f), max = new Vector2(3f, 63f), openAfter = 1 },
             };
             if (created)
             {
