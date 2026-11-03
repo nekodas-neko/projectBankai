@@ -69,6 +69,27 @@ namespace Game.Core.Tests
             return Play(session, trackers, maxSeconds, trace);
         }
 
+        // A party of any size against one boss, in a one-room dungeon so the boss gets the real party-size health scale
+        // (healthPerExtraPlayer 0 means no scaling). Results come back in the order of the members.
+        public static BalanceResult[] RunParty(Registry<ClassDef> classes, Registry<AbilityDef> abilities, IReadOnlyList<KeyValuePair<string, IBotPolicy>> members, string boss, float healthPerExtraPlayer, float maxSeconds = 300f, ulong seed = 1)
+        {
+            var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
+            var trackers = new Tracker[members.Count];
+            for (var i = 0; i < members.Count; i++)
+            {
+                var client = session.AddPlayer(new PlayerId(i + 1), members[i].Key);
+                trackers[i] = new Tracker(client, abilities, classes, members[i].Key, boss, members[i].Value);
+            }
+
+            session.StartDungeon(new DungeonDef
+            {
+                Id = "balance",
+                HealthPerExtraPlayer = healthPerExtraPlayer,
+                Rooms = new[] { new RoomDef { Spawns = new[] { new SpawnDef { Class = boss, X = 0f, Y = 8f, Boss = true } } } },
+            });
+            return Play(session, trackers, maxSeconds);
+        }
+
         static BalanceResult[] Play(LocalSession session, Tracker[] trackers, float maxSeconds, StringBuilder trace = null)
         {
             var ticks = (int)(maxSeconds / Step);

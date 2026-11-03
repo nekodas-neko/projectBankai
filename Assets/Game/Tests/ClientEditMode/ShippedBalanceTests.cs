@@ -33,6 +33,24 @@ namespace Game.Client.Tests
             return BalanceSim.Run(classes, abilities, weapon, boss, policy, 240f);
         }
 
+        // Duos and the full three: the dungeon is designed for a tank, a damage dealer and a healer.
+        static IEnumerable<List<KeyValuePair<string, IBotPolicy>>> PartyGroups()
+        {
+            KeyValuePair<string, IBotPolicy> Tank() => new KeyValuePair<string, IBotPolicy>("sword_and_shield", new TankBlocker(false));
+            KeyValuePair<string, IBotPolicy> Staff() => new KeyValuePair<string, IBotPolicy>("staff", new Kiter());
+            KeyValuePair<string, IBotPolicy> Mace() => new KeyValuePair<string, IBotPolicy>("healing_mace", new Kiter());
+            yield return new List<KeyValuePair<string, IBotPolicy>> { Tank(), Staff() };
+            yield return new List<KeyValuePair<string, IBotPolicy>> { Tank(), Mace() };
+            yield return new List<KeyValuePair<string, IBotPolicy>> { Tank(), Staff(), Mace() };
+        }
+
+        // What the shipped cave multiplies enemy health by for each extra player.
+        static float PartyHealthPerExtraPlayer()
+        {
+            DefinitionLoader.Load(out _, out _, out var dungeons);
+            return dungeons.Get("slime_cave").HealthPerExtraPlayer;
+        }
+
         [Test, Category("Balance")]
         public void Report()
         {
@@ -59,13 +77,13 @@ namespace Game.Client.Tests
             var party = new List<BalanceResult>();
             foreach (var boss in Bosses)
             {
-                foreach (var ranged in new[] { "staff", "healing_mace" })
+                foreach (var group in PartyGroups())
                 {
-                    party.AddRange(BalanceSim.RunParty(classes, abilities, "sword_and_shield", new TankBlocker(false), ranged, new Kiter(), boss, 240f));
+                    party.AddRange(BalanceSim.RunParty(classes, abilities, group, boss, PartyHealthPerExtraPlayer()));
                 }
             }
 
-            var table = BalanceSim.Table(results) + "\nParty: a tank that never moves plus one ranged player\n" + BalanceSim.Table(party) + "\nTargets missed: " + misses.Count + "\n" + string.Join("\n", misses) + "\n";
+            var table = BalanceSim.Table(results) + "\nParty (a tank that never moves, ranged players holding back, boss health scaled by party size)\n" + BalanceSim.Table(party) + "\nTargets missed: " + misses.Count + "\n" + string.Join("\n", misses) + "\n";
             var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "balance-report.txt"));
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, table);
@@ -82,6 +100,28 @@ namespace Game.Client.Tests
             BalanceSim.RunParty(classes, abilities, "sword_and_shield", new TankBlocker(false), "staff", new Kiter(), "mushroom_warden", 240f, 1, trace);
             var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "party-trace.txt"));
             File.WriteAllText(path, trace.ToString());
+        }
+
+        // A party must not trivialise a boss: with the cave's health scale a duo or a full party still takes most of the time a solo
+        // player does (the bots are perfect, a person is slower), and everyone comes out with some health.
+        [Test, Category("Balance")]
+        public void ADuoOrAFullPartyDoesNotFinishABossInSeconds()
+        {
+            var shortest = new Dictionary<string, float> { ["mushroom_warden"] = 27f, ["brood_mother"] = 54f, ["slime_boss"] = 76f };
+            foreach (var boss in Bosses)
+            {
+                foreach (var group in PartyGroups())
+                {
+                    var results = BalanceSim.RunParty(classes, abilities, group, boss, PartyHealthPerExtraPlayer());
+                    var table = BalanceSim.Table(results);
+                    Assert.IsTrue(results[0].BossDead, $"{boss}: the party did not finish it {table}");
+                    Assert.GreaterOrEqual(results[0].Seconds, shortest[boss], $"{boss} fell too fast for a party of {results.Length} {table}");
+                    foreach (var member in results)
+                    {
+                        Assert.GreaterOrEqual(member.HealthLeft, 0.3f, $"{member.Weapon} against {boss} in a party of {results.Length} {table}");
+                    }
+                }
+            }
         }
 
         [Test, Category("Balance")]
