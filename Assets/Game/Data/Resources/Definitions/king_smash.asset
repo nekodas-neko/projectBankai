@@ -15,7 +15,7 @@ MonoBehaviour:
   kind: 0
   shape: 1
   angle: 0
-  cooldown: 6
+  cooldown: 14
   range: 4.5
   radius: 4.5
   damage: 16

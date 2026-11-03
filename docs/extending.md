@@ -70,7 +70,7 @@ A boss phase can have **Mechanics**: attacks on a timer that run alongside its n
 
 On the ability, tick **At Target** to make its area centre on the chosen player's position at the moment it starts, instead of on the boss. The warning is drawn on the ground there for the whole windup, and the boss keeps fighting while it winds up, so the player's answer is to walk out of it. Make it red (**Avoidable** off) for the "get out" version. Up to four mechanics per phase; the ability has to be one of the boss's own attacks (put it in the class's **Skills**).
 
-The seeded `slime_bomb` (a red 3.8-unit ground circle, 0.8 s warning) is used by all three bosses on the farthest player from the first phase (the mushroom warden every 4.5 s, the brood mother every 7 s, the slime king every 10 s), and again later: the brood mother also drops one on someone other than its main target, and the slime king adds a faster one from 65% health and a random one from 30%. Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
+The everyday ground circle is the orange `slime_spit` (4.6-unit circle, 1 s warning; block, dodge or walk out): the mushroom warden drops one on its farthest player every 3.5 s, the brood mother every 7 s, and the slime king every 10 s, then every 10 s and every 8 s plus a random one every 12 s in its later phases. Red attacks are rare on purpose: the brood mother's red `slime_bomb` (every 18 s from its second phase) and the slime king's red smash (cooldown 14 s). Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
 
 ## Boss recovery: a pause after every attack
 

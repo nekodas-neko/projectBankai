@@ -20,12 +20,13 @@ MonoBehaviour:
   skills:
   - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
   - {fileID: 11400000, guid: 516de0c70c998724599f11690487ed02, type: 2}
-  - {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
+  - {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
   defense: {fileID: 0}
   aggroRange: 12
   threatMultiplier: 1
   bodyRadius: 1.8
   leashRange: 0
+  recoverySeconds: 1.5
   displayName: 
   skinPrefix: 
   phases:
@@ -38,7 +39,7 @@ MonoBehaviour:
     spawnCount: 0
     spawnSkin: 
     mechanics:
-    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
       intervalSeconds: 10
       firstDelaySeconds: 6
       target: 1
@@ -53,8 +54,8 @@ MonoBehaviour:
     spawnCount: 2
     spawnSkin: slime_green
     mechanics:
-    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
-      intervalSeconds: 7
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 10
       firstDelaySeconds: 3
       target: 1
       count: 1
@@ -68,13 +69,13 @@ MonoBehaviour:
     spawnCount: 3
     spawnSkin: slime_green
     mechanics:
-    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
-      intervalSeconds: 5
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 8
       firstDelaySeconds: 2
       target: 1
       count: 1
-    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
-      intervalSeconds: 8
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 12
       firstDelaySeconds: 4
       target: 0
       count: 1

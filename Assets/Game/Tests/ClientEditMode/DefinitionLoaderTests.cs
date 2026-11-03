@@ -38,25 +38,42 @@ namespace Game.Client.Tests
         }
 
         [Test]
-        public void TheShippedBossesDropRedGroundCirclesOnPlayers()
+        public void TheShippedBossesDropGroundCirclesOnPlayersAndRedOnesAreRare()
         {
             DefinitionLoader.Load(out var classes, out var abilities);
+
+            var spit = abilities.Get("slime_spit");
+            Assert.IsTrue(spit.AtTarget);
+            Assert.IsTrue(spit.Avoidable, "the everyday ground circle is orange: block, dodge or walk out");
+            Assert.Greater(spit.Windup, 0.5f);
 
             var bomb = abilities.Get("slime_bomb");
             Assert.IsTrue(bomb.AtTarget);
             Assert.IsFalse(bomb.Avoidable);
-            Assert.Greater(bomb.Windup, 0.5f);
 
             var king = classes.Get("slime_boss");
             Assert.AreEqual(MechanicTarget.Farthest, king.Phases[0].Mechanics[0].Target);
             Assert.AreEqual(MechanicTarget.Farthest, king.Phases[1].Mechanics[0].Target);
-            Assert.AreEqual("slime_bomb", king.Phases[1].Mechanics[0].Ability);
+            Assert.AreEqual("slime_spit", king.Phases[1].Mechanics[0].Ability);
             Assert.GreaterOrEqual(king.Phases[2].Mechanics.Length, 2);
 
             var mother = classes.Get("brood_mother");
             Assert.AreEqual(MechanicTarget.NotTopThreat, mother.Phases[1].Mechanics[0].Target);
+            Assert.GreaterOrEqual(mother.Phases[1].Mechanics[0].IntervalSeconds, 15f, "the red bomb is rare");
 
-            Assert.AreEqual("slime_bomb", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability);
+            Assert.AreEqual("slime_spit", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability);
+            Assert.GreaterOrEqual(abilities.Get("king_smash").Cooldown, 12f, "the king's red smash is rare");
+        }
+
+        [Test]
+        public void TheShippedBossesPauseAfterEveryAttack()
+        {
+            DefinitionLoader.Load(out var classes, out _);
+
+            foreach (var id in new[] { "mushroom_warden", "brood_mother", "slime_boss" })
+            {
+                Assert.Greater(classes.Get(id).RecoverySeconds, 0.5f, id);
+            }
         }
 
         [Test]

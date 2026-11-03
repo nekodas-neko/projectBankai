@@ -19,12 +19,13 @@ MonoBehaviour:
   autoAttack: {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
   skills:
   - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
-  - {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
+  - {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
   defense: {fileID: 0}
   aggroRange: 10
   threatMultiplier: 1
   bodyRadius: 1.2
   leashRange: 0
+  recoverySeconds: 1
   displayName: 
   skinPrefix: 
   phases:
@@ -37,9 +38,9 @@ MonoBehaviour:
     spawnCount: 0
     spawnSkin: 
     mechanics:
-    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
-      intervalSeconds: 4.5
-      firstDelaySeconds: 5
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 3.5
+      firstDelaySeconds: 4
       target: 1
       count: 1
   hasResource: 0
