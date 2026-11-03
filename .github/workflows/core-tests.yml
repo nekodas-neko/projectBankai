@@ -1,0 +1,35 @@
+name: Core tests
+
+# The fast Game.Core suite, compiled and run with the .NET SDK (no Unity, no license, no secrets).
+# It runs for every pull request, including ones from forks, because it needs nothing secret and has read-only access.
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run Game.Core tests
+        run: dotnet test tests/Game.Core.DotNetTests/Game.Core.DotNetTests.csproj --nologo -v q --logger "trx;LogFileName=core-tests.trx" --results-directory test-results
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: core-test-results
+          path: test-results
