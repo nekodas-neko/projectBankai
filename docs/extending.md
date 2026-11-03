@@ -7,16 +7,18 @@ The rule: adding a skill, class or boss means adding files, not editing the fram
 | Thing | Where it lives | Status |
 |---|---|---|
 | Abilities (cooldown, range, width, damage, windup, resource cost) | `AbilityAsset` files in `Assets/Game/Data/Resources/Definitions` | Data. One file each. |
-| Classes (role, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range) | `ClassAsset` files in the same folder | Data. One file each. |
+| Classes (role, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range, body radius, threat multiplier, boss phases) | `ClassAsset` files in the same folder | Data. One file each. |
 | Defensive skills: dodge (dash and brief invulnerability, optional counter rider), block (damage reduction), shield (absorb) | Ability `kind` plus its numbers | Data. The three kinds are code in `GameServer`; a fourth kind is a `core-change`. |
 | Class resource (mana, rage, focus): max, start, regen or decay, gain per damage dealt, taken and blocked | `ClassAsset` resource fields | Data. Abilities spend it with `resourceCost`. |
 | Windup (delay between starting an attack and it landing) | `windup` on an ability | Data. Clients draw the warning area while it counts down. |
 | Healing (`heal` on an ability heals allies in its line, the caster included, clamped to max health; an ability with damage and heal does both) | Ability numbers | Data. |
 | Taunt and threat (`taunt` seconds on an ability forces enemies hit to target the caster and lifts the caster's threat above everyone's; `threatMultiplier` on a class scales threat from its damage; enemies attack whoever has the most threat) | Ability and class numbers | Data. |
-| Ability behaviour beyond the above (projectile, area shapes) | `Game.Core` | Not built yet. |
+| Area shape of an ability: line, circle or cone (`shape`, `angle`, `radius`, `range`) | Ability asset | Data. A new shape is a `core-change` (`InArea` in the server and the telegraph mesh on the client). Projectiles are not built yet. |
+| Skill variants (own effects plus damage, range, cooldown and cost scales) | `Variants` on the ability asset | Data. Chosen by the player's loadout; the Style button stands in for the skill tree. |
 | Skins (look of a character) | `SkinAsset` files in `Assets/Game/Data/Resources/Skins` | Data. One file each. A skin is either a prefab with an Animator or a coloured primitive. |
 | Skill effects | `castEffect` and `hitEffect` prefabs on each `AbilityAsset` | Data. Played on every client from use and hit events. |
-| Bosses, telegraph shapes, phases | `Game.Core` | Not built yet. Milestone M2. |
+| Bosses and phases (health thresholds, which attacks to use, speed, minions to spawn) | `Phases` on the class asset | Data. Telegraphs are drawn by every client from the ability's shape and windup. |
+| Dungeons (ordered rooms of enemy spawns) | `DungeonAsset` files in the same folder | Data. See the dungeon room example below. |
 | Status effects | `Entity.Statuses` (invulnerable, blocking, shield, dashing) | Used by the defensive skills. Generic debuffs are not built yet. |
 
 The loader reads every asset under `Resources/Definitions` and validates the lot. Unknown ability ids, a class with more than 3 skills, non-positive health and similar mistakes fail loudly with a list of every problem.
@@ -94,13 +96,16 @@ A variant is a changed version of one ability, for the skill tree to unlock late
 - For now the **Style** button picks the same variant number for the attack and the first skill (style 1 is the first variant of each). The skill-tree screen replaces that later; nothing else changes.
 - Heal and circle size scale with the damage and range scales.
 
-## Worked example: add a boss (planned, M2)
+## Worked example: add a boss
 
-Bosses do not exist yet, so this describes the intended shape and will be replaced by a real example when the first boss lands:
+A boss is an ordinary class with phases. The seeded `slime_boss` is the reference.
 
-- A boss is an ordinary entity from a `ClassDef`, spawned with `GameServer.SpawnNpc` on the enemy team.
-- Its phases and attack pattern are data (a list of phases, each with telegraphs and timings), driven by a boss controller in `Game.Core` that issues the same commands an ability use would.
-- A new telegraph shape implements one interface and registers by id; it is not a new code path in the server.
+1. Make the boss attacks as abilities. Give each a **Windup** and a **Shape** (circle for a slam around the boss, cone for a sweep, line for a thrust) with the numbers for range, radius and angle. The warning area is drawn from those, so nothing else is needed for the telegraph.
+2. Make a class with role None, its health, move speed, **Aggro Range**, **Body Radius** and an auto attack. Add the attacks to **Skills**.
+3. Add **Phases** on the class asset. Each phase has **Health Below** (a fraction, highest first), the **Attacks** it chooses from, an optional **Speed Scale**, and optionally **Spawn Class**, **Spawn Count** and **Spawn Skin** for minions that appear when the phase starts.
+4. Put it in a dungeon room as a spawn.
+
+The validator checks that phases are ordered and that every attack is one of the class's abilities.
 
 ## Tests to write for any addition
 
@@ -114,13 +119,16 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 
 - Client and server tick clocks are not synchronised. No clock offset estimation yet; needed before two phones play together (M1.5).
 - Move commands are one tick each, capped at 2 per tick. Reconciliation replays unacknowledged moves and drops ones older than 1 second.
-- Hits are line checks, instant or after a windup. No projectiles, no area shapes other than a wide line. A windup hit uses the position and direction from when the attack started.
-- Enemies have one behaviour: chase the nearest hostile inside the aggro range and use the auto-attack. Phases, target switching and threat come with the boss work (issues 29 and 30).
+- Hits are areas (line, circle or cone), instant or after a windup. No projectiles. A windup hit uses the position and direction from when the attack started.
+- Enemy behaviour is basic: attack whoever has the most threat (or the nearest hostile in aggro range), use the attacks of the current phase, and obey a taunt. No pathfinding. Enemy decisions live in the one big `GameServer` class (issue 53 splits it).
+- A client starts a telegraph when the use event arrives, so a late event restarts the warning and a player who joins mid-windup misses it (issue 54).
 - A dodge ignores Move commands while dashing, so the client briefly predicts movement the server discards. It snaps back on the next snapshot.
 - Outside a dungeon dead players respawn after 5 seconds. Inside one they stay down until the next room or a restart.
 - A dungeon is one arena with several waves (rooms); different layouts per room, doors and travel between rooms are not built.
 - State uses floats. The server is authoritative so cross-machine determinism is not required; tests only prove same-seed repeatability on one machine.
 - `WireCodec` allocates per message, so the combat allocation budget is not met.
-- The networking library is not chosen; everything sits behind `ITransport`.
+- The networking library is not chosen; everything sits behind `ITransport`. Whether to move to Netcode for GameObjects is an open decision (issue 58).
+- Player classes (tank, healer, mage) are temporary: weapons with their own skill trees replace them (issue 50). Mobs and bosses keep class definitions.
+- Definitions are copied, not derived: a variant of a monster is a duplicate asset. A "based on" link is planned (issue 50).
 - AI-controlled party members do not exist yet; the intended hook is server-side controllers that emit the same commands as a phone.
 - Definitions load from `Resources`, which is fine for the prototype. Revisit if content grows large.
