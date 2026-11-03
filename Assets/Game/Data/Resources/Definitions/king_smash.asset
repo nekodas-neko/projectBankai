@@ -15,7 +15,7 @@ MonoBehaviour:
   kind: 0
   shape: 1
   angle: 0
-  cooldown: 6
+  cooldown: 14
   range: 4.5
   radius: 4.5
   damage: 16
@@ -29,13 +29,18 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
-  avoidable: 0
+  avoidable: 1
   atTarget: 0
   chargeRequired: 0
   chargeFromDealt: 0
   chargeFromTaken: 0
   chargeFromBlocked: 0
   chargeFromHealing: 0
+  interruptible: 0
+  interrupt: 0
+  summonClass: {fileID: 0}
+  summonSkin: 
+  summonCount: 0
   variants: []
   castEffect: {fileID: 7038512398453231626, guid: 9560150c1ed72e1448753f1025893cb6, type: 3}
   hitEffect: {fileID: 2147423778621091440, guid: ea60e1026265d554ab3d4f4a355facc7, type: 3}

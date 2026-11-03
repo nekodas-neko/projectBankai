@@ -40,6 +40,7 @@ namespace Game.Client
         [Min(0f)] public float threatMultiplier = 1f;
         [Min(0f)] public float bodyRadius;
         [Min(0f)] public float leashRange;
+        [Min(0f)] public float recoverySeconds;
         public string displayName = "";
         public string skinPrefix = "";
         public PhaseData[] phases = new PhaseData[0];
@@ -71,6 +72,7 @@ namespace Game.Client
                 ThreatMultiplier = threatMultiplier,
                 BodyRadius = bodyRadius,
                 LeashRange = leashRange,
+                RecoverySeconds = recoverySeconds,
                 Phases = phases.Select(phase => new PhaseDef
                 {
                     HealthBelow = phase.healthBelow,

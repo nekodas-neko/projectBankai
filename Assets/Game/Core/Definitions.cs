@@ -80,6 +80,20 @@ namespace Game.Core
         public float ChargeFromTaken { get; set; }
         public float ChargeFromBlocked { get; set; }
         public float ChargeFromHealing { get; set; }
+
+        // A cast: while this ability winds up the caster stands still, and a hit from an ability with Interrupt cancels it.
+        // Needs a windup and cannot be a ground circle (At Target), since only a standing caster can be interrupted.
+        public bool Interruptible { get; set; }
+
+        // Seconds an enemy is staggered (cannot move, attack or cast) when this ability hits it while it casts something
+        // interruptible. The cast is cancelled and does nothing. 0 means this ability cannot interrupt.
+        public float Interrupt { get; set; }
+
+        // When the ability resolves it also summons SummonCount of SummonClass around the caster. The adds are fixed on the
+        // farthest player for a while; a taunt pulls them off.
+        public string SummonClass { get; set; }
+        public string SummonSkin { get; set; }
+        public int SummonCount { get; set; }
     }
 
     public sealed class ResourceDef
@@ -173,6 +187,10 @@ namespace Game.Core
         public float ThreatMultiplier { get; set; } = 1f;
         public float BodyRadius { get; set; }
         public float LeashRange { get; set; }
+
+        // After an attack lands, the enemy stays planted this long before it moves or attacks again, so a boss does not
+        // chase and swing without a break. 0 keeps the old behaviour.
+        public float RecoverySeconds { get; set; }
         public PhaseDef[] Phases { get; set; } = Array.Empty<PhaseDef>();
     }
 

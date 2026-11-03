@@ -82,6 +82,7 @@ namespace Game.Core
         Blocked = 2,
         Absorbed = 3,
         Healed = 4,
+        Interrupted = 5,
     }
 
     public struct DamageEvent
