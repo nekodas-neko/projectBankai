@@ -73,6 +73,7 @@ namespace Game.Core
         public float Heal { get; set; }
         public float Taunt { get; set; }
         public string Rider { get; set; }
+        public bool Avoidable { get; set; } = true;
         public float ChargeRequired { get; set; }
         public float ChargeFromDealt { get; set; }
         public float ChargeFromTaken { get; set; }

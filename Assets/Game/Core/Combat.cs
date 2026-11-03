@@ -204,7 +204,7 @@ namespace Game.Core
                     continue;
                 }
 
-                ApplyDamage(user, other, damage, slot, abilityId, variantId);
+                ApplyDamage(user, other, damage, slot, abilityId, variantId, ability.Avoidable);
                 if (ability.Taunt > 0f)
                 {
                     other.ForcedTarget = user.Id;
@@ -267,13 +267,14 @@ namespace Game.Core
             });
         }
 
-        void ApplyDamage(Entity source, Entity target, float amount, int slot, int abilityId, int variantId)
+        // An unavoidable (red) hit ignores dodge, block and shield: the only answer is not to be there.
+        void ApplyDamage(Entity source, Entity target, float amount, int slot, int abilityId, int variantId, bool avoidable)
         {
             var outcome = HitOutcome.Hit;
             var health = amount;
             var spec = target.ResourceSpec;
 
-            if (target.HasStatus(StatusType.Invulnerable))
+            if (avoidable && target.HasStatus(StatusType.Invulnerable))
             {
                 health = 0f;
                 outcome = HitOutcome.Dodged;
@@ -281,7 +282,7 @@ namespace Game.Core
             }
             else
             {
-                if (target.HasStatus(StatusType.Blocking))
+                if (avoidable && target.HasStatus(StatusType.Blocking))
                 {
                     var blocked = health * Clamp01(target.StatusMagnitude(StatusType.Blocking));
                     health -= blocked;
@@ -293,7 +294,7 @@ namespace Game.Core
                     }
                 }
 
-                var absorbed = target.AbsorbWithShield(health);
+                var absorbed = avoidable ? target.AbsorbWithShield(health) : 0f;
                 if (absorbed > 0f)
                 {
                     health -= absorbed;
@@ -309,7 +310,7 @@ namespace Game.Core
             if (health > 0f)
             {
                 target.Health = MathF.Max(0f, target.Health - health);
-                target.RecentHits.Add(new RecentHit { Amount = health, Source = source.Id });
+                target.RecentHits.Add(new RecentHit { Amount = health, Source = source.Id, Unavoidable = !avoidable });
                 target.AddThreat(source.Id, health * source.ThreatMultiplier);
                 if (spec != null)
                 {

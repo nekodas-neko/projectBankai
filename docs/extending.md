@@ -60,6 +60,15 @@ The skill next to the attack has only a short cooldown (about half a second, so 
 
 The ring on the button is the larger of the cooldown left and the missing part of the cost (`ActionButton.RingFill`). Seeded numbers: sword and shield rage 100 (the attack gives 10, the bash costs 30), staff focus 100 (the bolt gives 8, the fireball costs 35), healing mace mana 100 (the bolt gives 6, the pulse costs 30, plus a slow regen).
 
+## Red and orange attacks
+
+Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):
+
+- **Avoidable (orange):** block, a dodge's invulnerability and shields all work against it, and a block pressed just after it still counts.
+- **Not avoidable (red):** it ignores block, dodge and shields, and a late block does not help. The only answer is to be somewhere else when it lands. It is drawn in red so players know to move.
+
+The slime king's smash (the big circle around the boss) is the first red attack. A rule of thumb for fairness: attacks aimed at the people standing next to the boss are mostly orange (the tank has its answers), and the red ones should have a safe side (a cone, a line) or give enough time to step out and back without losing the rhythm.
+
 ## Worked example: add a dungeon room
 
 A dungeon is one `DungeonAsset` (**Assets > Create > Game > Dungeon**, in `Assets/Game/Data/Resources/Definitions`). Add a room to **Rooms**, then add spawns: a class (not a player class), a position inside the arena (radius 20) and an optional skin id such as `slime_green`. Rooms run in order. The loader checks that every room has enemies and every class exists. The arena loads the dungeon named in `ArenaBootstrap` (`slime_cave`); a dungeon picker comes with the hub.

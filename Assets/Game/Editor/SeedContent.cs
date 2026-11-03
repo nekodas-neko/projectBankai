@@ -52,7 +52,7 @@ namespace Game.Editor
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
             var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 20f);
             var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 14f);
-            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; });
+            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
 
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);

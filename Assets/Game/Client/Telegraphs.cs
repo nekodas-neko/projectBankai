@@ -13,8 +13,16 @@ namespace Game.Client
         readonly Transform parent;
         readonly Mesh cube;
         readonly Mesh cylinder;
-        readonly Material area;
-        readonly Material fill;
+        // Orange warnings can be blocked or dodged; red ones cannot, so you have to leave the area.
+        public static readonly Color OrangeArea = new Color(1f, 0.5f, 0.08f);
+        public static readonly Color OrangeFill = new Color(1f, 0.78f, 0.25f);
+        public static readonly Color RedArea = new Color(0.85f, 0.08f, 0.08f);
+        public static readonly Color RedFill = new Color(1f, 0.28f, 0.22f);
+
+        readonly Material orangeAreaMaterial;
+        readonly Material orangeFillMaterial;
+        readonly Material redAreaMaterial;
+        readonly Material redFillMaterial;
         readonly List<Marker> active = new List<Marker>();
         readonly Stack<Marker> pool = new Stack<Marker>();
         readonly Dictionary<int, Mesh> wedges = new Dictionary<int, Mesh>();
@@ -25,8 +33,36 @@ namespace Game.Client
             this.parent = parent;
             this.cube = cube;
             this.cylinder = cylinder;
-            this.area = area;
-            this.fill = fill;
+            orangeAreaMaterial = Tinted(area, OrangeArea);
+            orangeFillMaterial = Tinted(fill, OrangeFill);
+            redAreaMaterial = Tinted(area, RedArea);
+            redFillMaterial = Tinted(fill, RedFill);
+        }
+
+        // The colour of a warning keeps the see-through amount of the material it comes from.
+        public static Color Tint(Color source, Color tint)
+        {
+            return new Color(tint.r, tint.g, tint.b, source.a);
+        }
+
+        static Material Tinted(Material source, Color tint)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            var copy = new Material(source);
+            if (copy.HasProperty("_BaseColor"))
+            {
+                copy.SetColor("_BaseColor", Tint(copy.GetColor("_BaseColor"), tint));
+            }
+            else
+            {
+                copy.color = Tint(copy.color, tint);
+            }
+
+            return copy;
         }
 
         public int ActiveCount => active.Count;
@@ -38,7 +74,7 @@ namespace Game.Client
             stamp++;
         }
 
-        public void Show(int key, Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds, float remaining)
+        public void Show(int key, Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds, float remaining, bool avoidable = true)
         {
             for (var i = 0; i < active.Count; i++)
             {
@@ -50,7 +86,7 @@ namespace Game.Client
             }
 
             var before = active.Count;
-            Add(origin, worldDirection, shape, range, radius, angle, seconds, Mathf.Clamp(seconds - remaining, 0f, seconds));
+            Add(origin, worldDirection, shape, range, radius, angle, seconds, Mathf.Clamp(seconds - remaining, 0f, seconds), avoidable);
             if (active.Count > before)
             {
                 active[active.Count - 1].Key = key;
@@ -70,7 +106,7 @@ namespace Game.Client
             }
         }
 
-        public void Add(Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds, float elapsed = 0f)
+        public void Add(Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds, float elapsed = 0f, bool avoidable = true)
         {
             if (seconds <= 0f)
             {
@@ -98,6 +134,8 @@ namespace Game.Client
             marker.Key = 0;
 
             var mesh = shape == AbilityShape.Circle ? cylinder : shape == AbilityShape.Cone ? Wedge(angle) : cube;
+            marker.AreaRenderer.sharedMaterial = avoidable ? orangeAreaMaterial : redAreaMaterial;
+            marker.FillRenderer.sharedMaterial = avoidable ? orangeFillMaterial : redFillMaterial;
             marker.AreaFilter.sharedMesh = mesh;
             marker.FillFilter.sharedMesh = mesh;
             marker.Area.gameObject.SetActive(true);
@@ -143,16 +181,16 @@ namespace Game.Client
         Marker Create()
         {
             var marker = new Marker();
-            marker.Area = NewPart("TelegraphArea", area, out marker.AreaFilter);
-            marker.Fill = NewPart("TelegraphFill", fill, out marker.FillFilter);
+            marker.Area = NewPart("TelegraphArea", out marker.AreaFilter, out marker.AreaRenderer);
+            marker.Fill = NewPart("TelegraphFill", out marker.FillFilter, out marker.FillRenderer);
             return marker;
         }
 
-        Transform NewPart(string name, Material material, out MeshFilter filter)
+        Transform NewPart(string name, out MeshFilter filter, out MeshRenderer renderer)
         {
             var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
             filter = go.GetComponent<MeshFilter>();
-            go.GetComponent<MeshRenderer>().sharedMaterial = material;
+            renderer = go.GetComponent<MeshRenderer>();
             go.transform.SetParent(parent, false);
             go.SetActive(false);
             return go.transform;
@@ -238,6 +276,8 @@ namespace Game.Client
             public Transform Fill;
             public MeshFilter AreaFilter;
             public MeshFilter FillFilter;
+            public MeshRenderer AreaRenderer;
+            public MeshRenderer FillRenderer;
             public AbilityShape Shape;
             public Vector3 Origin;
             public Vector3 Direction;
