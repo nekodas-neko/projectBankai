@@ -27,6 +27,11 @@ namespace Game.Client
                     continue;
                 }
 
+                if ((entity.Effects & EffectFlags.Summoned) != 0)
+                {
+                    continue;
+                }
+
                 if ((entity.Effects & EffectFlags.Boss) != 0)
                 {
                     bosses++;
