@@ -140,6 +140,18 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void EquippingTheWeaponAlreadyInHandChangesNothingToSave()
+        {
+            var progress = Progress();
+
+            progress.Equip("sword_and_shield");
+            Assert.IsFalse(progress.Dirty, "starting the game must not rewrite the profile");
+
+            progress.Equip("staff");
+            Assert.IsTrue(progress.Dirty);
+        }
+
+        [Test]
         public void ProgressSurvivesARestartOfTheGame()
         {
             var first = Progress();

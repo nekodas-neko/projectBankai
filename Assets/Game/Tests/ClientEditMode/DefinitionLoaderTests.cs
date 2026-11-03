@@ -162,18 +162,24 @@ namespace Game.Client.Tests
         }
 
         [Test]
-        public void ShippedVariantsLoadAndEachHasItsOwnEffects()
+        public void ShippedVariantsLoadAndTheOnesWithALookHaveItsOwnEffects()
         {
             DefinitionLoader.Load(out _, out var abilities);
 
             Assert.AreEqual("crimson", abilities.Get("arcane_bolt").Variants[0].Id);
             Assert.AreEqual("frost", abilities.Get("fireball").Variants[0].Id);
 
+            // A variant either has a look of its own (both effects, different from the base) or is numbers only (neither, the base effects are used).
             var variantCount = 0;
             foreach (var ability in Resources.LoadAll<AbilityAsset>(DefinitionAsset.ResourcesFolder))
             {
                 foreach (var variant in ability.variants)
                 {
+                    if (variant.castEffect == null && variant.hitEffect == null)
+                    {
+                        continue;
+                    }
+
                     variantCount++;
                     Assert.IsNotNull(variant.castEffect, $"{ability.Id}/{variant.id} cast effect");
                     Assert.IsNotNull(variant.hitEffect, $"{ability.Id}/{variant.id} hit effect");

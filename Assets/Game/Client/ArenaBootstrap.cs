@@ -41,6 +41,9 @@ namespace Game.Client
         MapView mapView;
         ClassDef playerClass;
         MasteryProgress mastery;
+        Registry<SkillTreeDef> skillTrees;
+        SkillTreePanel skillPanel;
+        string skillMessage = string.Empty;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
         int[] loadout = new int[0];
@@ -69,9 +72,10 @@ namespace Game.Client
 
             var className = HudSettings.ClassName;
             playerClass = classDefs.Get(className);
-            loadout = Loadout(className);
+            skillTrees = SkillTreeCatalog.Load(classDefs, abilityDefs);
             mastery = new MasteryProgress(ProfileStore.ForDevice(), MasteryCatalog.Load());
             mastery.Equip(className);
+            loadout = Loadout(className);
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
@@ -277,7 +281,7 @@ namespace Game.Client
                 Zoom = ChangeZoom,
                 CycleSkin = CycleSkin,
                 CycleClass = CycleClass,
-                CycleStyle = CycleStyle,
+                ToggleSkills = ToggleSkills,
                 ToggleSession = ToggleMenu,
                 Restart = () => LocalClient?.Restart(),
             });
@@ -288,12 +292,62 @@ namespace Game.Client
                 () => SwitchMode(SessionMode.Host, null),
                 address => SwitchMode(SessionMode.Join, address),
                 ToggleMenu);
+            skillPanel = new SkillTreePanel((RectTransform)Hud.Root.transform, ChooseSkillNode, ResetSkills, ToggleSkills);
             WireButtons();
+        }
+
+        void ToggleSkills()
+        {
+            var open = !skillPanel.IsOpen;
+            skillMessage = string.Empty;
+            skillPanel.SetOpen(open);
+            if (open)
+            {
+                menu.SetOpen(false);
+                RefreshSkills();
+            }
+        }
+
+        void RefreshSkills()
+        {
+            var weapon = HudSettings.ClassName;
+            skillTrees.TryGet(weapon, out var tree);
+            skillPanel.Show(weapon, tree, mastery.Profile.MasteryFor(weapon), mastery.Rules, skillMessage);
+        }
+
+        // The loadout is sent when joining, so a change restarts the session (weapons will be changed in the hub, later).
+        void ChooseSkillNode(int index)
+        {
+            var weapon = HudSettings.ClassName;
+            if (!skillTrees.TryGet(weapon, out var tree) || index >= tree.Nodes.Length)
+            {
+                return;
+            }
+
+            if (mastery.TryChoose(tree, weapon, tree.Nodes[index].Id, out var reason))
+            {
+                Reload();
+                return;
+            }
+
+            skillMessage = char.ToUpperInvariant(reason[0]) + reason.Substring(1);
+            RefreshSkills();
+        }
+
+        void ResetSkills()
+        {
+            mastery.ResetSkills(HudSettings.ClassName);
+            Reload();
         }
 
         void ToggleMenu()
         {
             var open = !menu.IsOpen;
+            if (open)
+            {
+                skillPanel.SetOpen(false);
+            }
+
             menu.SetOpen(open);
             scanner?.Dispose();
             scanner = null;
@@ -449,36 +503,17 @@ namespace Game.Client
             button.SetCooldown(ActionButton.RingFill(cooldown, state.Resource, state.MaxResource, cost));
         }
 
+        // The variants the equipped weapon's skill tree choices select, one per ability slot.
         int[] Loadout(string className)
         {
-            var def = classDefs.Get(className);
-            var style = HudSettings.StyleFor(className);
-            return new[] { StyleVariant(def.AutoAttack, style), StyleVariant(def.Skills.Length > 0 ? def.Skills[0] : null, style) };
-        }
-
-        int StyleVariant(string abilityId, int style)
-        {
-            if (style <= 0 || !abilityDefs.TryGet(abilityId, out var ability) || ability.Variants.Length < style)
+            if (!skillTrees.TryGet(className, out var tree))
             {
-                return 0;
+                return new int[Entity.AbilitySlots];
             }
 
-            return StableId.From(ability.Variants[style - 1].Id);
-        }
-
-        int StyleCount(string className)
-        {
-            var def = classDefs.Get(className);
-            var most = 0;
-            foreach (var id in new[] { def.AutoAttack, def.Skills.Length > 0 ? def.Skills[0] : null })
-            {
-                if (abilityDefs.TryGet(id, out var ability))
-                {
-                    most = Mathf.Max(most, ability.Variants.Length);
-                }
-            }
-
-            return 1 + most;
+            var weapon = mastery.Profile.MasteryFor(className);
+            SkillTreeRules.Sanitize(tree, weapon);
+            return SkillTreeRules.Loadout(tree, weapon);
         }
 
         float CooldownScale(AbilityDef ability, int slot)
@@ -752,13 +787,6 @@ namespace Game.Client
             }
 
             HudSettings.SetSkin(className, skins[index].name);
-            Reload();
-        }
-
-        void CycleStyle()
-        {
-            var className = HudSettings.ClassName;
-            HudSettings.SetStyle(className, (HudSettings.StyleFor(className) + 1) % StyleCount(className));
             Reload();
         }
 

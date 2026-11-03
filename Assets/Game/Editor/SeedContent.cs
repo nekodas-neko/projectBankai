@@ -254,6 +254,23 @@ namespace Game.Editor
                 };
             });
 
+            // Skill trees: each node picks a variant for one slot (0 attack, 1 skill, 2 ultimate, 4 defence).
+            Tree("sword_and_shield",
+                Node("ember_slash", "Ember slash", 0, "ember"),
+                Node("heavy_bash", "Heavy bash", 1, "heavy"),
+                Node("crushing_crash", "Crushing crash", 2, "crushing", 2, "heavy_bash"),
+                Node("quick_wall", "Quick wall", 4, "quick"));
+            Tree("staff",
+                Node("crimson_bolt", "Crimson bolt", 0, "crimson"),
+                Node("frost_fireball", "Frost fireball", 1, "frost"),
+                Node("wide_meteor", "Wide meteor", 2, "wide", 2, "frost_fireball"),
+                Node("quick_step", "Quick step", 4, "quick"));
+            Tree("healing_mace",
+                Node("verdant_bolt", "Verdant bolt", 0, "verdant"),
+                Node("quick_pulse", "Quick pulse", 1, "quick"),
+                Node("greater_burst", "Greater burst", 2, "greater", 2, "quick_pulse"),
+                Node("quick_ward", "Quick ward", 4, "quick"));
+
             // Mastery: 20 levels per weapon type, one point each, filled by kills with that type in hand.
             var masteryPath = $"{DefinitionsRoot}/{MasteryCatalog.AssetName}.asset";
             if (AssetDatabase.LoadAssetAtPath<MasteryAsset>(masteryPath) == null)
@@ -326,6 +343,15 @@ namespace Game.Editor
             Variant("fireball", "frost", 0.9f, 1.25f, 0.9f, frostCast, frostHit);
             Variant("holy_bolt", "verdant", 1.1f, 1f, 1f, verdantCast, verdantHit);
             Variant("sword_slash", "ember", 1.2f, 1f, 1.15f, emberCast, emberHit);
+            // Skill tree choices that only change numbers (they borrow the base skill's effects).
+            Variant("shield_bash", "heavy", 1.3f, 1f, 1.15f, null, null);
+            Variant("bulwark_crash", "crushing", 1.25f, 1f, 1.2f, null, null);
+            Variant("shield_wall", "quick", 1f, 1f, 0.75f, null, null);
+            Variant("meteor_fall", "wide", 0.9f, 1.25f, 1f, null, null);
+            Variant("arcane_step", "quick", 1f, 1f, 0.75f, null, null);
+            Variant("radiant_pulse", "quick", 0.9f, 1f, 0.8f, null, null);
+            Variant("radiant_burst", "greater", 1.3f, 1f, 1.15f, null, null);
+            Variant("ward", "quick", 1f, 1f, 0.75f, null, null);
             Link("arcane_step", arcane, hitSpark);
             Link("arcane_counter", fire, hitArcane);
             Link("shield_wall", shield, hitSpark);
@@ -658,6 +684,26 @@ namespace Game.Editor
             }
 
             EditorUtility.SetDirty(asset);
+        }
+
+        static SkillNodeData Node(string id, string displayName, int slot, string variant, int cost = 1, string requires = "")
+        {
+            return new SkillNodeData { id = id, displayName = displayName, slot = slot, variant = variant, cost = cost, requires = requires };
+        }
+
+        static void Tree(string weapon, params SkillNodeData[] nodes)
+        {
+            var folder = $"Assets/Game/Data/Resources/{SkillTreeAsset.Folder}";
+            Directory.CreateDirectory(folder);
+            var path = $"{folder}/{weapon}.asset";
+            if (AssetDatabase.LoadAssetAtPath<SkillTreeAsset>(path) != null)
+            {
+                return;
+            }
+
+            var asset = ScriptableObject.CreateInstance<SkillTreeAsset>();
+            asset.nodes = nodes;
+            AssetDatabase.CreateAsset(asset, path);
         }
 
         static AbilityAsset Ability(string id, float cooldown, float range, float radius, float damage)

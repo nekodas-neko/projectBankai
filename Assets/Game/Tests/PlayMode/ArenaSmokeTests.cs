@@ -1,3 +1,4 @@
+using System.IO;
 using System.Collections;
 using System.Net;
 using Game.Client;
@@ -196,13 +197,27 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
-        public IEnumerator Style_PicksTheVariantsTheServerUses()
+        public IEnumerator SkillTreeChoices_PickTheVariantsTheServerUses()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
             HudSettings.ClassName = "staff";
-            HudSettings.SetStyle("staff", 1);
+            var store = ProfileStore.ForDevice();
+            var original = File.Exists(store.Path) ? File.ReadAllText(store.Path) : null;
             try
             {
+                // Load the arena once first so an earlier test's arena is gone before the profile is written.
+                SceneManager.LoadScene("Arena");
+                yield return new WaitForSeconds(0.3f);
+                DefinitionLoader.Load(out var classes, out var abilities);
+                var tree = SkillTreeCatalog.Load(classes, abilities).Get("staff");
+                var rules = MasteryCatalog.Load();
+                var profile = PlayerProfile.Starter(new[] { "sword_and_shield", "staff", "healing_mace" });
+                var staff = profile.MasteryFor("staff");
+                staff.AddXp(rules, rules.MaxXp);
+                Assert.IsTrue(SkillTreeRules.TryChoose(tree, staff, rules, "crimson_bolt", out var reason), reason);
+                Assert.IsTrue(SkillTreeRules.TryChoose(tree, staff, rules, "frost_fireball", out reason), reason);
+                Assert.IsTrue(store.Save(profile));
+
                 SceneManager.LoadScene("Arena");
                 yield return new WaitForSeconds(0.5f);
                 var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
@@ -213,7 +228,14 @@ namespace Game.PlayMode.Tests
             }
             finally
             {
-                HudSettings.SetStyle("staff", 0);
+                if (original != null)
+                {
+                    File.WriteAllText(store.Path, original);
+                }
+                else if (File.Exists(store.Path))
+                {
+                    File.Delete(store.Path);
+                }
             }
         }
 
