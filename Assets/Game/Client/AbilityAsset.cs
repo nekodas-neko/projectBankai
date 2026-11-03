@@ -37,6 +37,11 @@ namespace Game.Client
         [Min(0f)] public float heal;
         [Min(0f)] public float taunt;
         public AbilityAsset rider;
+        [Min(0f)] public float chargeRequired;
+        [Min(0f)] public float chargeFromDealt;
+        [Min(0f)] public float chargeFromTaken;
+        [Min(0f)] public float chargeFromBlocked;
+        [Min(0f)] public float chargeFromHealing;
         public VariantData[] variants = new VariantData[0];
         public GameObject castEffect;
         public GameObject hitEffect;
@@ -83,6 +88,11 @@ namespace Game.Client
                 Heal = heal,
                 Taunt = taunt,
                 Rider = rider != null ? rider.Id : null,
+                ChargeRequired = chargeRequired,
+                ChargeFromDealt = chargeFromDealt,
+                ChargeFromTaken = chargeFromTaken,
+                ChargeFromBlocked = chargeFromBlocked,
+                ChargeFromHealing = chargeFromHealing,
                 Variants = variants.Select(variant => new VariantDef
                 {
                     Id = variant.id,

@@ -82,6 +82,7 @@ namespace Game.Core
 
             var entity = world.Spawn(player, Team.Players, classId, World.SpawnPoint(session.Count), appearance);
             book.ApplyLoadout(entity, variants);
+            book.SetUpCharge(entity);
             session.Add(player, transport, entity.Id);
             return entity;
         }

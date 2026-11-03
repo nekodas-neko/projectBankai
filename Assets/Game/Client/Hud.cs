@@ -111,13 +111,14 @@ namespace Game.Client
         const float StickRadius = 130f;
         const float KnobSize = 120f;
 
-        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton defense, ResourceBar resource, DungeonBanner banner, bool moveOnRight)
+        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton ultimate, ActionButton defense, ResourceBar resource, DungeonBanner banner, bool moveOnRight)
         {
             Root = root;
             SafeArea = safeArea;
             MoveStick = moveStick;
             Attack = attack;
             Special = special;
+            Ultimate = ultimate;
             Defense = defense;
             Resource = resource;
             Banner = banner;
@@ -133,6 +134,8 @@ namespace Game.Client
         public ActionButton Attack { get; }
 
         public ActionButton Special { get; }
+
+        public ActionButton Ultimate { get; }
 
         public ActionButton Defense { get; }
 
@@ -171,10 +174,11 @@ namespace Game.Client
             BuildTextButton(safeArea, "Style", "Style", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.CycleStyle);
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 410f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
+            var ultimate = BuildActionButton(safeArea, moveOnRight, "Ult", new Vector2(350f, 640f), 76f, new Color(0.93f, 0.62f, 0.18f, 0.9f), false);
             var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 530f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);
             var resource = ResourceBar.Build(safeArea);
             var banner = DungeonBanner.Build(safeArea, callbacks.Restart);
-            return new Hud(root, safeArea, stick, attack, special, defense, resource, banner, moveOnRight);
+            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, moveOnRight);
         }
 
         public static RectTransform NewRect(string name, Transform parent)

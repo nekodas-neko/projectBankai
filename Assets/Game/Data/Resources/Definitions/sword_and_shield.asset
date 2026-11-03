@@ -19,10 +19,12 @@ MonoBehaviour:
   autoAttack: {fileID: 11400000, guid: ac1e1a724b1688749bb6e8de5cafe0bf, type: 2}
   skills:
   - {fileID: 11400000, guid: 7aa853d5eb6f8c14f9d4d526ac238a3e, type: 2}
+  - {fileID: 11400000, guid: d2480c0973f21854ea6ac3de3261e9f9, type: 2}
   defense: {fileID: 11400000, guid: 1f489b8572b7f78488fa2bd7702f141e, type: 2}
   aggroRange: 0
   threatMultiplier: 3
   bodyRadius: 0.5
+  leashRange: 0
   displayName: Sword and shield
   skinPrefix: tank
   phases: []

@@ -40,6 +40,12 @@ namespace Game.Editor
             var radiantPulse = Ability("radiant_pulse", cooldown: 5f, range: 5f, radius: 3f, damage: 10f);
             var arcaneBolt = Ability("arcane_bolt", cooldown: 0.8f, range: 14f, radius: 0.5f, damage: 9f);
             var fireball = Ability("fireball", cooldown: 3f, range: 18f, radius: 1f, damage: 30f);
+            var bulwarkCrash = Ability("bulwark_crash", cooldown: 1f, range: 5f, radius: 5f, damage: 40f);
+            Tune(bulwarkCrash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.4f; a.taunt = 4f; a.chargeRequired = 100f; a.chargeFromDealt = 1.5f; });
+            var meteorFall = Ability("meteor_fall", cooldown: 1f, range: 6f, radius: 6f, damage: 70f);
+            Tune(meteorFall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.chargeRequired = 100f; a.chargeFromDealt = 1f; });
+            var radiantBurst = Ability("radiant_burst", cooldown: 1f, range: 6f, radius: 6f, damage: 20f);
+            Tune(radiantBurst, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.5f; a.heal = 50f; a.chargeRequired = 100f; a.chargeFromDealt = 3f; });
             var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 8f);
 
             var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 12f);
@@ -105,6 +111,9 @@ namespace Game.Editor
                 c.resourceRegen = 3f;
                 c.resourceGainDealt = 0.8f;
             });
+            Tune("sword_and_shield", c => c.skills.Length < 2, c => c.skills = new[] { c.skills[0], bulwarkCrash });
+            Tune("healing_mace", c => c.skills.Length < 2, c => c.skills = new[] { c.skills[0], radiantBurst });
+            Tune("staff", c => c.skills.Length < 2, c => c.skills = new[] { c.skills[0], meteorFall });
             Tune("sword_and_shield", c => c.threatMultiplier <= 1f, c => c.threatMultiplier = 3f);
             Tune("slime_boss", c => c.skills.Length == 0, c => c.skills = new[] { kingSmash, kingWave });
             Tune("slime_boss", c => c.phases.Length == 0 || c.autoAttack != kingSlam, c =>
@@ -198,6 +207,9 @@ namespace Game.Editor
             Link("king_slam", slime, hitSlime);
             Link("king_smash", slime, hitSlime);
             Link("king_wave", slime, hitSlime);
+            Link("bulwark_crash", shield, hitSpark);
+            Link("meteor_fall", fire, hitFire);
+            Link("radiant_burst", pulse, hitHoly);
             var crimsonCast = Burst("fx_cast_crimson", new Color(0.95f, 0.2f, 0.3f), 24, 11f, 0.14f, 0.35f, 20f, cube);
             var crimsonHit = Burst("fx_hit_crimson", new Color(1f, 0.3f, 0.35f), 16, 6f, 0.14f, 0.35f, 0f, cube);
             var frostCast = Burst("fx_cast_frost", new Color(0.55f, 0.9f, 1f), 30, 12f, 0.2f, 0.4f, 25f, cube);

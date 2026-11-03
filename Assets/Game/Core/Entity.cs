@@ -42,6 +42,7 @@ namespace Game.Core
     {
         const float HitMemorySeconds = 1f;
 
+        public const int UltimateSlot = 2;
         public const int DefenseSlot = 1 + ClassDef.SkillSlots;
         public const int AbilitySlots = DefenseSlot + 1;
 
@@ -56,6 +57,8 @@ namespace Game.Core
         public float Health;
         public ResourceDef ResourceSpec;
         public float Resource;
+        public float Charge;
+        public float ChargeMax;
         public Vec2 DashDirection;
         public float DashSpeed;
         public float PerfectRemaining;
@@ -278,6 +281,16 @@ namespace Game.Core
         public bool CanAfford(float cost)
         {
             return cost <= 0f || (ResourceSpec != null && Resource >= cost);
+        }
+
+        public void AddCharge(float amount)
+        {
+            if (ChargeMax <= 0f || amount <= 0f)
+            {
+                return;
+            }
+
+            Charge = System.Math.Min(ChargeMax, Charge + amount);
         }
 
         public void AddResource(float amount)

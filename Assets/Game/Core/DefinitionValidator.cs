@@ -64,6 +64,16 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': windup must not be negative");
                 }
 
+                if (ability.ChargeRequired < 0f || ability.ChargeFromDealt < 0f || ability.ChargeFromTaken < 0f || ability.ChargeFromBlocked < 0f || ability.ChargeFromHealing < 0f)
+                {
+                    errors.Add($"Ability '{ability.Id}': charge numbers must not be negative");
+                }
+
+                if (ability.ChargeRequired > 0f && ability.ChargeFromDealt + ability.ChargeFromTaken + ability.ChargeFromBlocked + ability.ChargeFromHealing <= 0f)
+                {
+                    errors.Add($"Ability '{ability.Id}': needs charge but nothing charges it");
+                }
+
                 if (!string.IsNullOrEmpty(ability.Rider) && !abilities.TryGet(ability.Rider, out _))
                 {
                     errors.Add($"Ability '{ability.Id}': unknown rider '{ability.Rider}'");

@@ -34,6 +34,20 @@ namespace Game.Core
             }
         }
 
+        // The ultimate decides how big the charge meter is and how it fills.
+        public AbilityDef UltimateOf(Entity entity)
+        {
+            return entity.ChargeMax > 0f && abilities.TryGet(entity.AbilityIds[Entity.UltimateSlot], out var ultimate) ? ultimate : null;
+        }
+
+        public void SetUpCharge(Entity entity)
+        {
+            if (abilities.TryGet(entity.AbilityIds[Entity.UltimateSlot], out var ultimate))
+            {
+                entity.ChargeMax = ultimate.ChargeRequired;
+            }
+        }
+
         public AbilityDef Resolve(AbilityDef ability, int variantId)
         {
             if (variantId == 0)
