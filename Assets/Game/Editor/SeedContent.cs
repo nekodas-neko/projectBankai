@@ -254,6 +254,19 @@ namespace Game.Editor
                 };
             });
 
+            // Boss loot: a personal drop of one of the three weapons, a little stronger or weaker than the starter one.
+            var lootFolder = $"Assets/Game/Data/Resources/{LootTableAsset.Folder}";
+            Directory.CreateDirectory(lootFolder);
+            var lootPath = $"{lootFolder}/{LootTableAsset.BossDrop}.asset";
+            if (AssetDatabase.LoadAssetAtPath<LootTableAsset>(lootPath) == null)
+            {
+                var table = ScriptableObject.CreateInstance<LootTableAsset>();
+                table.weaponTypes = new[] { "sword_and_shield", "staff", "healing_mace" };
+                table.powerMin = 0.95f;
+                table.powerMax = 1.15f;
+                AssetDatabase.CreateAsset(table, lootPath);
+            }
+
             // Skill trees: each node picks a variant for one slot (0 attack, 1 skill, 2 ultimate, 4 defence).
             Tree("sword_and_shield",
                 Node("ember_slash", "Ember slash", 0, "ember"),

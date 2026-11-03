@@ -89,7 +89,7 @@ namespace Game.Client
         public Action SwapSides;
         public Action<int> Zoom;
         public Action CycleSkin;
-        public Action CycleClass;
+        public Action ToggleWeapons;
         public Action ToggleSkills;
         public Action ToggleSession;
         public Action Restart;
@@ -163,7 +163,7 @@ namespace Game.Client
             BuildTextButton(safeArea, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -60f), callbacks.SwapSides);
             BuildTextButton(safeArea, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -170f), () => callbacks.Zoom?.Invoke(-1));
             BuildTextButton(safeArea, "Skin", "Skin", new Vector2(115f, 90f), new Vector2(-165f, -280f), callbacks.CycleSkin);
-            BuildTextButton(safeArea, "Class", "Weapon", new Vector2(115f, 90f), new Vector2(-40f, -280f), callbacks.CycleClass);
+            BuildTextButton(safeArea, "Class", "Weapon", new Vector2(115f, 90f), new Vector2(-40f, -280f), callbacks.ToggleWeapons);
             BuildTextButton(safeArea, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -170f), () => callbacks.Zoom?.Invoke(1));
             BuildTextButton(safeArea, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -390f), callbacks.ToggleSession);
             BuildTextButton(safeArea, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.ToggleSkills);

@@ -20,7 +20,6 @@ namespace Game.Client
         const float MaxFrameSeconds = 0.1f;
         const float CameraSmoothing = 8f;
 
-        static readonly string[] StarterClasses = { "sword_and_shield", "healing_mace", "staff" };
         static readonly Vector3 CameraOffset = new Vector3(0f, 26f, -12f);
 
         public ArenaAssets assets;
@@ -44,6 +43,7 @@ namespace Game.Client
         readonly FightStats fightStats = new FightStats();
         Registry<SkillTreeDef> skillTrees;
         SkillTreePanel skillPanel;
+        WeaponPanel weaponPanel;
         string skillMessage = string.Empty;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
@@ -74,7 +74,7 @@ namespace Game.Client
             var className = HudSettings.ClassName;
             playerClass = classDefs.Get(className);
             skillTrees = SkillTreeCatalog.Load(classDefs, abilityDefs);
-            mastery = new MasteryProgress(ProfileStore.ForDevice(), MasteryCatalog.Load());
+            mastery = new MasteryProgress(ProfileStore.ForDevice(), MasteryCatalog.Load(), LootCatalog.LoadBossDrop(classDefs));
             mastery.Equip(className);
             loadout = Loadout(className);
             views = new EntityViews(transform, assets);
@@ -207,7 +207,7 @@ namespace Game.Client
         void StartWorld(string className)
         {
             session = new LocalSession(new ServerConfig(), classDefs, abilityDefs, seed: 1);
-            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)), loadout);
+            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)), loadout, mastery.WeaponPower);
             session.StartDungeon(dungeonDefs.Get(DungeonId));
         }
 
@@ -240,7 +240,7 @@ namespace Game.Client
 
             try
             {
-                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName(), loadout);
+                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName(), loadout, mastery.WeaponPower);
                 return true;
             }
             catch (System.Net.Sockets.SocketException exception)
@@ -283,7 +283,7 @@ namespace Game.Client
                 SwapSides = RequestSwapSides,
                 Zoom = ChangeZoom,
                 CycleSkin = CycleSkin,
-                CycleClass = CycleClass,
+                ToggleWeapons = ToggleWeapons,
                 ToggleSkills = ToggleSkills,
                 ToggleSession = ToggleMenu,
                 Restart = () => LocalClient?.Restart(),
@@ -295,6 +295,7 @@ namespace Game.Client
                 () => SwitchMode(SessionMode.Host, null),
                 address => SwitchMode(SessionMode.Join, address),
                 ToggleMenu);
+            weaponPanel = new WeaponPanel((RectTransform)Hud.Root.transform, PickWeapon, RefreshWeapons, ToggleWeapons);
             skillPanel = new SkillTreePanel((RectTransform)Hud.Root.transform, ChooseSkillNode, ResetSkills, ToggleSkills);
             WireButtons();
         }
@@ -307,6 +308,7 @@ namespace Game.Client
             if (open)
             {
                 menu.SetOpen(false);
+                weaponPanel.SetOpen(false);
                 RefreshSkills();
             }
         }
@@ -349,6 +351,7 @@ namespace Game.Client
             if (open)
             {
                 skillPanel.SetOpen(false);
+                weaponPanel.SetOpen(false);
             }
 
             menu.SetOpen(open);
@@ -795,10 +798,31 @@ namespace Game.Client
             Reload();
         }
 
-        void CycleClass()
+        void ToggleWeapons()
         {
-            var index = (System.Array.IndexOf(StarterClasses, HudSettings.ClassName) + 1) % StarterClasses.Length;
-            HudSettings.ClassName = StarterClasses[index];
+            var open = !weaponPanel.IsOpen;
+            weaponPanel.SetOpen(open);
+            if (open)
+            {
+                skillPanel.SetOpen(false);
+                menu.SetOpen(false);
+                RefreshWeapons();
+            }
+        }
+
+        void RefreshWeapons()
+        {
+            weaponPanel.Show(mastery.Profile, mastery.Rules);
+        }
+
+        // Carrying another weapon restarts the session: the kit, skills and power are sent when it begins (hub-only later).
+        void PickWeapon(OwnedWeapon weapon)
+        {
+            if (mastery.EquipWeapon(weapon.Uid))
+            {
+                HudSettings.ClassName = weapon.Type;
+            }
+
             Reload();
         }
 
