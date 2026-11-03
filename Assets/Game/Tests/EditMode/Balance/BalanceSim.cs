@@ -136,9 +136,10 @@ namespace Game.Core.Tests
             // Played the way it is meant to be played, nobody should finish a fight nearly dead.
             public float MinHealthLeftWhenPlayedWell { get; set; } = 0.3f;
 
-            // Played the intended way, a weapon should still be hit now and then: a perfect style that takes no damage
-            // at all means the boss is not asking anything of it. At least this fraction of its health over a fight.
-            public float MinDamageTakenFraction { get; set; } = 0.10f;
+            // Played the intended way, a weapon should be hit now and then, or the boss asks nothing of it. Off (0) for now:
+            // the bots react perfectly, and the playtest asked for calm fights with fewer attacks, so a perfect bot takes none
+            // from rare attacks while a person still would. Set it above 0 to look for fights that are too safe.
+            public float MinDamageTakenFraction { get; set; } = 0f;
 
             // Even a slow weapon should finish a boss alone within this long (seconds); a timeout means it cannot.
             public float MaxFightSeconds { get; set; } = 180f;

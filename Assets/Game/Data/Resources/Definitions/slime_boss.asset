@@ -40,7 +40,7 @@ MonoBehaviour:
     spawnSkin: 
     mechanics:
     - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
-      intervalSeconds: 10
+      intervalSeconds: 14
       firstDelaySeconds: 6
       target: 1
       count: 1
@@ -55,7 +55,7 @@ MonoBehaviour:
     spawnSkin: slime_green
     mechanics:
     - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
-      intervalSeconds: 10
+      intervalSeconds: 12
       firstDelaySeconds: 3
       target: 1
       count: 1
@@ -70,12 +70,12 @@ MonoBehaviour:
     spawnSkin: slime_green
     mechanics:
     - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
-      intervalSeconds: 8
+      intervalSeconds: 10
       firstDelaySeconds: 2
       target: 1
       count: 1
     - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
-      intervalSeconds: 12
+      intervalSeconds: 16
       firstDelaySeconds: 4
       target: 0
       count: 1

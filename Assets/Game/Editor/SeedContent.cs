@@ -75,7 +75,7 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("sword_and_shield", true, 520f, 4.5f, 1f, swordSlash, shieldBash);
+            Class("sword_and_shield", true, 540f, 4.5f, 1f, swordSlash, shieldBash);
             Class("healing_mace", true, 90f, 6f, 1f, holyBolt, radiantPulse);
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
@@ -161,29 +161,29 @@ namespace Game.Editor
                 c.phases[0].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 10f, firstDelaySeconds = 6f, target = MechanicTarget.Farthest, count = 1 } };
             });
             // Pacing: ground circles on the early bosses are orange (the weapon's own defence answers them), and red attacks are rare.
-            var slimeSpit = Ability("slime_spit", cooldown: 0.5f, range: 30f, radius: 4.6f, damage: 12f);
-            Tune(slimeSpit, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1f; a.avoidable = true; a.atTarget = true; });
+            var slimeSpit = Ability("slime_spit", cooldown: 0.5f, range: 30f, radius: 4.6f, damage: 18f);
+            Tune(slimeSpit, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = true; a.atTarget = true; });
             Tune(kingSmash, a => a.cooldown < 10f, a => a.cooldown = 14f);
             Tune("mushroom_warden", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
             {
                 c.skills = new[] { c.skills[0], slimeSpit };
-                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 3.5f, firstDelaySeconds = 4f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 8f, firstDelaySeconds = 4f, target = MechanicTarget.Farthest, count = 1 } };
             });
             Tune("brood_mother", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
             {
                 c.skills = new[] { c.skills[0], slimeBomb, slimeSpit };
-                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 7f, firstDelaySeconds = 5f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 10f, firstDelaySeconds = 5f, target = MechanicTarget.Farthest, count = 1 } };
                 c.phases[1].mechanics[0].intervalSeconds = 18f;
             });
             Tune("slime_boss", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
             {
                 c.skills = new[] { c.skills[0], c.skills[1], slimeSpit };
-                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 10f, firstDelaySeconds = 6f, target = MechanicTarget.Farthest, count = 1 } };
-                c.phases[1].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 10f, firstDelaySeconds = 3f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 14f, firstDelaySeconds = 6f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[1].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 12f, firstDelaySeconds = 3f, target = MechanicTarget.Farthest, count = 1 } };
                 c.phases[2].mechanics = new[]
                 {
-                    new MechanicData { ability = slimeSpit, intervalSeconds = 8f, firstDelaySeconds = 2f, target = MechanicTarget.Farthest, count = 1 },
-                    new MechanicData { ability = slimeSpit, intervalSeconds = 12f, firstDelaySeconds = 4f, target = MechanicTarget.Random, count = 1 },
+                    new MechanicData { ability = slimeSpit, intervalSeconds = 10f, firstDelaySeconds = 2f, target = MechanicTarget.Farthest, count = 1 },
+                    new MechanicData { ability = slimeSpit, intervalSeconds = 16f, firstDelaySeconds = 4f, target = MechanicTarget.Random, count = 1 },
                 };
             });
             Tune("mushroom_warden", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1f);

@@ -18,8 +18,8 @@ MonoBehaviour:
   cooldown: 0.5
   range: 30
   radius: 4.6
-  damage: 12
-  windup: 1.0
+  damage: 18
+  windup: 1.2
   resourceCost: 0
   duration: 0
   dashDistance: 0

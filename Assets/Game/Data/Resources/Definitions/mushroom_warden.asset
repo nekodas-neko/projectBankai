@@ -39,7 +39,7 @@ MonoBehaviour:
     spawnSkin: 
     mechanics:
     - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
-      intervalSeconds: 3.5
+      intervalSeconds: 8
       firstDelaySeconds: 4
       target: 1
       count: 1
