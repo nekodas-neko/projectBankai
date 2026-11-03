@@ -463,7 +463,9 @@ namespace Game.Client
             UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
-            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null);
+            var quests = QuestLog.Build(dungeonDefs.Get(DungeonId), LocalClient.Latest);
+            Hud.Quest.Show(quests);
+            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null, QuestLog.Current(quests));
             var phase = LocalClient.Latest?.Dungeon ?? DungeonPhase.None;
             Hud.Banner.SetSummary(phase == DungeonPhase.Victory || phase == DungeonPhase.Defeat ? fightStats.Report(LocalClient.Player) : string.Empty);
 
