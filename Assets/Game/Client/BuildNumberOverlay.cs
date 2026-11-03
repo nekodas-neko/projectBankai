@@ -12,6 +12,10 @@ namespace Game.Client
         Rect appliedSafeArea;
         Vector2Int appliedScreen;
         int shownTuning = -1;
+        string shownExtra = string.Empty;
+
+        // One more line above the build number, for things worth seeing while testing (the weapon mastery). Empty hides it.
+        public static string Extra { get; set; } = string.Empty;
 
         public Text Label { get; private set; }
 
@@ -63,7 +67,7 @@ namespace Game.Client
 
         void Update()
         {
-            if (shownTuning != DefinitionLoader.TuningChanges)
+            if (shownTuning != DefinitionLoader.TuningChanges || shownExtra != Extra)
             {
                 RefreshText();
             }
@@ -77,8 +81,10 @@ namespace Game.Client
         void RefreshText()
         {
             shownTuning = DefinitionLoader.TuningChanges;
+            shownExtra = Extra;
             var status = DefinitionLoader.TuningStatus;
-            Label.text = status.Length > 0 ? BuildInfo.Version + "\n" + status : BuildInfo.Version;
+            var text = status.Length > 0 ? BuildInfo.Version + "\n" + status : BuildInfo.Version;
+            Label.text = shownExtra.Length > 0 ? shownExtra + "\n" + text : text;
         }
 
         void ApplySafeArea()

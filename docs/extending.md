@@ -127,7 +127,9 @@ The character's own progress lives in a `PlayerProfile` (`Game.Core`): the weapo
 
 How mastery is earned is data: the `mastery` asset (`MasteryAsset`, in `Assets/Game/Data/Resources/Definitions`) lists the XP each of the 20 levels costs, the points a level gives (1) and what a kill (10) and a boss kill (150) are worth. `WeaponMastery.AddXp` fills the bar, `TryChoose` spends points on a tree node (the skill trees are not built yet, so a node is just an id), and `Reset` gives every point back for free.
 
-Not wired yet: nothing awards XP or reads the equipped weapon at join, and there is no screen for it. Those are the next steps of issue 50.
+Kills train the weapon in hand. `KillTracker` watches the snapshots: an enemy that shows up with no health is a kill (a boss when it carries the boss flag), counted once, and enemies already down when the client joins are not. A fallen enemy stays in the snapshot, so a lost packet loses nothing. `MasteryProgress` turns kills into XP for the equipped weapon type, saves the profile at once on a level-up or boss kill and otherwise every 20 seconds, and when the game is paused or closed. The test overlay shows the weapon's mastery level and bar above the build number. Every player's own client counts its own kills, so each profile fills in co-op.
+
+Not built yet: the equipped weapon still comes from the Weapon test button (the profile follows it), the skill-tree screen, and loot.
 
 ## Aggro rings
 

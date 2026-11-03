@@ -40,6 +40,7 @@ namespace Game.Client
         AggroRings aggroRings;
         MapView mapView;
         ClassDef playerClass;
+        MasteryProgress mastery;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
         int[] loadout = new int[0];
@@ -69,6 +70,8 @@ namespace Game.Client
             var className = HudSettings.ClassName;
             playerClass = classDefs.Get(className);
             loadout = Loadout(className);
+            mastery = new MasteryProgress(ProfileStore.ForDevice(), MasteryCatalog.Load());
+            mastery.Equip(className);
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
@@ -93,8 +96,18 @@ namespace Game.Client
             }
         }
 
+        void OnApplicationPause(bool paused)
+        {
+            if (paused)
+            {
+                mastery?.Flush();
+            }
+        }
+
         void OnDestroy()
         {
+            mastery?.Flush();
+            BuildNumberOverlay.Extra = string.Empty;
             host?.Dispose();
             transport?.Dispose();
             scanner?.Dispose();
@@ -113,6 +126,9 @@ namespace Game.Client
             }
 
             var dt = Mathf.Min(Time.deltaTime, MaxFrameSeconds);
+            mastery.Observe(LocalClient?.Latest);
+            mastery.Tick(dt);
+            BuildNumberOverlay.Extra = mastery.Summary();
             var input = Hud.MoveStick.Value;
             if (input == Vector2.zero)
             {
