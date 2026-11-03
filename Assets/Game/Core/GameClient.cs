@@ -40,6 +40,8 @@ namespace Game.Core
 
         public PlayerId Player => player;
 
+        public WorldMap Map => config.Simulation.Map;
+
         public Snapshot Latest { get; private set; }
 
         public EntityId LocalEntity { get; private set; }
@@ -208,6 +210,11 @@ namespace Game.Core
 
             Latest = snapshot;
             secondsSinceSnapshot = 0.0;
+            var map = config.Simulation.Map;
+            if (map != null && !map.Authoritative && snapshot.Dungeon != DungeonPhase.None && snapshot.Room > 0)
+            {
+                map.Progress = snapshot.Room - 1;
+            }
             events.AddRange(snapshot.Events);
             uses.AddRange(snapshot.Uses);
 

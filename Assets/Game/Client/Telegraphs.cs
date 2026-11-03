@@ -45,7 +45,7 @@ namespace Game.Client
             return new Color(tint.r, tint.g, tint.b, source.a);
         }
 
-        static Material Tinted(Material source, Color tint)
+        public static Material Tinted(Material source, Color tint)
         {
             if (source == null)
             {

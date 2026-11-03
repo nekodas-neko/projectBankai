@@ -111,7 +111,7 @@ namespace Game.Client
         const float StickRadius = 130f;
         const float KnobSize = 120f;
 
-        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton ultimate, ActionButton defense, ResourceBar resource, DungeonBanner banner, BossFrame bossFrame, bool moveOnRight)
+        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton ultimate, ActionButton defense, ResourceBar resource, DungeonBanner banner, BossFrame bossFrame, MiniMap miniMap, bool moveOnRight)
         {
             Root = root;
             SafeArea = safeArea;
@@ -123,6 +123,7 @@ namespace Game.Client
             Resource = resource;
             Banner = banner;
             BossFrame = bossFrame;
+            MiniMap = miniMap;
             MoveOnRight = moveOnRight;
         }
 
@@ -145,6 +146,8 @@ namespace Game.Client
         public DungeonBanner Banner { get; }
 
         public BossFrame BossFrame { get; }
+
+        public MiniMap MiniMap { get; }
 
         public bool MoveOnRight { get; }
 
@@ -182,7 +185,8 @@ namespace Game.Client
             var resource = ResourceBar.Build(safeArea);
             var banner = DungeonBanner.Build(safeArea, callbacks.Restart);
             var bossFrame = BossFrame.Build(safeArea);
-            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, moveOnRight);
+            var miniMap = MiniMap.Build(safeArea);
+            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, miniMap, moveOnRight);
         }
 
         public static RectTransform NewRect(string name, Transform parent)

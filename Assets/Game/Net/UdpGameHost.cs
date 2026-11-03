@@ -263,6 +263,8 @@ namespace Game.Net
 
             public readonly Queue<byte[]> Inbox = new Queue<byte[]>();
 
+            public int MaxPayload => Protocol.MaxDatagram - Protocol.HeaderSize;
+
             public void Send(byte[] payload)
             {
                 host.SendData(endpoint, payload);

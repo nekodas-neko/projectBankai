@@ -166,6 +166,8 @@ namespace Game.Core
                     errors.Add($"Dungeon '{dungeon.Id}': clear delay must not be negative");
                 }
 
+                ValidateMap(dungeon, errors);
+
                 for (var i = 0; i < dungeon.Rooms.Length; i++)
                 {
                     var room = dungeon.Rooms[i];
@@ -194,6 +196,75 @@ namespace Game.Core
             }
 
             return errors;
+        }
+
+        static void ValidateMap(DungeonDef dungeon, List<string> errors)
+        {
+            if (dungeon.Zones.Length == 0)
+            {
+                if (dungeon.Gates.Length > 0)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': gates need zones");
+                }
+
+                return;
+            }
+
+            const float MinSize = 4f;
+            foreach (var zone in dungeon.Zones)
+            {
+                if (zone.MaxX - zone.MinX < MinSize || zone.MaxY - zone.MinY < MinSize)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': zone '{zone.Name}' must be at least {MinSize} units wide and tall");
+                }
+            }
+
+            foreach (var gate in dungeon.Gates)
+            {
+                if (gate.MaxX <= gate.MinX || gate.MaxY <= gate.MinY)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': gate '{gate.Name}' has no size");
+                    continue;
+                }
+
+                var touching = 0;
+                foreach (var zone in dungeon.Zones)
+                {
+                    touching += gate.MinX < zone.MaxX && gate.MaxX > zone.MinX && gate.MinY < zone.MaxY && gate.MaxY > zone.MinY ? 1 : 0;
+                }
+
+                if (touching < 2)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': gate '{gate.Name}' must overlap two zones to connect them");
+                }
+
+                if (gate.OpenAfter < 0 || gate.OpenAfter >= dungeon.Rooms.Length - 1)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': gate '{gate.Name}' opens after a section that does not exist or is the last one");
+                }
+            }
+
+            var zonesOnly = new WorldMap(dungeon.Zones, null);
+            for (var i = 0; i < 4; i++)
+            {
+                if (!zonesOnly.Contains(World.SpawnPoint(i)))
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': the players' start positions are outside the zones");
+                    break;
+                }
+            }
+
+            for (var r = 0; r < dungeon.Rooms.Length; r++)
+            {
+                var room = dungeon.Rooms[r];
+                foreach (var spawn in room.Spawns)
+                {
+                    if (!zonesOnly.Contains(new Vec2(spawn.X + room.OffsetX, spawn.Y + room.OffsetY)))
+                    {
+                        errors.Add($"Dungeon '{dungeon.Id}': room {r + 1} spawns a '{spawn.Class}' outside the zones");
+                    }
+                }
+            }
         }
 
         static void ValidatePhases(ClassDef def, Registry<ClassDef> classes, Registry<AbilityDef> abilities, List<string> errors)

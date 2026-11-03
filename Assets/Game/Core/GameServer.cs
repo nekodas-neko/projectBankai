@@ -50,6 +50,8 @@ namespace Game.Core
 
         public int Room => dungeon.Room;
 
+        public WorldMap Map => dungeon.Map;
+
         public SimulationSettings Simulation => config.Simulation;
 
         public void StartDungeon(DungeonDef definition)

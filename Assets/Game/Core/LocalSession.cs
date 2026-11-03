@@ -40,6 +40,13 @@ namespace Game.Core
             return client;
         }
 
+        // Starts a dungeon for everyone in the session; its map (if it has one) is shared with the clients so their prediction matches the server's walls.
+        public void StartDungeon(DungeonDef dungeon)
+        {
+            Server.StartDungeon(dungeon);
+            clientConfig.Simulation = Server.Simulation;
+        }
+
         public void SetConditions(NetworkConditions conditions)
         {
             Conditions = conditions;

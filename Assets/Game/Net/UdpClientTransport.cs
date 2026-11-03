@@ -102,6 +102,8 @@ namespace Game.Net
             }
         }
 
+        public int MaxPayload => Protocol.MaxDatagram - Protocol.HeaderSize;
+
         public void Send(byte[] payload)
         {
             if (State != ConnectionState.Connected || payload.Length + Protocol.HeaderSize > Protocol.MaxDatagram)

@@ -73,6 +73,8 @@ namespace Game.Core
         public Vec2 Home;
         public int Pack;
         public bool IsBoss;
+        public bool Summoned;
+        public int Section;
         public EntityId Target;
         public bool Leashing;
         public int Phase = -1;

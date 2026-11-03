@@ -15,6 +15,7 @@ MonoBehaviour:
   clearDelaySeconds: 3
   rooms:
   - name: Slime pit
+    offset: {x: 0, y: 0}
     spawns:
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
       position: {x: -8, y: 8}
@@ -47,6 +48,7 @@ MonoBehaviour:
       boss: 1
       pack: 0
   - name: The swarm
+    offset: {x: 0, y: 34}
     spawns:
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
       position: {x: -10, y: 6}
@@ -94,6 +96,7 @@ MonoBehaviour:
       boss: 1
       pack: 0
   - name: King's hall
+    offset: {x: 0, y: 68}
     spawns:
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
       position: {x: -6, y: 9}
@@ -120,3 +123,22 @@ MonoBehaviour:
       skin: boss_greendemon
       boss: 1
       pack: 0
+  zones:
+  - name: Slime pit
+    min: {x: -14, y: -8}
+    max: {x: 14, y: 22}
+  - name: The swarm
+    min: {x: -16, y: 28}
+    max: {x: 16, y: 56}
+  - name: King's hall
+    min: {x: -14, y: 62}
+    max: {x: 14, y: 90}
+  gates:
+  - name: First gate
+    min: {x: -3, y: 21}
+    max: {x: 3, y: 29}
+    openAfter: 0
+  - name: Second gate
+    min: {x: -3, y: 55}
+    max: {x: 3, y: 63}
+    openAfter: 1
