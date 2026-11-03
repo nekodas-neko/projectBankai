@@ -83,6 +83,20 @@ namespace Game.Core.Tests
         }
 
         [Test]
+        public void Join_CarriesTheWeaponPowerAndTheServerClampsIt()
+        {
+            var strong = new UdpClientTransport(endpoint, "fighter", 0, "Tester", null, 1.15f);
+            var cheat = new UdpClientTransport(endpoint, "fighter", 0, "Cheater", null, 40f);
+            disposables.Add(strong);
+            disposables.Add(cheat);
+
+            Pump(() => strong.State == ConnectionState.Connected && cheat.State == ConnectionState.Connected, new GameClient[0], new[] { strong, cheat });
+
+            Assert.AreEqual(1.15f, server.FindPlayerEntity(strong.PlayerId).Stats.Power, 0.001f);
+            Assert.AreEqual(GameServer.MaxWeaponPower, server.FindPlayerEntity(cheat.PlayerId).Stats.Power, 0.001f, "a client cannot claim more than a drop can roll");
+        }
+
+        [Test]
         public void TwoClients_JoinOverRealSocketsAndSeeEachOther()
         {
             var a = Connect(appearance: StableId.From("skin_a"));

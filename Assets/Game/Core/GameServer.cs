@@ -70,7 +70,11 @@ namespace Game.Core
             return connection == null ? null : world.Find(connection.Entity);
         }
 
-        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0, int[] variants = null)
+        // What a weapon's power scale can be, whatever a client sends: a drop rolls inside this range.
+        public const float MinWeaponPower = 0.8f;
+        public const float MaxWeaponPower = 1.3f;
+
+        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0, int[] variants = null, float weaponPower = 1f)
         {
             if (!player.IsValid)
             {
@@ -85,6 +89,9 @@ namespace Game.Core
             var entity = world.Spawn(player, Team.Players, classId, World.SpawnPoint(session.Count), appearance);
             book.ApplyLoadout(entity, variants);
             book.SetUpCharge(entity);
+            var scaled = entity.Stats;
+            scaled.Power *= float.IsNaN(weaponPower) ? 1f : MathF.Max(MinWeaponPower, MathF.Min(MaxWeaponPower, weaponPower));
+            entity.Stats = scaled;
             session.Add(player, transport, entity.Id);
             return entity;
         }

@@ -29,7 +29,7 @@ namespace Game.Net
 
         const byte MagicA = 0xB4;
         const byte MagicB = 0x4B;
-        const byte Version = 9;
+        const byte Version = 10;
 
         public static bool TryReadHeader(byte[] buffer, int length, out byte type)
         {
@@ -41,6 +41,12 @@ namespace Game.Net
 
             type = buffer[3];
             return true;
+        }
+
+        // A weapon's power scale travels as thousandths in a ushort (1000 is 1.0); the server clamps it to what a drop can roll.
+        public static ushort PowerToWire(float power)
+        {
+            return (ushort)System.Math.Max(0f, System.Math.Min(ushort.MaxValue, System.Math.Round(power * 1000f)));
         }
 
         public static BinaryWriter Begin(byte type)
