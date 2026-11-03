@@ -36,6 +36,11 @@ MonoBehaviour:
   chargeFromTaken: 0
   chargeFromBlocked: 0
   chargeFromHealing: 0
+  interruptible: 0
+  interrupt: 0
+  summonClass: {fileID: 0}
+  summonSkin: 
+  summonCount: 0
   variants: []
   castEffect: {fileID: 1846483518111950945, guid: f94168cfe5341d944957f40a4bd2dce3, type: 3}
   hitEffect: {fileID: 4465893761992978395, guid: 33b9f5df61c2a214f9e0ac5373b2f08e, type: 3}

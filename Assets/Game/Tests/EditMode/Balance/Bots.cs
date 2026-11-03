@@ -31,6 +31,9 @@ namespace Game.Core.Tests
         // How big the thing being fought is, so a melee bot knows how close it has to stand.
         public float EnemyRadius { get; set; } = 1f;
 
+        // Whether the boss has casts worth saving an interrupt for. A player learns this from the first fight.
+        public bool EnemyCasts { get; set; }
+
         public bool TryMe(out EntityState me)
         {
             return Client.TryGetLocalState(out me) && me.Health > 0f;
@@ -111,9 +114,29 @@ namespace Game.Core.Tests
                 var ability = view.Ability(kit.Skills[0]);
                 if (ability != null && (ability.ResourceCost <= 0f || me.Resource >= ability.ResourceCost))
                 {
-                    view.Client.Skill(1, Vec2.Zero);
+                    // An ability that can interrupt is kept for a boss cast, the way a person would hold it.
+                    if (ability.Interrupt <= 0f || !view.EnemyCasts || CastInProgress(view))
+                    {
+                        view.Client.Skill(1, Vec2.Zero);
+                    }
                 }
             }
+        }
+
+        // A cast the bot has noticed and can still stop in time.
+        protected static bool CastInProgress(BotView view)
+        {
+            var windups = view.Client.Latest?.Windups;
+            for (var i = 0; windups != null && i < windups.Count; i++)
+            {
+                var ability = view.Ability(windups[i].Ability);
+                if (ability != null && ability.Interruptible && Noticed(view, windups[i]) && windups[i].Remaining > 0.25f)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected static float AttackReach(BotView view)

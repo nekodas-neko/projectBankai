@@ -20,6 +20,7 @@ MonoBehaviour:
   skills:
   - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
   - {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+  - {fileID: 11400000, guid: dfbc752fffb829f4c9b5d05d5609d43b, type: 2}
   defense: {fileID: 0}
   aggroRange: 10
   threatMultiplier: 1
@@ -42,6 +43,11 @@ MonoBehaviour:
       intervalSeconds: 8
       firstDelaySeconds: 4
       target: 1
+      count: 1
+    - ability: {fileID: 11400000, guid: dfbc752fffb829f4c9b5d05d5609d43b, type: 2}
+      intervalSeconds: 18
+      firstDelaySeconds: 10
+      target: 0
       count: 1
   hasResource: 0
   resourceId: 

@@ -124,6 +124,30 @@ namespace Game.Client.Tests
             }
         }
 
+        [Test, Category("Balance")]
+        public void TheSwordAndTheStaffInterruptBossCastsAndTheMaceCannot()
+        {
+            var sword = Play("sword_and_shield", "mushroom_warden", new TankBlocker());
+            var staff = Play("staff", "mushroom_warden", new Kiter());
+            var mace = Play("healing_mace", "mushroom_warden", new Kiter());
+
+            Assert.Greater(sword.Interrupts, 0, BalanceSim.Table(new[] { sword }));
+            Assert.Greater(staff.Interrupts, 0, BalanceSim.Table(new[] { staff }));
+            Assert.AreEqual(0, mace.Interrupts, BalanceSim.Table(new[] { mace }));
+        }
+
+        [Test, Category("Balance")]
+        public void TheKingChargesACleaveThatTheSwordAndTheStaffCanBreak()
+        {
+            var sword = Play("sword_and_shield", "slime_boss", new TankBlocker());
+            var staff = Play("staff", "slime_boss", new Kiter());
+            var mace = Play("healing_mace", "slime_boss", new Kiter());
+
+            Assert.Greater(sword.Interrupts, 0, BalanceSim.Table(new[] { sword }));
+            Assert.Greater(staff.Interrupts, 0, BalanceSim.Table(new[] { staff }));
+            Assert.AreEqual(0, mace.Interrupts, BalanceSim.Table(new[] { mace }));
+        }
+
         // The principles the numbers are tuned to keep. These are not about exact values, so tuning does not break them.
         [Test, Category("Balance")]
         public void StandingStillIsPunishedForRangedWeaponsAndBlockingHelpsTheTank()

@@ -190,6 +190,36 @@ namespace Game.Editor
             Tune("mushroom_warden", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1f);
             Tune("brood_mother", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1.3f);
             Tune("slime_boss", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1.5f);
+            // Casts: bosses stand still while they wind these up, and shield bash and fireball can interrupt them.
+            var slimeClass = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
+            var devour = Ability("devour", cooldown: 0.5f, range: 6f, radius: 0.01f, damage: 0f);
+            Tune(devour, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 2.2f; a.heal = 140f; a.interruptible = true; });
+            var broodCall = Ability("brood_call", cooldown: 0.5f, range: 6f, radius: 0.01f, damage: 0f);
+            Tune(broodCall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 2.5f; a.interruptible = true; a.summonClass = slimeClass; a.summonSkin = "slime_green"; a.summonCount = 3; });
+            Tune(shieldBash, a => a.interrupt <= 0f, a => a.interrupt = 2f);
+            Tune(fireball, a => a.interrupt <= 0f, a => a.interrupt = 1.5f);
+            Tune("mushroom_warden", c => c.skills.Length < 3 && !c.skills.Contains(devour), c =>
+            {
+                c.skills = c.skills.Concat(new[] { devour }).ToArray();
+                c.phases[0].mechanics = c.phases[0].mechanics.Concat(new[] { new MechanicData { ability = devour, intervalSeconds = 18f, firstDelaySeconds = 10f, target = MechanicTarget.Random, count = 1 } }).ToArray();
+            });
+            Tune("brood_mother", c => c.skills.Contains(slimeSpit) && !c.skills.Contains(broodCall), c =>
+            {
+                c.skills = new[] { c.skills[0], slimeBomb, broodCall };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 12f, target = MechanicTarget.Random, count = 1 } };
+                c.phases[1].mechanics = new[] { c.phases[1].mechanics[0], new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 14f, target = MechanicTarget.Random, count = 1 } };
+            });
+            // The king's own cast: a long charge-up cone. Catch it with a shield bash or a fireball and he is staggered; otherwise block or leave the cone.
+            var kingCleave = Ability("king_cleave", cooldown: 15f, range: 9f, radius: 0f, damage: 24f);
+            Tune(kingCleave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 2f; a.interruptible = true; });
+            Tune("slime_boss", c => c.skills.Contains(kingWave) && !c.skills.Contains(kingCleave), c =>
+            {
+                c.skills = c.skills.Select(skill => skill == kingWave ? kingCleave : skill).ToArray();
+                foreach (var phase in c.phases)
+                {
+                    phase.attacks = phase.attacks.Select(attack => attack == kingWave ? kingCleave : attack).ToArray();
+                }
+            });
             Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("staff", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
@@ -269,8 +299,11 @@ namespace Game.Editor
             Link("king_slam", slime, hitSlime);
             Link("king_smash", slime, hitSlime);
             Link("king_wave", slime, hitSlime);
+            Link("king_cleave", slime, hitSlime);
             Link("slime_bomb", slime, hitSlime);
             Link("slime_spit", slime, hitSlime);
+            Link("devour", holy, hitHoly);
+            Link("brood_call", slime, hitSlime);
             Link("bulwark_crash", shield, hitSpark);
             Link("meteor_fall", fire, hitFire);
             Link("radiant_burst", pulse, hitHoly);
@@ -300,7 +333,7 @@ namespace Game.Editor
         {
             var path = $"{DefinitionsRoot}/slime_cave.asset";
             var asset = AssetDatabase.LoadAssetAtPath<DungeonAsset>(path);
-            if (asset != null && asset.zones.Length > 0 && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
+            if (asset != null && asset.zones.Length >= 14 && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
             {
                 return;
             }
@@ -317,62 +350,84 @@ namespace Game.Editor
 
             asset.clearDelaySeconds = 3f;
             asset.healthPerExtraPlayer = 0.8f;
+            // A winding cave: north out of the entry hall to the warden, east and north through the brood tunnels, then west and north
+            // to the king. Side caves hold optional packs; every section ends at its boss and the next gate.
             asset.rooms = new[]
             {
                 new RoomData
                 {
-                    name = "Slime pit",
+                    name = "Mushroom grove",
                     spawns = new[]
                     {
-                        Spawn(slime, -8f, 8f, "slime_green", pack: 1),
-                        Spawn(slime, -6f, 10f, "slime_green", pack: 1),
-                        Spawn(slime, -10f, 10f, "slime_green", pack: 1),
-                        Spawn(slime, 8f, 8f, "slime_green", pack: 2),
-                        Spawn(slime, 6f, 11f, "slime_green", pack: 2),
-                        Spawn(warden, 0f, 17f, "monster_mushroom", boss: true),
+                        Spawn(slime, -21f, 5f, "slime_green", pack: 1),
+                        Spawn(slime, -18f, 8f, "slime_green", pack: 1),
+                        Spawn(slime, -22f, 10f, "slime_green", pack: 1),
+                        Spawn(slime, 19f, 5f, "slime_green", pack: 2),
+                        Spawn(slime, 22f, 9f, "slime_green", pack: 2),
+                        Spawn(slime, 17f, 10f, "slime_green", pack: 2),
+                        Spawn(slime, -3f, 19f, "slime_green", pack: 3),
+                        Spawn(slime, 3f, 21f, "slime_green", pack: 3),
+                        Spawn(warden, 0f, 31f, "monster_mushroom", boss: true),
                     },
                 },
                 new RoomData
                 {
-                    name = "The swarm",
-                    offset = new Vector2(0f, 34f),
+                    name = "Brood tunnels",
                     spawns = new[]
                     {
-                        Spawn(slime, -10f, 6f, "slime_green", pack: 1),
-                        Spawn(slime, -8f, 8f, "slime_green", pack: 1),
-                        Spawn(slime, -12f, 8f, "slime_green", pack: 1),
-                        Spawn(slime, 10f, 6f, "slime_green", pack: 2),
-                        Spawn(slime, 8f, 8f, "slime_green", pack: 2),
-                        Spawn(slime, 12f, 8f, "slime_green", pack: 2),
-                        Spawn(slime, 0f, 11f, "slime_green", pack: 3),
-                        Spawn(slime, 2f, 13f, "slime_green", pack: 3),
-                        Spawn(mother, 0f, 17f, "monster_cthulhu", boss: true),
+                        Spawn(slime, 22f, 27f, "slime_green", pack: 1),
+                        Spawn(slime, 25f, 30f, "slime_green", pack: 1),
+                        Spawn(slime, 23f, 31f, "slime_green", pack: 1),
+                        Spawn(slime, 37f, 36f, "slime_green", pack: 2),
+                        Spawn(slime, 39f, 40f, "slime_green", pack: 2),
+                        Spawn(slime, 36f, 43f, "slime_green", pack: 2),
+                        Spawn(slime, 24f, 44f, "slime_green", pack: 3),
+                        Spawn(slime, 27f, 46f, "slime_green", pack: 3),
+                        Spawn(slime, 23f, 47f, "slime_green", pack: 3),
+                        Spawn(slime, 18f, 66f, "slime_green", pack: 4),
+                        Spawn(slime, 30f, 66f, "slime_green", pack: 4),
+                        Spawn(mother, 25f, 73f, "monster_cthulhu", boss: true),
                     },
                 },
                 new RoomData
                 {
-                    name = "King's hall",
-                    offset = new Vector2(0f, 68f),
+                    name = "King's road",
                     spawns = new[]
                     {
-                        Spawn(slime, -6f, 9f, "slime_green", pack: 1),
-                        Spawn(slime, -8f, 11f, "slime_green", pack: 1),
-                        Spawn(slime, 6f, 9f, "slime_green", pack: 2),
-                        Spawn(slime, 8f, 11f, "slime_green", pack: 2),
-                        Spawn(king, 0f, 16f, "boss_greendemon", boss: true),
+                        Spawn(slime, -4f, 66f, "slime_green", pack: 1),
+                        Spawn(slime, -9f, 68f, "slime_green", pack: 1),
+                        Spawn(slime, -13f, 65f, "slime_green", pack: 1),
+                        Spawn(slime, -19f, 79f, "slime_green", pack: 2),
+                        Spawn(slime, -17f, 83f, "slime_green", pack: 2),
+                        Spawn(slime, -21f, 88f, "slime_green", pack: 3),
+                        Spawn(slime, -17f, 90f, "slime_green", pack: 3),
+                        Spawn(slime, -24f, 104f, "slime_green", pack: 4),
+                        Spawn(slime, -10f, 104f, "slime_green", pack: 4),
+                        Spawn(king, -18f, 114f, "boss_greendemon", boss: true),
                     },
                 },
             };
             asset.zones = new[]
             {
-                new ZoneData { name = "Slime pit", min = new Vector2(-14f, -8f), max = new Vector2(14f, 22f) },
-                new ZoneData { name = "The swarm", min = new Vector2(-16f, 28f), max = new Vector2(16f, 56f) },
-                new ZoneData { name = "King's hall", min = new Vector2(-14f, 62f), max = new Vector2(14f, 90f) },
+                new ZoneData { name = "Entry hall", min = new Vector2(-8f, -8f), max = new Vector2(8f, 10f) },
+                new ZoneData { name = "West passage", min = new Vector2(-12f, 3f), max = new Vector2(-6f, 7f) },
+                new ZoneData { name = "West cave", min = new Vector2(-28f, -2f), max = new Vector2(-10f, 12f) },
+                new ZoneData { name = "East passage", min = new Vector2(6f, 3f), max = new Vector2(12f, 7f) },
+                new ZoneData { name = "East cave", min = new Vector2(10f, -2f), max = new Vector2(28f, 12f) },
+                new ZoneData { name = "Grove path", min = new Vector2(-3f, 8f), max = new Vector2(3f, 16f) },
+                new ZoneData { name = "Warden's chamber", min = new Vector2(-12f, 14f), max = new Vector2(12f, 38f) },
+                new ZoneData { name = "Brood tunnel east", min = new Vector2(14f, 24f), max = new Vector2(40f, 34f) },
+                new ZoneData { name = "Brood tunnel north", min = new Vector2(32f, 30f), max = new Vector2(42f, 60f) },
+                new ZoneData { name = "Side nook", min = new Vector2(20f, 40f), max = new Vector2(33f, 50f) },
+                new ZoneData { name = "Brood chamber", min = new Vector2(8f, 56f), max = new Vector2(42f, 80f) },
+                new ZoneData { name = "Cold passage", min = new Vector2(-24f, 60f), max = new Vector2(6f, 72f) },
+                new ZoneData { name = "Hall approach", min = new Vector2(-24f, 70f), max = new Vector2(-14f, 94f) },
+                new ZoneData { name = "King's hall", min = new Vector2(-32f, 92f), max = new Vector2(-4f, 124f) },
             };
             asset.gates = new[]
             {
-                new GateData { name = "First gate", min = new Vector2(-3f, 21f), max = new Vector2(3f, 29f), openAfter = 0 },
-                new GateData { name = "Second gate", min = new Vector2(-3f, 55f), max = new Vector2(3f, 63f), openAfter = 1 },
+                new GateData { name = "First gate", min = new Vector2(10f, 26f), max = new Vector2(18f, 32f), openAfter = 0 },
+                new GateData { name = "Second gate", min = new Vector2(2f, 62f), max = new Vector2(10f, 70f), openAfter = 1 },
             };
             if (created)
             {

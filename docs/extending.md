@@ -76,6 +76,22 @@ The everyday ground circle is the orange `slime_spit` (4.6-unit circle, 1.2 s wa
 
 A class has a **Recovery Seconds** field (0 by default). After one of its attacks starts, the enemy stays planted for the attack's windup plus this many seconds before it moves or attacks again. Timed mechanics (ground circles) keep running while it recovers. Bosses use it so they do not chase and swing without a break: there is a window to stand and hit, which is how an MMO boss feels. The tuning file can change it, for example `class.slime_boss.recoverySeconds = 1.5`.
 
+## Casts, interrupts and adds
+
+Three fields on an ability make a classic boss moment:
+
+- **Interruptible** marks the ability as a *cast*. While it winds up the caster stands still (so it cannot be a ground circle) and the client can show a cast bar. Give it a windup of a second or more, a small **Radius** (0.01) when it should not hurt anyone, and put it on the boss as a phase **mechanic** (a timer), which fires it whether or not anyone is in reach. A heal cast is just **Heal** on that ability; the healing area includes the boss itself.
+- **Interrupt** (seconds) goes on the *player's* ability. When it hits an enemy that is winding up an interruptible cast, the cast is cancelled (it does nothing) and the enemy is **Staggered** for that long: it cannot move, attack, cast or fire mechanics. The hit sends an `Interrupted` event. An interrupt on a hit that is not catching a cast does nothing extra.
+- **Summon Class / Summon Count / Summon Skin** make the ability add that many of a class around the caster when it resolves. The adds are fixed on the *farthest* player (the ranged or healing one) for 12 seconds, which is what makes the tank use a taunt. A taunt sets the forced target and pulls them. Adds count as summoned: they are removed when the boss dies, and they get the party-size health scale like everything else.
+
+So an interruptible summon is "interrupt the cast or deal with the adds", and an interruptible heal is "interrupt it or the fight gets longer". The validator checks a cast has a windup of at least half a second and is not a ground circle, that an interrupt is 0 to 10 seconds, and that a summon names a real class.
+
+### The shipped casts
+
+The mushroom warden casts **Devour** (2.2 s, every 18 s from 10 s in): if nobody stops it, it heals 140 health. The brood mother casts **Brood call** (2.5 s, every 22 s): three slimes appear and go for the farthest player. Both show a blue cast bar under the boss frame counting down; a stagger shows as "Boss - staggered!". **Shield bash** (2 s stagger) and **fireball** (1.5 s) are the interrupts; the healing mace has none, so a mace player lets the tank or the mage stop casts, and a taunt pulls the adds. The balance sim's bots save an interrupt skill for a cast when the boss has any, and its table has an "ints" column (casts stopped) so you can see who is stopping what.
+
+The slime king has no free skill slot (a class has three), so its cast is a swap: its cone attack is **King cleave**, a 2 s charge-up (24 damage, every 15 s, orange) that can be interrupted. Stopping it staggers the king; otherwise block it or leave the cone. A cast does not have to be harmless, any attack with a windup can be marked interruptible.
+
 ## Red and orange attacks
 
 Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):
@@ -97,11 +113,17 @@ How it plays: every section's enemies are in the map from the start, and the sec
 
 The server and every client use the same walls (`WorldMap`), so movement prediction agrees with the server. A client that does not share the server's map object (a joining phone) builds its own from the dungeon asset and learns which gates are open from the snapshot's section number. The client draws the floors, walls and barriers from the same data (`MapView`), copies the arena's trees and rocks along the walls (`MapScenery`), and shows the mini map (`MiniMap`). A dungeon with no zones still plays as before: a round arena, one room at a time.
 
+**Shaping the map.** Zones are only rectangles, but they can overlap, so a dungeon does not have to be a straight line. A narrow zone that overlaps the end of two bigger ones is a passage; a zone that hangs off the side of a path is a side cave; turning a corner is two zones that overlap at the bend. The seeded cave winds north to the warden, east and north to the brood mother, then west and north to the king, with an optional cave off each side of the first room and a nook in the brood tunnels. Keep side caves from touching the next section's zones (even a 2 x 2 corner overlap is a shortcut around a gate). `CaveLayoutTests` walks the shipped map and fails if a pack cannot be reached or something can be reached around a closed gate, so run it after reshaping a map. Trash in a section is optional: only the boss ends the section.
+
 A map has many more enemies in view than a round room did, so a snapshot may not fit in one network message (about 1,400 bytes). A connection that cannot carry it all gets every player and the nearest other entities, so far-away enemies appear as you approach them.
 
 ## Party size: enemies get tougher with each player
 
 A dungeon has **Health Per Extra Player** (0 means no scaling; the cave uses 0.8). Every enemy's health is multiplied by 1 + that number x (players - 1): a solo player meets the normal health, two players 1.8 times, three players 2.6 times. It follows the party while the dungeon runs: someone joining or leaving changes the maximum, and an enemy that was hurt keeps the same share of its health left; anything spawned later (a boss's minions) is scaled too. The design target is three players, tank, damage and healer, with solo and duo possible for a skilled or well-geared player, so the number is a tuning knob: if three players finish a boss too fast, raise it.
+
+## Aggro rings
+
+An enemy with an **Aggro Range** that has not noticed anyone yet is drawn with a thin yellow ring on the ground at that distance (`AggroRings`): step inside it and the enemy, and its pack, come for you. The ring disappears once the enemy has a target. The server sends the range in the snapshot (`EntityState.AggroRange`), so any class with an aggro range gets a ring without code; rings only draw within 10 units of the ring's edge so a big map stays readable.
 
 ## Worked example: add a dungeon room
 

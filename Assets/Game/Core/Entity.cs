@@ -8,6 +8,7 @@ namespace Game.Core
         public const int Blocking = 2;
         public const int Shield = 3;
         public const int Dashing = 4;
+        public const int Staggered = 5;
     }
 
     public static class EffectFlags
@@ -17,6 +18,7 @@ namespace Game.Core
         public const byte Shielded = 4;
         public const byte Dashing = 8;
         public const byte Boss = 16;
+        public const byte Staggered = 32;
     }
 
     public struct StatusEffect
@@ -74,6 +76,9 @@ namespace Game.Core
         public Vec2 Home;
         public int Pack;
         public bool IsBoss;
+
+        // How close a player has to come before this enemy notices; 0 for players and things that never aggro.
+        public float AggroRange;
         public bool Summoned;
 
         // The party-size multiplier already applied to this enemy's health.
@@ -115,6 +120,7 @@ namespace Game.Core
                 ResourceSpec = def.Resource,
                 ThreatMultiplier = def.ThreatMultiplier,
                 Radius = def.BodyRadius,
+                AggroRange = def.AggroRange,
                 Resource = def.Resource != null ? System.Math.Min(def.Resource.Start, def.Resource.Max) : 0f,
             };
 
@@ -343,6 +349,11 @@ namespace Game.Core
             if (IsBoss)
             {
                 flags |= EffectFlags.Boss;
+            }
+
+            if (HasStatus(StatusType.Staggered))
+            {
+                flags |= EffectFlags.Staggered;
             }
 
             return flags;

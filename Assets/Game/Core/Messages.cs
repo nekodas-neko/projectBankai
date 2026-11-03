@@ -56,6 +56,11 @@ namespace Game.Core
         public EntityId Target;
         public byte Effects;
 
+        // The distance (in quarter units, so up to 63.75) at which this enemy notices a player; 0 for anything that never aggro.
+        public byte AggroQuarters;
+
+        public float AggroRange => AggroQuarters * 0.25f;
+
         public float GetCooldown(int slot)
         {
             switch (slot)
@@ -77,6 +82,7 @@ namespace Game.Core
         Blocked = 2,
         Absorbed = 3,
         Healed = 4,
+        Interrupted = 5,
     }
 
     public struct DamageEvent
