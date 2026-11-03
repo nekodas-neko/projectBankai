@@ -27,6 +27,9 @@ MonoBehaviour:
   bodyRadius: 1.2
   leashRange: 0
   recoverySeconds: 1
+  xpReward: 150
+  lootTable: boss_drop
+  dropChance: 1
   displayName: 
   skinPrefix: 
   phases:

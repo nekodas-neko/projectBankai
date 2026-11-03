@@ -41,6 +41,11 @@ namespace Game.Client
         [Min(0f)] public float bodyRadius;
         [Min(0f)] public float leashRange;
         [Min(0f)] public float recoverySeconds;
+
+        // What killing this enemy gives: mastery XP (0 = the default for its kind), and a chance for each player to get a drop from the named loot table.
+        [Min(0)] public int xpReward;
+        public string lootTable = "";
+        [Range(0f, 1f)] public float dropChance;
         public string displayName = "";
         public string skinPrefix = "";
         public PhaseData[] phases = new PhaseData[0];
@@ -73,6 +78,9 @@ namespace Game.Client
                 BodyRadius = bodyRadius,
                 LeashRange = leashRange,
                 RecoverySeconds = recoverySeconds,
+                XpReward = xpReward,
+                LootTable = lootTable ?? string.Empty,
+                DropChance = dropChance,
                 Phases = phases.Select(phase => new PhaseDef
                 {
                     HealthBelow = phase.healthBelow,

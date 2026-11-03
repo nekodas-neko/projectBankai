@@ -267,6 +267,24 @@ namespace Game.Editor
                 AssetDatabase.CreateAsset(table, lootPath);
             }
 
+            // Mob drops: a rare, slightly weaker weapon. The same shape as the boss table, so a new table is a copy with other numbers.
+            var mobPath = $"{lootFolder}/{LootTableAsset.MobDrop}.asset";
+            if (AssetDatabase.LoadAssetAtPath<LootTableAsset>(mobPath) == null)
+            {
+                var table = ScriptableObject.CreateInstance<LootTableAsset>();
+                table.weaponTypes = new[] { "sword_and_shield", "staff", "healing_mace" };
+                table.powerMin = 0.9f;
+                table.powerMax = 1.05f;
+                AssetDatabase.CreateAsset(table, mobPath);
+            }
+
+            // What kills are worth: XP for the weapon in hand and a drop chance per player. Bosses always drop from the boss table.
+            Tune("slime", c => string.IsNullOrEmpty(c.lootTable), c => { c.xpReward = 10; c.lootTable = LootTableAsset.MobDrop; c.dropChance = 0.03f; });
+            foreach (var boss in new[] { "slime_boss", "mushroom_warden", "brood_mother" })
+            {
+                Tune(boss, c => string.IsNullOrEmpty(c.lootTable), c => { c.xpReward = 150; c.lootTable = LootTableAsset.BossDrop; c.dropChance = 1f; });
+            }
+
             // Skill trees: each node picks a variant for one slot (0 attack, 1 skill, 2 ultimate, 4 defence).
             Tree("sword_and_shield",
                 Node("ember_slash", "Ember slash", 0, "ember"),

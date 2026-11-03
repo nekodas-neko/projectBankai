@@ -8,12 +8,31 @@ namespace Game.Client
     public sealed class KillTracker
     {
         readonly HashSet<EntityId> counted = new HashSet<EntityId>();
+        readonly List<FallenEnemy> scratch = new List<FallenEnemy>();
         bool primed;
 
         public void Observe(Snapshot snapshot, out int kills, out int bosses)
         {
             kills = 0;
             bosses = 0;
+            scratch.Clear();
+            Collect(snapshot, scratch);
+            foreach (var fallen in scratch)
+            {
+                if (fallen.Boss)
+                {
+                    bosses++;
+                }
+                else
+                {
+                    kills++;
+                }
+            }
+        }
+
+        // Adds every enemy that fell since the last call, with its class so the caller can look up what it was worth.
+        public void Collect(Snapshot snapshot, List<FallenEnemy> into)
+        {
             if (snapshot == null)
             {
                 return;
@@ -32,18 +51,24 @@ namespace Game.Client
                     continue;
                 }
 
-                if ((entity.Effects & EffectFlags.Boss) != 0)
-                {
-                    bosses++;
-                }
-                else
-                {
-                    kills++;
-                }
+                into.Add(new FallenEnemy(entity.ClassHash, (entity.Effects & EffectFlags.Boss) != 0));
             }
 
             primed = true;
         }
+    }
+
+    public readonly struct FallenEnemy
+    {
+        public FallenEnemy(int classHash, bool boss)
+        {
+            ClassHash = classHash;
+            Boss = boss;
+        }
+
+        public int ClassHash { get; }
+
+        public bool Boss { get; }
     }
 
     // Trains the weapon type in hand from what the client sees die, and keeps the profile saved.
@@ -61,13 +86,21 @@ namespace Game.Client
         float noticeLeft;
         readonly LootTableDef loot;
         readonly ulong lootSeed;
+        readonly RewardBook rewards;
+        readonly Registry<LootTableDef> tables;
+        readonly List<FallenEnemy> fallen = new List<FallenEnemy>();
+        ulong chanceRolls;
 
-        // The loot table is optional (no table, no drops). The seed varies the rolls between sessions; a test passes its own.
-        public MasteryProgress(ProfileStore store, MasteryRules rules, LootTableDef loot = null, ulong lootSeed = 0)
+        // What an enemy is worth comes from its class (rewards, and the tables it names). A boss whose class names no table drops
+        // from the fallback table `loot` (optional), always; any other enemy without one drops nothing. The seed varies the rolls
+        // between sessions; a test passes its own.
+        public MasteryProgress(ProfileStore store, MasteryRules rules, LootTableDef loot = null, ulong lootSeed = 0, RewardBook rewards = null, Registry<LootTableDef> tables = null)
         {
             this.store = store;
             this.rules = rules;
             this.loot = loot;
+            this.rewards = rewards ?? new RewardBook(null, rules);
+            this.tables = tables;
             this.lootSeed = lootSeed != 0 ? lootSeed : (ulong)System.Environment.TickCount * 2654435761UL;
             Profile = store.Load();
         }
@@ -127,21 +160,17 @@ namespace Game.Client
         // Returns the levels gained from what fell since the last call.
         public int Observe(Snapshot snapshot)
         {
-            kills.Observe(snapshot, out var normal, out var bosses);
-            if (normal + bosses == 0)
+            fallen.Clear();
+            kills.Collect(snapshot, fallen);
+            if (fallen.Count == 0)
             {
                 return 0;
             }
 
             var gained = 0;
-            for (var i = 0; i < normal; i++)
+            foreach (var enemy in fallen)
             {
-                gained += Profile.AddKillXp(rules, false);
-            }
-
-            for (var i = 0; i < bosses; i++)
-            {
-                gained += Profile.AddKillXp(rules, true);
+                gained += Profile.AddXp(rules, rewards.For(enemy.ClassHash, enemy.Boss).Xp);
             }
 
             dirty = true;
@@ -151,12 +180,19 @@ namespace Game.Client
                 noticeLeft = NoticeSeconds;
             }
 
-            for (var i = 0; i < bosses; i++)
+            var dropped = false;
+            foreach (var enemy in fallen)
             {
-                Drop();
+                var reward = rewards.For(enemy.ClassHash, enemy.Boss);
+                var table = TableFor(reward, enemy.Boss, out var chance);
+                if (table != null && Roll(chance))
+                {
+                    Drop(table, enemy.Boss);
+                    dropped = true;
+                }
             }
 
-            if (gained > 0 || bosses > 0)
+            if (gained > 0 || dropped)
             {
                 Flush();
             }
@@ -164,18 +200,39 @@ namespace Game.Client
             return gained;
         }
 
-        // Personal loot: the boss that fell gives this player a weapon of their own (unless the bag is full).
-        void Drop()
+        LootTableDef TableFor(KillReward reward, bool boss, out float chance)
         {
-            if (loot == null)
+            chance = reward.DropChance;
+            if (reward.LootTable.Length > 0 && tables != null && tables.TryGet(reward.LootTable, out var named))
             {
-                return;
+                return named;
             }
 
+            chance = 1f;
+            return boss && reward.LootTable.Length == 0 ? loot : null;
+        }
+
+        bool Roll(float chance)
+        {
+            if (chance >= 1f)
+            {
+                return true;
+            }
+
+            return chance > 0f && new SeededRandom(lootSeed ^ (++chanceRolls * 104729UL)).NextFloat() < chance;
+        }
+
+        // Personal loot: the enemy that fell gives this player a weapon of their own (unless the bag is full).
+        void Drop(LootTableDef loot, bool boss)
+        {
             if (Profile.Weapons.Count >= PlayerProfile.MaxWeapons)
             {
-                notice = "Boss down. Your weapon bag is full, so the drop was lost.";
-                noticeLeft = NoticeSeconds;
+                if (boss)
+                {
+                    notice = "Boss down. Your weapon bag is full, so the drop was lost.";
+                    noticeLeft = NoticeSeconds;
+                }
+
                 return;
             }
 

@@ -23,6 +23,12 @@ MonoBehaviour:
   threatMultiplier: 1
   bodyRadius: 0.7
   leashRange: 18
+  recoverySeconds: 0
+  xpReward: 10
+  lootTable: mob_drop
+  dropChance: 0.03
+  displayName: 
+  skinPrefix: 
   phases: []
   hasResource: 0
   resourceId: 
