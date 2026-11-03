@@ -31,10 +31,10 @@ namespace Game.Core.Tests
     {
         public const float Step = 1f / 30f;
 
-        public static BalanceResult Run(Registry<ClassDef> classes, Registry<AbilityDef> abilities, string weapon, string boss, IBotPolicy policy, float maxSeconds = 240f, ulong seed = 1, int[] loadout = null)
+        public static BalanceResult Run(Registry<ClassDef> classes, Registry<AbilityDef> abilities, string weapon, string boss, IBotPolicy policy, float maxSeconds = 240f, ulong seed = 1, int[] loadout = null, float weaponPower = 1f)
         {
             var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
-            var client = session.AddPlayer(new PlayerId(1), weapon, 0, loadout);
+            var client = session.AddPlayer(new PlayerId(1), weapon, 0, loadout, weaponPower);
             session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
 
             // A tank is not the player a boss picks for its "farthest player" mechanics; a ranged friend is. Alone, the tank
