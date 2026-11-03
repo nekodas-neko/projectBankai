@@ -121,6 +121,16 @@ A map has many more enemies in view than a round room did, so a snapshot may not
 
 A dungeon has **Health Per Extra Player** (0 means no scaling; the cave uses 0.8). Every enemy's health is multiplied by 1 + that number x (players - 1): a solo player meets the normal health, two players 1.8 times, three players 2.6 times. It follows the party while the dungeon runs: someone joining or leaving changes the maximum, and an enemy that was hurt keeps the same share of its health left; anything spawned later (a boss's minions) is scaled too. The design target is three players, tank, damage and healer, with solo and duo possible for a skilled or well-geared player, so the number is a tuning knob: if three players finish a boss too fast, raise it.
 
+## The local profile and weapon mastery
+
+The character's own progress lives in a `PlayerProfile` (`Game.Core`): the weapons it owns (`OwnedWeapon`: a unique id, a weapon type, a power scale and at most one modifier), which one is equipped, and a `WeaponMastery` per weapon **type**. Mastery belongs to the character, so two staffs share one XP bar. `ProfileStore` (`Game.Client`) keeps it in `profile.txt` under the device's data folder as a small text file (`ProfileText`); no network and no accounts. A file this build cannot read is moved to `profile.damaged.txt` and a new character starts, so a bad file never overwrites progress. Lines a newer build adds are skipped, and a file from a newer version is refused rather than misread.
+
+How mastery is earned is data: the `mastery` asset (`MasteryAsset`, in `Assets/Game/Data/Resources/Definitions`) lists the XP each of the 20 levels costs, the points a level gives (1) and what a kill (10) and a boss kill (150) are worth. `WeaponMastery.AddXp` fills the bar, `TryChoose` spends points on a tree node (the skill trees are not built yet, so a node is just an id), and `Reset` gives every point back for free.
+
+Kills train the weapon in hand. `KillTracker` watches the snapshots: an enemy that shows up with no health is a kill (a boss when it carries the boss flag), counted once, and enemies already down when the client joins are not. A fallen enemy stays in the snapshot, so a lost packet loses nothing. `MasteryProgress` turns kills into XP for the equipped weapon type, saves the profile at once on a level-up or boss kill and otherwise every 20 seconds, and when the game is paused or closed. The test overlay shows the weapon's mastery level and bar above the build number. Every player's own client counts its own kills, so each profile fills in co-op.
+
+Not built yet: the equipped weapon still comes from the Weapon test button (the profile follows it), the skill-tree screen, and loot.
+
 ## Aggro rings
 
 An enemy with an **Aggro Range** that has not noticed anyone yet is drawn with a thin yellow ring on the ground at that distance (`AggroRings`): step inside it and the enemy, and its pack, come for you. The ring disappears once the enemy has a target. The server sends the range in the snapshot (`EntityState.AggroRange`), so any class with an aggro range gets a ring without code; rings only draw within 10 units of the ring's edge so a big map stays readable.
