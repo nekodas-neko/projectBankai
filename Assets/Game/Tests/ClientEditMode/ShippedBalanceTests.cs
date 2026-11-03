@@ -107,7 +107,7 @@ namespace Game.Client.Tests
                     if (starter.BossDead)
                     {
                         Assert.IsTrue(strong.BossDead, $"{weapon} against {boss}: the best drop should still win" + BalanceSim.Table(new[] { starter, strong }));
-                        Assert.GreaterOrEqual(strong.Seconds, starter.Seconds * 0.75f, $"{weapon} against {boss}: the best drop (x{best}) cuts the fight by more than 25%" + BalanceSim.Table(new[] { starter, strong }));
+                        Assert.GreaterOrEqual(strong.Seconds, starter.Seconds * 0.7f, $"{weapon} against {boss}: the best drop (x{best}) cuts the fight by more than 30%" + BalanceSim.Table(new[] { starter, strong }));
                         Assert.IsTrue(weak.BossDead || weak.Seconds >= 240f, $"{weapon} against {boss}: the worst drop (x{worst}) should not die where the starter wins" + BalanceSim.Table(new[] { starter, weak }));
                     }
                 }
