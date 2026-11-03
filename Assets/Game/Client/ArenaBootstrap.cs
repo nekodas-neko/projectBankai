@@ -20,7 +20,7 @@ namespace Game.Client
         const float MaxFrameSeconds = 0.1f;
         const float CameraSmoothing = 8f;
 
-        static readonly string[] StarterClasses = { "tank", "healer", "mage" };
+        static readonly string[] StarterClasses = { "sword_and_shield", "healing_mace", "staff" };
         static readonly Vector3 CameraOffset = new Vector3(0f, 26f, -12f);
 
         public ArenaAssets assets;

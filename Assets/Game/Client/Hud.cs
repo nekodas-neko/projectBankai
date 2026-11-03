@@ -26,10 +26,24 @@ namespace Game.Client
             set => PlayerPrefs.SetInt(MoveOnRightKey, value ? 1 : 0);
         }
 
+        public const string DefaultWeapon = "staff";
+
         public static string ClassName
         {
-            get => PlayerPrefs.GetString(ClassKey, "mage");
+            get => Migrate(PlayerPrefs.GetString(ClassKey, DefaultWeapon));
             set => PlayerPrefs.SetString(ClassKey, value);
+        }
+
+        // Saved choices from before the kits were named for their weapons.
+        public static string Migrate(string saved)
+        {
+            switch (saved)
+            {
+                case "tank": return "sword_and_shield";
+                case "healer": return "healing_mace";
+                case "mage": return "staff";
+                default: return saved;
+            }
         }
 
         public static string SkinFor(string classId)
@@ -151,7 +165,7 @@ namespace Game.Client
             BuildTextButton(safeArea, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -60f), callbacks.SwapSides);
             BuildTextButton(safeArea, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -170f), () => callbacks.Zoom?.Invoke(-1));
             BuildTextButton(safeArea, "Skin", "Skin", new Vector2(115f, 90f), new Vector2(-165f, -280f), callbacks.CycleSkin);
-            BuildTextButton(safeArea, "Class", "Class", new Vector2(115f, 90f), new Vector2(-40f, -280f), callbacks.CycleClass);
+            BuildTextButton(safeArea, "Class", "Weapon", new Vector2(115f, 90f), new Vector2(-40f, -280f), callbacks.CycleClass);
             BuildTextButton(safeArea, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -170f), () => callbacks.Zoom?.Invoke(1));
             BuildTextButton(safeArea, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -390f), callbacks.ToggleSession);
             BuildTextButton(safeArea, "Style", "Style", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.CycleStyle);

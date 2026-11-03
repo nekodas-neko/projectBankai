@@ -65,15 +65,15 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("tank", Role.Tank, 180f, 5f, 1f, swordSlash, shieldBash);
-            Class("healer", Role.Healer, 100f, 6f, 1f, holyBolt, radiantPulse);
-            Class("mage", Role.Dps, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
+            Class("sword_and_shield", Role.Tank, 180f, 5f, 1f, swordSlash, shieldBash);
+            Class("healing_mace", Role.Healer, 100f, 6f, 1f, holyBolt, radiantPulse);
+            Class("staff", Role.Dps, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", Role.None, 60f, 0f, 1f, slimeSlam);
             Class("slime_boss", Role.None, 800f, 0f, 1f, slimeSlam);
             Class("mushroom_warden", Role.None, 320f, 0f, 1f, slimeSlam);
             Class("brood_mother", Role.None, 520f, 0f, 1f, kingSlam);
 
-            Tune("tank", c => c.defense == null, c =>
+            Tune("sword_and_shield", c => c.defense == null, c =>
             {
                 c.defense = shieldWall;
                 c.hasResource = true;
@@ -85,7 +85,7 @@ namespace Game.Editor
                 c.resourceGainTaken = 0.6f;
                 c.resourceGainBlocked = 1.2f;
             });
-            Tune("healer", c => c.defense == null, c =>
+            Tune("healing_mace", c => c.defense == null, c =>
             {
                 c.defense = ward;
                 c.hasResource = true;
@@ -95,7 +95,7 @@ namespace Game.Editor
                 c.resourceRegen = 4f;
                 c.resourceGainBlocked = 0.6f;
             });
-            Tune("mage", c => c.defense == null, c =>
+            Tune("staff", c => c.defense == null, c =>
             {
                 c.defense = arcaneStep;
                 c.hasResource = true;
@@ -105,7 +105,7 @@ namespace Game.Editor
                 c.resourceRegen = 3f;
                 c.resourceGainDealt = 0.8f;
             });
-            Tune("tank", c => c.threatMultiplier <= 1f, c => c.threatMultiplier = 3f);
+            Tune("sword_and_shield", c => c.threatMultiplier <= 1f, c => c.threatMultiplier = 3f);
             Tune("slime_boss", c => c.skills.Length == 0, c => c.skills = new[] { kingSmash, kingWave });
             Tune("slime_boss", c => c.phases.Length == 0 || c.autoAttack != kingSlam, c =>
             {
@@ -119,9 +119,12 @@ namespace Game.Editor
                     new PhaseData { healthBelow = 0.3f, attacks = new[] { kingSmash, kingWave, slam }, speedScale = 1.5f, spawnClass = slime, spawnCount = 3, spawnSkin = "slime_green" },
                 };
             });
-            Tune("tank", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
-            Tune("healer", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
-            Tune("mage", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
+            Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
+            Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
+            Tune("staff", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
+            Tune("sword_and_shield", c => string.IsNullOrEmpty(c.displayName), c => { c.displayName = "Sword and shield"; c.skinPrefix = "tank"; });
+            Tune("healing_mace", c => string.IsNullOrEmpty(c.displayName), c => { c.displayName = "Healing mace"; c.skinPrefix = "healer"; });
+            Tune("staff", c => string.IsNullOrEmpty(c.displayName), c => { c.displayName = "Staff"; c.skinPrefix = "mage"; });
             Tune("slime", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.7f);
             Tune("slime_boss", c => c.bodyRadius <= 0f, c => c.bodyRadius = 1.8f);
             Tune("slime", c => c.aggroRange <= 0f, c => { c.aggroRange = 12f; c.moveSpeed = 2.8f; });

@@ -7,7 +7,7 @@ The rule: adding a skill, class or boss means adding files, not editing the fram
 | Thing | Where it lives | Status |
 |---|---|---|
 | Abilities (cooldown, range, width, damage, windup, resource cost) | `AbilityAsset` files in `Assets/Game/Data/Resources/Definitions` | Data. One file each. |
-| Classes (role, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range, body radius, threat multiplier, boss phases) | `ClassAsset` files in the same folder | Data. One file each. |
+| Classes, which for players are weapons (display name, skin prefix, role, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range, body radius, threat multiplier, boss phases) | `ClassAsset` files in the same folder | Data. One file each. |
 | Defensive skills: dodge (dash and brief invulnerability, optional counter rider), block (damage reduction), shield (absorb) | Ability `kind` plus its numbers | Data. The three kinds are code in `GameServer`; a fourth kind is a `core-change`. |
 | Class resource (mana, rage, focus): max, start, regen or decay, gain per damage dealt, taken and blocked | `ClassAsset` resource fields | Data. Abilities spend it with `resourceCost`. |
 | Windup (delay between starting an attack and it landing) | `windup` on an ability | Data. Clients draw the warning area while it counts down. |
@@ -81,7 +81,7 @@ The imported characters, monsters and nature props under `Assets/Game/Art/Temp` 
 2. Make an Animator Controller with the parameters `Speed` (float), `Use` (trigger), `Slot` (int, 0 is the auto-attack, 4 is the defensive skill), `Hit` (trigger) and `Dead` (bool). `ArtImport` shows one way to build it; any controller with those parameters works.
 3. Save a prefab of the model with that Animator, then open the skin asset (for example `tank_warrior`) and set **Prefab** to it. Scale the prefab so the character is about 2 units tall.
 
-Class skins are found by the class id prefix (`tank_`, `healer_`, `mage_`), and skins with a prefab are listed before plain primitives, so a new `mage_` skin with a prefab becomes a choice with no other change.
+A weapon's skins are found by its **Skin Prefix** on the class asset (`tank` for the sword and shield, `healer` for the healing mace, `mage` for the staff, so skins are named `tank_steel`, `mage_wizard` and so on; the prefix defaults to the weapon id for new weapons), and skins with a prefab are listed before plain primitives, so a new `mage_` skin with a prefab becomes a choice with no other change.
 
 ## Worked example: change what a skill looks like
 
@@ -144,7 +144,7 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 - State uses floats. The server is authoritative so cross-machine determinism is not required; tests only prove same-seed repeatability on one machine.
 - `WireCodec` allocates per message, so the combat allocation budget is not met.
 - The networking library is not chosen; everything sits behind `ITransport`. Whether to move to Netcode for GameObjects is an open decision (issue 58).
-- Player classes (tank, healer, mage) are temporary: weapons with their own skill trees replace them (issue 50). Mobs and bosses keep class definitions.
+- The player kits are now named for their weapons (`sword_and_shield`, `healing_mace`, `staff`) but are still `ClassDef` assets with a role; roles go away and weapons gain skill trees next (issue 50). The skin names still use the old prefixes. Mobs and bosses keep class definitions.
 - Definitions are copied, not derived: a variant of a monster is a duplicate asset. A "based on" link is planned (issue 50).
 - AI-controlled party members do not exist yet; the intended hook is server-side controllers that emit the same commands as a phone.
 - Definitions load from `Resources`, which is fine for the prototype. Revisit if content grows large.

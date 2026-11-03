@@ -11,17 +11,43 @@ namespace Game.Client.Tests
         {
             DefinitionLoader.Load(out var classes, out var abilities);
 
-            Assert.IsTrue(classes.TryGet("mage", out var mage));
+            Assert.IsTrue(classes.TryGet("staff", out var mage));
             Assert.AreEqual(Role.Dps, mage.Role);
             Assert.AreEqual("arcane_bolt", mage.AutoAttack);
             CollectionAssert.AreEqual(new[] { "fireball" }, mage.Skills);
             Assert.IsTrue(abilities.TryGet("fireball", out var fireball));
             Assert.AreEqual(30f, fireball.Damage);
 
-            Assert.AreEqual(Role.Tank, classes.Get("tank").Role);
-            Assert.AreEqual(Role.Healer, classes.Get("healer").Role);
+            Assert.AreEqual(Role.Tank, classes.Get("sword_and_shield").Role);
+            Assert.AreEqual(Role.Healer, classes.Get("healing_mace").Role);
             Assert.IsTrue(classes.TryGet("slime", out _));
             Assert.IsTrue(classes.TryGet("slime_boss", out _));
+        }
+
+        [Test]
+        public void SavedClassNamesFromBeforeTheWeaponRenameMapToTheWeapons()
+        {
+            Assert.AreEqual("sword_and_shield", HudSettings.Migrate("tank"));
+            Assert.AreEqual("healing_mace", HudSettings.Migrate("healer"));
+            Assert.AreEqual("staff", HudSettings.Migrate("mage"));
+            Assert.AreEqual("staff", HudSettings.Migrate("staff"));
+        }
+
+        [Test]
+        public void EveryWeaponHasANameAndItsSkinsLoadThroughThePrefix()
+        {
+            var expected = new System.Collections.Generic.Dictionary<string, string>
+            {
+                { "sword_and_shield", "Sword and shield" },
+                { "healing_mace", "Healing mace" },
+                { "staff", "Staff" },
+            };
+
+            foreach (var pair in expected)
+            {
+                Assert.AreEqual(pair.Value, ClassCatalog.DisplayName(pair.Key));
+                Assert.Greater(SkinCatalog.ForClass(pair.Key).Count, 0, pair.Key);
+            }
         }
 
         [Test]
@@ -89,7 +115,7 @@ namespace Game.Client.Tests
         {
             DefinitionLoader.Load(out var classes, out var abilities);
             var session = new LocalSession(new ServerConfig(), classes, abilities, 1);
-            var client = session.AddPlayer(new PlayerId(1), "mage");
+            var client = session.AddPlayer(new PlayerId(1), "staff");
             var slime = session.Server.SpawnNpc("slime", Team.Enemies, new Vec2(-3f, 2f));
 
             session.Advance(0.2f, 1f / 30f);
@@ -111,7 +137,7 @@ namespace Game.Client.Tests
                 Assert.IsNotNull(asset.hitEffect, $"{ability.Id} hit effect");
             }
 
-            foreach (var id in new[] { "tank", "healer", "mage" })
+            foreach (var id in new[] { "sword_and_shield", "healing_mace", "staff" })
             {
                 Assert.GreaterOrEqual(SkinCatalog.ForClass(id).Count, 2, $"{id} skins");
             }
