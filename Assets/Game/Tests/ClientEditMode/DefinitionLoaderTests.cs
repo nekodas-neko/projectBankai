@@ -45,10 +45,10 @@ namespace Game.Client.Tests
             var bomb = abilities.Get("slime_bomb");
             Assert.IsTrue(bomb.AtTarget);
             Assert.IsFalse(bomb.Avoidable);
-            Assert.Greater(bomb.Windup, 1f);
+            Assert.Greater(bomb.Windup, 0.5f);
 
             var king = classes.Get("slime_boss");
-            Assert.AreEqual(0, king.Phases[0].Mechanics.Length);
+            Assert.AreEqual(MechanicTarget.Farthest, king.Phases[0].Mechanics[0].Target);
             Assert.AreEqual(MechanicTarget.Farthest, king.Phases[1].Mechanics[0].Target);
             Assert.AreEqual("slime_bomb", king.Phases[1].Mechanics[0].Ability);
             Assert.GreaterOrEqual(king.Phases[2].Mechanics.Length, 2);
@@ -56,7 +56,7 @@ namespace Game.Client.Tests
             var mother = classes.Get("brood_mother");
             Assert.AreEqual(MechanicTarget.NotTopThreat, mother.Phases[1].Mechanics[0].Target);
 
-            Assert.AreEqual(0, classes.Get("mushroom_warden").Phases[0].Mechanics.Length);
+            Assert.AreEqual("slime_bomb", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability);
         }
 
         [Test]
