@@ -36,7 +36,12 @@ MonoBehaviour:
     spawnClass: {fileID: 0}
     spawnCount: 0
     spawnSkin: 
-    mechanics: []
+    mechanics:
+    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
+      intervalSeconds: 7
+      firstDelaySeconds: 5
+      target: 1
+      count: 1
   - healthBelow: 0.5
     attacks:
     - {fileID: 11400000, guid: 516de0c70c998724599f11690487ed02, type: 2}

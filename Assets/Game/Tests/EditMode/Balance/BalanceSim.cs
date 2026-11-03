@@ -13,6 +13,7 @@ namespace Game.Core.Tests
         public bool BossDead;
         public float Seconds;
         public float HealthLeft;
+        public float MaxHealth;
         public float DamageTaken;
         public float DamageDealt;
         public float UltimatesFired;
@@ -29,6 +30,18 @@ namespace Game.Core.Tests
             var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
             var client = session.AddPlayer(new PlayerId(1), weapon);
             session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
+
+            // A tank is not the player a boss picks for its "farthest player" mechanics; a ranged friend is. Alone, the tank
+            // would soak all of them, so it gets an idle ally that stays behind and cannot die, to take them instead.
+            if (policy is TankBlocker && classes.TryGet("staff", out _))
+            {
+                session.AddPlayer(new PlayerId(2), "staff");
+                var ally = session.Server.FindPlayerEntity(new PlayerId(2));
+                var stats = ally.Stats;
+                stats.MaxHealth = 1e6f;
+                ally.Stats = stats;
+                ally.Health = 1e6f;
+            }
             var view = new BotView(client, abilities, classes.Get(weapon)) { EnemyRadius = classes.Get(boss).BodyRadius };
             var result = new BalanceResult { Weapon = weapon, Boss = boss, Policy = policy.Name };
             var events = new List<DamageEvent>();
@@ -91,6 +104,7 @@ namespace Game.Core.Tests
 
             result.Survived = client.TryGetLocalState(out me) && me.Health > 0f;
             result.HealthLeft = result.Survived && maxHealth > 0f ? me.Health / maxHealth : 0f;
+            result.MaxHealth = maxHealth;
             return result;
         }
 
@@ -122,6 +136,10 @@ namespace Game.Core.Tests
             // Played the way it is meant to be played, nobody should finish a fight nearly dead.
             public float MinHealthLeftWhenPlayedWell { get; set; } = 0.3f;
 
+            // Played the intended way, a weapon should still be hit now and then: a perfect style that takes no damage
+            // at all means the boss is not asking anything of it. At least this fraction of its health over a fight.
+            public float MinDamageTakenFraction { get; set; } = 0.10f;
+
             // Even a slow weapon should finish a boss alone within this long (seconds); a timeout means it cannot.
             public float MaxFightSeconds { get; set; } = 180f;
 
@@ -146,6 +164,11 @@ namespace Game.Core.Tests
                 if (r.BossDead && r.Seconds < shortest)
                 {
                     misses.Add(string.Format(CultureInfo.InvariantCulture, "{0}: over in {1:0.0}s, target at least {2:0}s", who, r.Seconds, shortest));
+                }
+
+                if (r.Survived && r.BossDead && r.MaxHealth > 0f && r.DamageTaken / r.MaxHealth < targets.MinDamageTakenFraction)
+                {
+                    misses.Add(string.Format(CultureInfo.InvariantCulture, "{0}: too safe, only {1:P0} of its health taken, target at least {2:P0}", who, r.DamageTaken / r.MaxHealth, targets.MinDamageTakenFraction));
                 }
 
                 if (r.Survived && (!r.BossDead || r.Seconds > targets.MaxFightSeconds))

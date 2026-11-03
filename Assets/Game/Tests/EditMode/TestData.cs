@@ -34,7 +34,7 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Damage = 30f, ChargeRequired = 50f, ChargeFromDealt = 1f });
             registry.Add(new AbilityDef { Id = "bulwark_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 4f, Radius = 4f, Damage = 10f, ChargeRequired = 100f, ChargeFromTaken = 2f, ChargeFromBlocked = 3f });
             registry.Add(new AbilityDef { Id = "healing_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Heal = 20f, ChargeRequired = 40f, ChargeFromHealing = 2f });
-            registry.Add(new AbilityDef { Id = "red_windup", Shape = AbilityShape.Circle, Cooldown = 3f, Range = 4f, Radius = 4f, Damage = 20f, Windup = 1f, Avoidable = false });
+            registry.Add(new AbilityDef { Id = "red_windup", Shape = AbilityShape.Circle, Cooldown = 3f, Range = 4f, Radius = 4f, Damage = 20f, Windup = 1.6f, Avoidable = false });
             registry.Add(new AbilityDef { Id = "bomb", Shape = AbilityShape.Circle, Cooldown = 0.1f, Range = 30f, Radius = 2f, Damage = 25f, Windup = 1f, Avoidable = false, AtTarget = true });
             registry.Add(new AbilityDef { Id = "red_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f, Avoidable = false });
             registry.Add(new AbilityDef { Id = "orange_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f });

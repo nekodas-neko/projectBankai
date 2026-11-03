@@ -51,14 +51,14 @@ namespace Game.Editor
             var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 9f);
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
             var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 16f);
-            var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3f, damage: 14f);
-            Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.6f; a.avoidable = false; a.atTarget = true; });
+            var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3.8f, damage: 14f);
+            Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.avoidable = false; a.atTarget = true; });
             var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 11f);
             Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
 
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
-            var arcaneStep = Ability("arcane_step", cooldown: 3.5f, range: 1f, radius: 0f, damage: 0f);
+            var arcaneStep = Ability("arcane_step", cooldown: 5.5f, range: 1f, radius: 0f, damage: 0f);
             var shieldWall = Ability("shield_wall", cooldown: 4f, range: 1f, radius: 0f, damage: 0f);
             var ward = Ability("ward", cooldown: 6f, range: 1f, radius: 0f, damage: 0f);
 
@@ -75,7 +75,7 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("sword_and_shield", true, 500f, 4.5f, 1f, swordSlash, shieldBash);
+            Class("sword_and_shield", true, 520f, 4.5f, 1f, swordSlash, shieldBash);
             Class("healing_mace", true, 90f, 6f, 1f, holyBolt, radiantPulse);
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
@@ -146,6 +146,19 @@ namespace Game.Editor
             {
                 c.skills = new[] { c.skills[0], slimeBomb };
                 c.phases[1].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 8f, firstDelaySeconds = 3f, target = MechanicTarget.NotTopThreat, count = 1 } };
+            });
+            Tune("mushroom_warden", c => c.skills.Length < 2 && c.phases.Length >= 1 && c.phases[0].mechanics.Length == 0, c =>
+            {
+                c.skills = new[] { c.skills[0], slimeBomb };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 4.5f, firstDelaySeconds = 5f, target = MechanicTarget.Farthest, count = 1 } };
+            });
+            Tune("brood_mother", c => c.phases.Length >= 1 && c.phases[0].mechanics.Length == 0, c =>
+            {
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 7f, firstDelaySeconds = 5f, target = MechanicTarget.Farthest, count = 1 } };
+            });
+            Tune("slime_boss", c => c.phases.Length >= 1 && c.phases[0].mechanics.Length == 0, c =>
+            {
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 10f, firstDelaySeconds = 6f, target = MechanicTarget.Farthest, count = 1 } };
             });
             Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);

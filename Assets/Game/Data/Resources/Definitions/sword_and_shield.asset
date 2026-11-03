@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: sword_and_shield
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
   playable: 1
-  maxHealth: 500
+  maxHealth: 520
   moveSpeed: 4.5
   power: 1
   autoAttack: {fileID: 11400000, guid: ac1e1a724b1688749bb6e8de5cafe0bf, type: 2}

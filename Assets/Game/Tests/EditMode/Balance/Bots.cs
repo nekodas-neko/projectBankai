@@ -84,7 +84,7 @@ namespace Game.Core.Tests
     public abstract class BotBase : IBotPolicy
     {
         // How long after a warning appears a human can start to react.
-        protected const float ReactionSeconds = 0.25f;
+        protected const float ReactionSeconds = 0.4f;
 
         const int Directions = 16;
         const float EscapeMargin = 0.8f;
