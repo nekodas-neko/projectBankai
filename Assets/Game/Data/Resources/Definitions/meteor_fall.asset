@@ -31,8 +31,8 @@ MonoBehaviour:
   rider: {fileID: 0}
   avoidable: 1
   atTarget: 0
-  chargeRequired: 100
-  chargeFromDealt: 1
+  chargeRequired: 1000
+  chargeFromDealt: 0.8
   chargeFromTaken: 0
   chargeFromBlocked: 0
   chargeFromHealing: 0

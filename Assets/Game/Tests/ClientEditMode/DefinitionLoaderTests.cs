@@ -157,7 +157,8 @@ namespace Game.Client.Tests
             client.Attack(Vec2.Zero);
             session.Advance(0.2f, 1f / 30f);
 
-            Assert.AreEqual(60f - 9f * 1.2f, slime.Health, 0.01f);
+            var expected = classes.Get("slime").Stats.MaxHealth - abilities.Get("arcane_bolt").Damage * classes.Get("staff").Stats.Power;
+            Assert.AreEqual(expected, slime.Health, 0.01f);
         }
 
         [Test]

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: slime_boss
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
   playable: 0
-  maxHealth: 800
+  maxHealth: 2400
   moveSpeed: 2.2
   power: 1
   autoAttack: {fileID: 11400000, guid: e0ac7ad238286114e89f4f51f4c6adb1, type: 2}

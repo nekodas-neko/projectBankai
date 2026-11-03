@@ -18,7 +18,7 @@ MonoBehaviour:
   cooldown: 0.9
   range: 12
   radius: 0.5
-  damage: 6
+  damage: 13
   windup: 0
   resourceCost: -6
   duration: 0

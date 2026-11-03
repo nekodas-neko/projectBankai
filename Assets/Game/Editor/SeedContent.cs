@@ -36,24 +36,24 @@ namespace Game.Editor
 
             var swordSlash = Ability("sword_slash", cooldown: 0.6f, range: 2.8f, radius: 1.2f, damage: 9f);
             var shieldBash = Ability("shield_bash", cooldown: 0.5f, range: 3.5f, radius: 1.8f, damage: 14f);
-            var holyBolt = Ability("holy_bolt", cooldown: 0.9f, range: 12f, radius: 0.5f, damage: 6f);
-            var radiantPulse = Ability("radiant_pulse", cooldown: 0.5f, range: 5f, radius: 3f, damage: 10f);
-            var arcaneBolt = Ability("arcane_bolt", cooldown: 0.8f, range: 14f, radius: 0.5f, damage: 9f);
+            var holyBolt = Ability("holy_bolt", cooldown: 0.9f, range: 12f, radius: 0.5f, damage: 13f);
+            var radiantPulse = Ability("radiant_pulse", cooldown: 0.5f, range: 5f, radius: 3f, damage: 14f);
+            var arcaneBolt = Ability("arcane_bolt", cooldown: 0.8f, range: 14f, radius: 0.5f, damage: 8f);
             var fireball = Ability("fireball", cooldown: 0.5f, range: 18f, radius: 1f, damage: 30f);
             var bulwarkCrash = Ability("bulwark_crash", cooldown: 1f, range: 5f, radius: 5f, damage: 40f);
-            Tune(bulwarkCrash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.4f; a.taunt = 4f; a.chargeRequired = 100f; a.chargeFromDealt = 1.5f; });
+            Tune(bulwarkCrash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.4f; a.taunt = 4f; a.chargeRequired = 1000f; a.chargeFromDealt = 1f; });
             var meteorFall = Ability("meteor_fall", cooldown: 1f, range: 6f, radius: 6f, damage: 70f);
-            Tune(meteorFall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.chargeRequired = 100f; a.chargeFromDealt = 1f; });
+            Tune(meteorFall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.chargeRequired = 1000f; a.chargeFromDealt = 0.8f; });
             var radiantBurst = Ability("radiant_burst", cooldown: 1f, range: 6f, radius: 6f, damage: 20f);
-            Tune(radiantBurst, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.5f; a.heal = 50f; a.chargeRequired = 100f; a.chargeFromDealt = 3f; });
-            var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 8f);
+            Tune(radiantBurst, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.5f; a.heal = 50f; a.chargeRequired = 1000f; a.chargeFromDealt = 1.6f; });
+            var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 5f);
 
-            var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 12f);
+            var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 9f);
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
-            var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 20f);
-            var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3f, damage: 18f);
+            var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 16f);
+            var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3f, damage: 14f);
             Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.6f; a.avoidable = false; a.atTarget = true; });
-            var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 14f);
+            var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 11f);
             Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
 
@@ -63,10 +63,10 @@ namespace Game.Editor
             var ward = Ability("ward", cooldown: 6f, range: 1f, radius: 0f, damage: 0f);
 
             Tune(arcaneStep, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Dodge; a.duration = 0.35f; a.dashDistance = 6f; a.perfectWindow = 0.18f; a.rider = arcaneCounter; });
-            Tune(shieldWall, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Block; a.duration = 1.5f; a.reduction = 0.7f; });
+            Tune(shieldWall, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Block; a.duration = 1.5f; a.reduction = 0.75f; });
             Tune(ward, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Shield; a.duration = 4f; a.absorb = 40f; });
             Tune(slimeSlam, a => a.windup <= 0f, a => a.windup = 0.6f);
-            Tune(radiantPulse, a => a.heal <= 0f, a => a.heal = 20f);
+            Tune(radiantPulse, a => a.heal <= 0f, a => a.heal = 14f);
             Tune(shieldBash, a => a.taunt <= 0f, a => a.taunt = 3f);
             Tune(shieldBash, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(swordSlash, a => a.resourceCost == 0f, a => a.resourceCost = -10f);
@@ -75,13 +75,13 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("sword_and_shield", true, 240f, 4.5f, 1f, swordSlash, shieldBash);
+            Class("sword_and_shield", true, 500f, 4.5f, 1f, swordSlash, shieldBash);
             Class("healing_mace", true, 90f, 6f, 1f, holyBolt, radiantPulse);
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
-            Class("slime_boss", false, 800f, 0f, 1f, slimeSlam);
-            Class("mushroom_warden", false, 320f, 0f, 1f, slimeSlam);
-            Class("brood_mother", false, 520f, 0f, 1f, kingSlam);
+            Class("slime_boss", false, 2400f, 0f, 1f, slimeSlam);
+            Class("mushroom_warden", false, 900f, 0f, 1f, slimeSlam);
+            Class("brood_mother", false, 1600f, 0f, 1f, kingSlam);
 
             Tune("sword_and_shield", c => c.defense == null, c =>
             {

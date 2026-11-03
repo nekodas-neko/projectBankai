@@ -32,3 +32,17 @@ class.slime_boss.phases.2.speedScale = 1.4
 - The file is read only in development builds and the editor; a release build ignores it.
 - The numbers go through the same validator as the shipped ones. If any line is wrong or breaks a rule, the **whole file is ignored**, the problem is logged and shown on the build label, and the game runs with the shipped numbers.
 - The server decides everything that matters, so when two phones play together the host's numbers are the ones that count. Use the same file on both so the buttons and the warnings agree.
+
+## Checking balance with the bots
+
+`toolsalance-report.ps1` (needs Unity in batch mode, so close the editor) plays every weapon against every boss with bots and prints a table: who wins, how long it takes, health left, damage taken and dealt, and how many ultimates were fired. It uses the shipped numbers plus `tuning.txt`, so the loop for tuning is: edit `tuning.txt`, run the report, read the table, repeat, and when it looks right copy the numbers into the assets (and the matching lines in `SeedContent.cs`).
+
+The bots are perfect solo players, so real fights will be longer and harder; read the table as weapon against weapon. Each weapon is judged on the way it is meant to be played: the sword and shield on **stand and block**, the staff and the healing mace on **kite**. `stand still` is a control.
+
+The report ends with the **targets missed** (the goals live in `ShippedBalanceTests`, so change them there):
+
+- a boss fight should last at least about 30 s (mushroom warden), 60 s (brood mother) and 90 s (slime king) for a perfect solo bot, and no more than 180 s;
+- no more than 1.5 ultimates a minute;
+- played the intended way, a weapon should finish with at least 30% health.
+
+Two principles are also tests, so tuning cannot break them: a ranged weapon takes less damage kiting than standing still, and blocking cuts the tank's damage rate.
