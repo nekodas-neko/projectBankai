@@ -17,6 +17,9 @@ namespace Game.Core
     public sealed class GameServer
     {
         const double TickEpsilon = 1e-6;
+        const float LeashArrival = 0.5f;
+        const float LeashSpeedScale = 2f;
+        const float PackCallThreat = 1f;
 
         readonly ServerConfig config;
         readonly Registry<ClassDef> classes;
@@ -28,6 +31,7 @@ namespace Game.Core
         readonly List<PendingAttack> pendingAttacks = new List<PendingAttack>();
         readonly Dictionary<long, AbilityDef> effective = new Dictionary<long, AbilityDef>();
         DungeonDef dungeon;
+        bool roomHasBoss;
         int room;
         float dungeonTimer;
         double accumulator;
@@ -770,10 +774,14 @@ namespace Game.Core
             }
 
             var spawns = dungeon.Rooms[room].Spawns;
+            roomHasBoss = false;
             for (var i = 0; i < spawns.Length; i++)
             {
                 var spawn = spawns[i];
-                SpawnNpc(spawn.Class, Team.Enemies, new Vec2(spawn.X, spawn.Y).ClampLength(config.Simulation.ArenaRadius), StableId.From(spawn.Skin));
+                var npc = SpawnNpc(spawn.Class, Team.Enemies, new Vec2(spawn.X, spawn.Y).ClampLength(config.Simulation.ArenaRadius), StableId.From(spawn.Skin));
+                npc.Pack = spawn.Pack;
+                npc.IsBoss = spawn.Boss;
+                roomHasBoss |= spawn.Boss;
             }
 
             DungeonPhase = DungeonPhase.Fighting;
@@ -807,6 +815,7 @@ namespace Game.Core
             var playersAlive = 0;
             var playersTotal = 0;
             var enemiesAlive = 0;
+            var bossesAlive = 0;
             for (var i = 0; i < entities.Count; i++)
             {
                 var e = entities[i];
@@ -821,6 +830,10 @@ namespace Game.Core
                 else if (e.IsAlive && e.Team == Team.Enemies)
                 {
                     enemiesAlive++;
+                    if (e.IsBoss)
+                    {
+                        bossesAlive++;
+                    }
                 }
             }
 
@@ -828,8 +841,14 @@ namespace Game.Core
             {
                 DungeonPhase = DungeonPhase.Defeat;
             }
-            else if (enemiesAlive == 0)
+            else if (roomHasBoss ? bossesAlive == 0 : enemiesAlive == 0)
             {
+                if (enemiesAlive > 0)
+                {
+                    entities.RemoveAll(e => !e.Owner.IsValid);
+                    pendingAttacks.Clear();
+                }
+
                 if (room + 1 >= dungeon.Rooms.Length)
                 {
                     DungeonPhase = DungeonPhase.Victory;
@@ -876,10 +895,28 @@ namespace Game.Core
                 return;
             }
 
+            if (def.LeashRange > 0f && !npc.Leashing && (npc.Position - npc.Home).Length > def.LeashRange)
+            {
+                npc.Leashing = true;
+                npc.Threat.Clear();
+                npc.ForcedSeconds = 0f;
+            }
+
+            if (npc.Leashing)
+            {
+                ReturnHome(npc);
+                return;
+            }
+
             var target = PickTarget(npc, def.AggroRange);
             if (target == null)
             {
                 return;
+            }
+
+            if (npc.Pack != 0)
+            {
+                CallPack(npc, target);
             }
 
             var offset = target.Position - npc.Position;
@@ -913,6 +950,36 @@ namespace Game.Core
             {
                 var speed = npc.Stats.MoveSpeed * (phase != null ? phase.SpeedScale : 1f);
                 npc.Position = Movement.Step(npc.Position, direction, speed, config.Simulation);
+            }
+        }
+
+        void ReturnHome(Entity npc)
+        {
+            var offset = npc.Home - npc.Position;
+            var distance = offset.Length;
+            if (distance <= LeashArrival)
+            {
+                npc.Position = npc.Home;
+                npc.Health = npc.Stats.MaxHealth;
+                npc.Threat.Clear();
+                npc.Leashing = false;
+                return;
+            }
+
+            var direction = offset * (1f / distance);
+            npc.Facing = direction;
+            npc.Position = Movement.Step(npc.Position, direction, npc.Stats.MoveSpeed * LeashSpeedScale, config.Simulation);
+        }
+
+        void CallPack(Entity caller, Entity target)
+        {
+            for (var i = 0; i < entities.Count; i++)
+            {
+                var other = entities[i];
+                if (other != caller && other.Pack == caller.Pack && !other.Owner.IsValid && other.IsAlive && !other.Leashing && other.Threat.Count == 0)
+                {
+                    other.AddThreat(target.Id, PackCallThreat);
+                }
             }
         }
 

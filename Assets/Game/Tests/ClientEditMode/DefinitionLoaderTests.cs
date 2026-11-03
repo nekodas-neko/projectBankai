@@ -25,15 +25,40 @@ namespace Game.Client.Tests
         }
 
         [Test]
-        public void TheSlimeCaveLoadsWithThreeRoomsEndingInTheBoss()
+        public void TheSlimeCaveLoadsWithThreeSectionsEachEndingInABoss()
         {
             DefinitionLoader.Load(out _, out _, out var dungeons);
 
             Assert.IsTrue(dungeons.TryGet("slime_cave", out var cave));
             Assert.AreEqual(3, cave.Rooms.Length);
-            Assert.AreEqual(3, cave.Rooms[0].Spawns.Length);
-            Assert.AreEqual(5, cave.Rooms[1].Spawns.Length);
-            Assert.AreEqual("slime_boss", cave.Rooms[2].Spawns[0].Class);
+
+            var bosses = new[] { "mushroom_warden", "brood_mother", "slime_boss" };
+            for (var i = 0; i < cave.Rooms.Length; i++)
+            {
+                var bossSpawns = System.Array.FindAll(cave.Rooms[i].Spawns, spawn => spawn.Boss);
+                Assert.AreEqual(1, bossSpawns.Length, $"section {i + 1} has one boss");
+                Assert.AreEqual(bosses[i], bossSpawns[0].Class);
+                Assert.Greater(cave.Rooms[i].Spawns.Length, 1, $"section {i + 1} has trash as well");
+            }
+        }
+
+        [Test]
+        public void TheSlimeCavePacksAreNumberedAndTheBossesLeadTheirSections()
+        {
+            DefinitionLoader.Load(out _, out _, out var dungeons);
+
+            var cave = dungeons.Get("slime_cave");
+            var packed = 0;
+            foreach (var room in cave.Rooms)
+            {
+                foreach (var spawn in room.Spawns)
+                {
+                    packed += spawn.Pack > 0 ? 1 : 0;
+                    Assert.IsFalse(spawn.Boss && spawn.Pack != 0, "bosses are not part of a pack");
+                }
+            }
+
+            Assert.Greater(packed, 0);
         }
 
         [Test]

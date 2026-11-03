@@ -52,6 +52,8 @@ On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus
 
 A dungeon is one `DungeonAsset` (**Assets > Create > Game > Dungeon**, in `Assets/Game/Data/Resources/Definitions`). Add a room to **Rooms**, then add spawns: a class (not a player class), a position inside the arena (radius 20) and an optional skin id such as `slime_green`. Rooms run in order. The loader checks that every room has enemies and every class exists. The arena loads the dungeon named in `ArenaBootstrap` (`slime_cave`); a dungeon picker comes with the hub.
 
+On a spawn, tick **Boss** to make it a section boss: the section is cleared when every boss is dead, trash does not have to die, and whatever is left disappears when the last boss falls. A section with no boss spawn is cleared when all enemies are dead. Give spawns the same **Pack** number (1, 2, ...) to make a group that pulls together: when one of them aggros, the rest chase the same target. Pack 0 means alone. On the class asset, **Leash Range** (larger than the aggro range, 0 means none) makes a mob that is dragged that far from where it stood give up, walk home and heal to full. Keep bosses at 0.
+
 Between rooms everyone is fully restored. That is a tuning choice, not a rule; changing it means editing `BeginRoom` in `GameServer`.
 
 ## Worked example: add a class

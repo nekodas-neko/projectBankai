@@ -17,33 +17,106 @@ MonoBehaviour:
   - name: Slime pit
     spawns:
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: 0, y: 8}
+      position: {x: -8, y: 8}
       skin: slime_green
+      boss: 0
+      pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: -8, y: 4}
+      position: {x: -6, y: 10}
       skin: slime_green
+      boss: 0
+      pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: 7, y: -2}
+      position: {x: -10, y: 10}
       skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 8, y: 8}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 6, y: 11}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 16021f0fd9f50d849a3dd5a8554483ed, type: 2}
+      position: {x: 0, y: 17}
+      skin: monster_mushroom
+      boss: 1
+      pack: 0
   - name: The swarm
     spawns:
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: 0, y: 10}
+      position: {x: -10, y: 6}
       skin: slime_green
+      boss: 0
+      pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: -8, y: 7}
+      position: {x: -8, y: 8}
       skin: slime_green
+      boss: 0
+      pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: 8, y: 7}
+      position: {x: -12, y: 8}
       skin: slime_green
+      boss: 0
+      pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: -10, y: -1}
+      position: {x: 10, y: 6}
       skin: slime_green
+      boss: 0
+      pack: 2
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
-      position: {x: 10, y: -1}
+      position: {x: 8, y: 8}
       skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 12, y: 8}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 0, y: 11}
+      skin: slime_green
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 2, y: 13}
+      skin: slime_green
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 88b56a55d2af4ac48b305bba26764e5b, type: 2}
+      position: {x: 0, y: 17}
+      skin: monster_cthulhu
+      boss: 1
+      pack: 0
   - name: King's hall
     spawns:
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -6, y: 9}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -8, y: 11}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 6, y: 9}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 8, y: 11}
+      skin: slime_green
+      boss: 0
+      pack: 2
     - spawnClass: {fileID: 11400000, guid: 79a2fa87f87823c4ababaf5cb56d227f, type: 2}
-      position: {x: 0, y: 15}
+      position: {x: 0, y: 16}
       skin: boss_greendemon
+      boss: 1
+      pack: 0

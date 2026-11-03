@@ -28,6 +28,7 @@ namespace Game.Client
         [Min(0f)] public float aggroRange;
         [Min(0f)] public float threatMultiplier = 1f;
         [Min(0f)] public float bodyRadius;
+        [Min(0f)] public float leashRange;
         public PhaseData[] phases = new PhaseData[0];
         public bool hasResource;
         public string resourceId = "";
@@ -51,6 +52,7 @@ namespace Game.Client
                 AggroRange = aggroRange,
                 ThreatMultiplier = threatMultiplier,
                 BodyRadius = bodyRadius,
+                LeashRange = leashRange,
                 Phases = phases.Select(phase => new PhaseDef
                 {
                     HealthBelow = phase.healthBelow,
