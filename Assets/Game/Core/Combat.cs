@@ -25,6 +25,18 @@ namespace Game.Core
 
         public void Use(Entity user, int slot, Vec2 aim)
         {
+            UseAt(user, slot, aim, false, default);
+        }
+
+        // An enemy mechanic: an ability whose area is centred on a point on the ground (where a player stands), not on the caster.
+        public void UseAtPoint(Entity user, int slot, Vec2 point)
+        {
+            var offset = point - user.Position;
+            UseAt(user, slot, offset.SqrLength > 1e-6f ? offset.Normalized : user.Facing, true, point);
+        }
+
+        void UseAt(Entity user, int slot, Vec2 aim, bool grounded, Vec2 point)
+        {
             if (slot < 0 || slot >= Entity.AbilitySlots || user.Cooldowns[slot] > 0f)
             {
                 return;
@@ -64,7 +76,7 @@ namespace Game.Core
                     break;
                 default:
                     user.Facing = direction;
-                    Strike(user, ability, slot, direction, variantId);
+                    Strike(user, ability, slot, direction, variantId, grounded && ability.AtTarget ? point : user.Position);
                     break;
             }
         }
@@ -155,19 +167,24 @@ namespace Game.Core
             return target != null ? (target.Position - user.Position).Normalized : facing;
         }
 
-        void Strike(Entity user, AbilityDef ability, int slot, Vec2 direction, int variantId)
+        void Strike(Entity user, AbilityDef ability, int slot, Vec2 direction, int variantId, Vec2 origin)
         {
             if (ability.Windup <= 0f)
             {
-                ResolveAttack(user, user.Position, direction, ability, slot, variantId);
+                ResolveAttack(user, origin, direction, ability, slot, variantId);
                 return;
             }
 
-            user.Winding = ability.Windup;
+            // A ground circle does not hold its caster still: the boss keeps fighting while it winds up.
+            if (!ability.AtTarget)
+            {
+                user.Winding = ability.Windup;
+            }
+
             pendingAttacks.Add(new PendingAttack
             {
                 User = user.Id,
-                Origin = user.Position,
+                Origin = origin,
                 Direction = direction,
                 Ability = ability,
                 Slot = slot,
@@ -391,7 +408,7 @@ namespace Game.Core
             var offset = attacker.Position - dodger.Position;
             var direction = offset.SqrLength > 1e-6f ? offset.Normalized : dodger.Facing;
             world.Uses.Add(new UseEvent { User = dodger.Id, Slot = (byte)Entity.DefenseSlot, Ability = StableId.From(rider.Id), Direction = direction });
-            Strike(dodger, rider, Entity.DefenseSlot, direction, 0);
+            Strike(dodger, rider, Entity.DefenseSlot, direction, 0, dodger.Position);
         }
 
         // The ultimate never charges itself: hits made by the ultimate slot are ignored (slot -1 means "not a hit of mine").

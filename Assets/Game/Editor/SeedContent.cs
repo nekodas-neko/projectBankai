@@ -51,6 +51,8 @@ namespace Game.Editor
             var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 12f);
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
             var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 20f);
+            var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3f, damage: 18f);
+            Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.6f; a.avoidable = false; a.atTarget = true; });
             var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 14f);
             Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
@@ -129,6 +131,21 @@ namespace Game.Editor
                     new PhaseData { healthBelow = 0.65f, attacks = new[] { kingWave, kingSmash, slam }, spawnClass = slime, spawnCount = 2, spawnSkin = "slime_green" },
                     new PhaseData { healthBelow = 0.3f, attacks = new[] { kingSmash, kingWave, slam }, speedScale = 1.5f, spawnClass = slime, spawnCount = 3, spawnSkin = "slime_green" },
                 };
+            });
+            Tune("slime_boss", c => c.skills.Length < 3 && c.phases.Length >= 3 && c.phases[1].mechanics.Length == 0, c =>
+            {
+                c.skills = new[] { c.skills[0], c.skills[1], slimeBomb };
+                c.phases[1].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 7f, firstDelaySeconds = 3f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[2].mechanics = new[]
+                {
+                    new MechanicData { ability = slimeBomb, intervalSeconds = 5f, firstDelaySeconds = 2f, target = MechanicTarget.Farthest, count = 1 },
+                    new MechanicData { ability = slimeBomb, intervalSeconds = 8f, firstDelaySeconds = 4f, target = MechanicTarget.Random, count = 1 },
+                };
+            });
+            Tune("brood_mother", c => c.skills.Length < 2 && c.phases.Length >= 2 && c.phases[1].mechanics.Length == 0, c =>
+            {
+                c.skills = new[] { c.skills[0], slimeBomb };
+                c.phases[1].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 8f, firstDelaySeconds = 3f, target = MechanicTarget.NotTopThreat, count = 1 } };
             });
             Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
@@ -209,6 +226,7 @@ namespace Game.Editor
             Link("king_slam", slime, hitSlime);
             Link("king_smash", slime, hitSlime);
             Link("king_wave", slime, hitSlime);
+            Link("slime_bomb", slime, hitSlime);
             Link("bulwark_crash", shield, hitSpark);
             Link("meteor_fall", fire, hitFire);
             Link("radiant_burst", pulse, hitHoly);

@@ -74,6 +74,7 @@ namespace Game.Core
         public float Taunt { get; set; }
         public string Rider { get; set; }
         public bool Avoidable { get; set; } = true;
+        public bool AtTarget { get; set; }
         public float ChargeRequired { get; set; }
         public float ChargeFromDealt { get; set; }
         public float ChargeFromTaken { get; set; }
@@ -92,6 +93,24 @@ namespace Game.Core
         public float GainBlocked { get; set; }
     }
 
+    public enum MechanicTarget : byte
+    {
+        Random = 0,
+        Farthest = 1,
+        NotTopThreat = 2,
+    }
+
+    // Something a boss does on a timer while a phase lasts, on top of its normal attacks: for example drop a
+    // ground circle on the player who is farthest from it, so ranged players have to keep moving.
+    public sealed class MechanicDef
+    {
+        public string Ability { get; set; }
+        public float IntervalSeconds { get; set; } = 6f;
+        public float FirstDelaySeconds { get; set; } = 3f;
+        public MechanicTarget Target { get; set; }
+        public int Count { get; set; } = 1;
+    }
+
     public sealed class PhaseDef
     {
         public float HealthBelow { get; set; } = 1f;
@@ -100,6 +119,7 @@ namespace Game.Core
         public string SpawnClass { get; set; }
         public int SpawnCount { get; set; }
         public string SpawnSkin { get; set; }
+        public MechanicDef[] Mechanics { get; set; } = Array.Empty<MechanicDef>();
     }
 
     public sealed class SpawnDef

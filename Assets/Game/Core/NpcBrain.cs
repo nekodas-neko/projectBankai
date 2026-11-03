@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Game.Core
 {
@@ -14,14 +15,18 @@ namespace Game.Core
         readonly AbilityBook book;
         readonly World world;
         readonly Combat combat;
+        readonly IRandom random;
+        readonly List<Entity> candidates = new List<Entity>();
+        readonly List<EntityId> chosen = new List<EntityId>();
 
-        public NpcBrain(ServerConfig config, Registry<ClassDef> classes, AbilityBook book, World world, Combat combat)
+        public NpcBrain(ServerConfig config, Registry<ClassDef> classes, AbilityBook book, World world, Combat combat, IRandom random)
         {
             this.config = config;
             this.classes = classes;
             this.book = book;
             this.world = world;
             this.combat = combat;
+            this.random = random;
         }
 
         public void Run(Entity npc)
@@ -34,6 +39,10 @@ namespace Game.Core
             if (def.Phases.Length > 0)
             {
                 EnterPhases(npc, def);
+                if (IsEngaged(npc, def))
+                {
+                    StepMechanics(npc, def);
+                }
             }
 
             if (npc.Winding > 0f)
@@ -175,7 +184,133 @@ namespace Game.Core
             while (npc.Phase < reached)
             {
                 npc.Phase++;
+                ResetMechanics(npc, def.Phases[npc.Phase]);
                 SpawnPhaseMinions(npc, def.Phases[npc.Phase]);
+            }
+        }
+
+        // A boss works its mechanics only once it is in a fight: someone is on its threat list or inside its aggro range.
+        bool IsEngaged(Entity npc, ClassDef def)
+        {
+            return npc.Threat.Count > 0 || world.NearestHostile(npc, def.AggroRange) != null;
+        }
+
+        static EntityId TopThreatId(Entity npc)
+        {
+            var best = default(EntityId);
+            var amount = 0f;
+            for (var i = 0; i < npc.Threat.Count; i++)
+            {
+                if (npc.Threat[i].Amount > amount)
+                {
+                    amount = npc.Threat[i].Amount;
+                    best = npc.Threat[i].Source;
+                }
+            }
+
+            return best;
+        }
+
+        static void ResetMechanics(Entity npc, PhaseDef phase)
+        {
+            for (var i = 0; i < Entity.MaxMechanics; i++)
+            {
+                npc.MechanicTimers[i] = i < phase.Mechanics.Length ? phase.Mechanics[i].FirstDelaySeconds : 0f;
+            }
+        }
+
+        void StepMechanics(Entity npc, ClassDef def)
+        {
+            if (npc.Phase < 0 || npc.Phase >= def.Phases.Length)
+            {
+                return;
+            }
+
+            var mechanics = def.Phases[npc.Phase].Mechanics;
+            var dt = config.Simulation.TickSeconds;
+            for (var i = 0; i < mechanics.Length && i < Entity.MaxMechanics; i++)
+            {
+                npc.MechanicTimers[i] -= dt;
+                if (npc.MechanicTimers[i] > 0f)
+                {
+                    continue;
+                }
+
+                npc.MechanicTimers[i] = mechanics[i].IntervalSeconds;
+                Fire(npc, mechanics[i]);
+            }
+        }
+
+        void Fire(Entity npc, MechanicDef mechanic)
+        {
+            var slot = npc.SlotOf(mechanic.Ability);
+            if (slot < 0)
+            {
+                return;
+            }
+
+            chosen.Clear();
+            for (var i = 0; i < mechanic.Count; i++)
+            {
+                var target = PickMechanicTarget(npc, mechanic.Target);
+                if (target == null)
+                {
+                    break;
+                }
+
+                chosen.Add(target.Id);
+                npc.Cooldowns[slot] = 0f;
+                combat.UseAtPoint(npc, slot, target.Position);
+            }
+        }
+
+        // The players the mechanic can land on, not counting anyone it already picked in this cast (unless there is nobody else).
+        Entity PickMechanicTarget(Entity npc, MechanicTarget rule)
+        {
+            candidates.Clear();
+            var entities = world.Entities;
+            for (var i = 0; i < entities.Count; i++)
+            {
+                var other = entities[i];
+                if (other.Owner.IsValid && other.IsAlive && Entity.AreHostile(npc, other) && !chosen.Contains(other.Id))
+                {
+                    candidates.Add(other);
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            switch (rule)
+            {
+                case MechanicTarget.Farthest:
+                    var farthest = candidates[0];
+                    var best = -1f;
+                    for (var i = 0; i < candidates.Count; i++)
+                    {
+                        var distance = (candidates[i].Position - npc.Position).SqrLength;
+                        if (distance > best)
+                        {
+                            best = distance;
+                            farthest = candidates[i];
+                        }
+                    }
+
+                    return farthest;
+                case MechanicTarget.NotTopThreat:
+                    for (var i = candidates.Count - 1; i >= 0; i--)
+                    {
+                        if (candidates[i].Id == TopThreatId(npc) && candidates.Count > 1)
+                        {
+                            candidates.RemoveAt(i);
+                        }
+                    }
+
+                    return candidates[(int)(random.NextFloat() * candidates.Count) % candidates.Count];
+                default:
+                    return candidates[(int)(random.NextFloat() * candidates.Count) % candidates.Count];
             }
         }
 

@@ -223,6 +223,25 @@ namespace Game.Core
                     }
                 }
 
+                if (phase.Mechanics.Length > Entity.MaxMechanics)
+                {
+                    errors.Add($"Class '{def.Id}': phase {i} has {phase.Mechanics.Length} mechanics, the limit is {Entity.MaxMechanics}");
+                }
+
+                foreach (var mechanic in phase.Mechanics)
+                {
+                    var owned = mechanic.Ability == def.AutoAttack || System.Array.IndexOf(def.Skills, mechanic.Ability) >= 0;
+                    if (!owned || !abilities.TryGet(mechanic.Ability, out _))
+                    {
+                        errors.Add($"Class '{def.Id}': phase {i} mechanic uses '{mechanic.Ability}', which is not one of its attacks");
+                    }
+
+                    if (mechanic.IntervalSeconds <= 0f || mechanic.FirstDelaySeconds < 0f || mechanic.Count < 1 || mechanic.Count > 4)
+                    {
+                        errors.Add($"Class '{def.Id}': phase {i} mechanic '{mechanic.Ability}' needs a positive interval, a non-negative first delay and a count of 1 to 4");
+                    }
+                }
+
                 if (phase.SpawnCount > 0 && !classes.TryGet(phase.SpawnClass, out _))
                 {
                     errors.Add($"Class '{def.Id}': phase {i} spawns unknown class '{phase.SpawnClass}'");
