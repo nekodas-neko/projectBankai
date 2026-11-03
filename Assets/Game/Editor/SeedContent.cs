@@ -209,6 +209,17 @@ namespace Game.Editor
                 c.phases[0].mechanics = new[] { new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 12f, target = MechanicTarget.Random, count = 1 } };
                 c.phases[1].mechanics = new[] { c.phases[1].mechanics[0], new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 14f, target = MechanicTarget.Random, count = 1 } };
             });
+            // The king's own cast: a long charge-up cone. Catch it with a shield bash or a fireball and he is staggered; otherwise block or leave the cone.
+            var kingCleave = Ability("king_cleave", cooldown: 15f, range: 9f, radius: 0f, damage: 24f);
+            Tune(kingCleave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 2f; a.interruptible = true; });
+            Tune("slime_boss", c => c.skills.Contains(kingWave) && !c.skills.Contains(kingCleave), c =>
+            {
+                c.skills = c.skills.Select(skill => skill == kingWave ? kingCleave : skill).ToArray();
+                foreach (var phase in c.phases)
+                {
+                    phase.attacks = phase.attacks.Select(attack => attack == kingWave ? kingCleave : attack).ToArray();
+                }
+            });
             Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("staff", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
@@ -288,6 +299,7 @@ namespace Game.Editor
             Link("king_slam", slime, hitSlime);
             Link("king_smash", slime, hitSlime);
             Link("king_wave", slime, hitSlime);
+            Link("king_cleave", slime, hitSlime);
             Link("slime_bomb", slime, hitSlime);
             Link("slime_spit", slime, hitSlime);
             Link("devour", holy, hitHoly);
