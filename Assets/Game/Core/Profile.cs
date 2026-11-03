@@ -133,8 +133,14 @@ namespace Game.Core
         // Kills train the weapon type in hand. Returns the levels gained.
         public int AddKillXp(MasteryRules rules, bool boss)
         {
+            return AddXp(rules, rules.XpForKill(boss));
+        }
+
+        // Trains the weapon type in hand by an amount (a kill's reward). Returns the levels gained.
+        public int AddXp(MasteryRules rules, int xp)
+        {
             var type = EquippedType;
-            return type.Length == 0 ? 0 : MasteryFor(type).AddXp(rules, rules.XpForKill(boss));
+            return type.Length == 0 || xp <= 0 ? 0 : MasteryFor(type).AddXp(rules, xp);
         }
     }
 

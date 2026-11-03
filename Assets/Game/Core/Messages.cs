@@ -59,6 +59,9 @@ namespace Game.Core
         // The distance (in quarter units, so up to 63.75) at which this enemy notices a player; 0 for anything that never aggro.
         public byte AggroQuarters;
 
+        // StableId of the class definition (the weapon for a player, the mob or boss for an enemy), so a client can look up what it is worth.
+        public int ClassHash;
+
         public float AggroRange => AggroQuarters * 0.25f;
 
         public float GetCooldown(int slot)

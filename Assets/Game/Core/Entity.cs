@@ -57,6 +57,7 @@ namespace Game.Core
         public Team Team;
         public int Appearance;
         public string ClassId;
+        public int ClassHash;
         public Vec2 Position;
         public Vec2 Facing;
         public Stats Stats;
@@ -113,6 +114,7 @@ namespace Game.Core
                 Team = team,
                 Appearance = appearance,
                 ClassId = def.Id,
+                ClassHash = StableId.From(def.Id),
                 Position = position,
                 Home = position,
                 Facing = new Vec2(0f, 1f),
