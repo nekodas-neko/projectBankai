@@ -5,6 +5,37 @@ using UnityEngine;
 
 namespace Game.Client
 {
+    public static class ClassCatalog
+    {
+        static Dictionary<string, ClassAsset> byId;
+
+        public static string DisplayName(string classId)
+        {
+            Ensure();
+            return byId.TryGetValue(classId, out var asset) ? asset.DisplayLabel : classId;
+        }
+
+        public static string SkinPrefix(string classId)
+        {
+            Ensure();
+            return byId.TryGetValue(classId, out var asset) ? asset.SkinPrefix : classId;
+        }
+
+        static void Ensure()
+        {
+            if (byId != null)
+            {
+                return;
+            }
+
+            byId = new Dictionary<string, ClassAsset>();
+            foreach (var asset in Resources.LoadAll<ClassAsset>(DefinitionAsset.ResourcesFolder))
+            {
+                byId[asset.Id] = asset;
+            }
+        }
+    }
+
     public static class SkinCatalog
     {
         public const string DefaultSkin = "default";
@@ -24,10 +55,11 @@ namespace Game.Client
         public static IReadOnlyList<SkinAsset> ForClass(string classId)
         {
             Ensure();
+            var prefix = ClassCatalog.SkinPrefix(classId) + "_";
             var result = new List<SkinAsset>();
             for (var i = 0; i < playable.Count; i++)
             {
-                if (playable[i].name.StartsWith(classId + "_", System.StringComparison.Ordinal))
+                if (playable[i].name.StartsWith(prefix, System.StringComparison.Ordinal))
                 {
                     result.Add(playable[i]);
                 }

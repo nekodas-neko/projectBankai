@@ -29,6 +29,8 @@ namespace Game.Client
         [Min(0f)] public float threatMultiplier = 1f;
         [Min(0f)] public float bodyRadius;
         [Min(0f)] public float leashRange;
+        public string displayName = "";
+        public string skinPrefix = "";
         public PhaseData[] phases = new PhaseData[0];
         public bool hasResource;
         public string resourceId = "";
@@ -38,6 +40,11 @@ namespace Game.Client
         [Min(0f)] public float resourceGainDealt;
         [Min(0f)] public float resourceGainTaken;
         [Min(0f)] public float resourceGainBlocked;
+
+        // What the player sees ("Healing mace"), and which skins belong to this weapon (skin assets are named <prefix>_<skin>).
+        public string DisplayLabel => string.IsNullOrEmpty(displayName) ? Id : displayName;
+
+        public string SkinPrefix => string.IsNullOrEmpty(skinPrefix) ? Id : skinPrefix;
 
         public ClassDef ToDefinition()
         {

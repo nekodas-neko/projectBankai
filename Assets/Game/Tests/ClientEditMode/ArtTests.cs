@@ -12,7 +12,7 @@ namespace Game.Client.Tests
         [Test]
         public void EveryClassDefaultsToARiggedCharacter()
         {
-            foreach (var id in new[] { "tank", "healer", "mage" })
+            foreach (var id in new[] { "sword_and_shield", "healing_mace", "staff" })
             {
                 var skins = SkinCatalog.ForClass(id);
                 Assert.Greater(skins.Count, 0, id);

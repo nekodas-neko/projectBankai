@@ -10,25 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
-  m_Name: tank
+  m_Name: healing_mace
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
-  role: 1
-  maxHealth: 180
-  moveSpeed: 5
+  role: 3
+  maxHealth: 100
+  moveSpeed: 6
   power: 1
-  autoAttack: {fileID: 11400000, guid: ac1e1a724b1688749bb6e8de5cafe0bf, type: 2}
+  autoAttack: {fileID: 11400000, guid: 48571fde32c853145bc655a41335133b, type: 2}
   skills:
-  - {fileID: 11400000, guid: 7aa853d5eb6f8c14f9d4d526ac238a3e, type: 2}
-  defense: {fileID: 11400000, guid: 1f489b8572b7f78488fa2bd7702f141e, type: 2}
+  - {fileID: 11400000, guid: 971c79afea78ac549a4a289aac689271, type: 2}
+  defense: {fileID: 11400000, guid: 6ff79eb3868adf3478639e90e51e3b2b, type: 2}
   aggroRange: 0
-  threatMultiplier: 3
+  threatMultiplier: 1
   bodyRadius: 0.5
+  displayName: Healing mace
+  skinPrefix: healer
   phases: []
   hasResource: 1
-  resourceId: rage
+  resourceId: mana
   resourceMax: 100
-  resourceStart: 0
-  resourceRegen: -2
-  resourceGainDealt: 0.4
-  resourceGainTaken: 0.6
-  resourceGainBlocked: 1.2
+  resourceStart: 100
+  resourceRegen: 4
+  resourceGainDealt: 0
+  resourceGainTaken: 0
+  resourceGainBlocked: 0.6

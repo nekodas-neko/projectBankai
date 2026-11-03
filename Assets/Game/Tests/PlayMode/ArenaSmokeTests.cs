@@ -25,14 +25,14 @@ namespace Game.PlayMode.Tests
         [UnityTest]
         public IEnumerator Skin_ChosenForTheClassIsWhatThePlayerWears()
         {
-            HudSettings.ClassName = "mage";
-            HudSettings.SetSkin("mage", "mage_crimson");
+            HudSettings.ClassName = "staff";
+            HudSettings.SetSkin("staff", "mage_crimson");
             SceneManager.LoadScene("Arena");
             yield return new WaitForSeconds(0.6f);
             var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
 
             Assert.IsTrue(bootstrap.Views.TryGetBodyMaterial(bootstrap.LocalClient.LocalEntity, out var material));
-            HudSettings.SetSkin("mage", "mage_arcane");
+            HudSettings.SetSkin("staff", "mage_arcane");
 
             Assert.AreEqual("mage_crimson_body", material.name);
         }
@@ -40,7 +40,7 @@ namespace Game.PlayMode.Tests
         [UnityTest]
         public IEnumerator UsingASkill_PlaysItsCastEffect()
         {
-            HudSettings.ClassName = "mage";
+            HudSettings.ClassName = "staff";
             SceneManager.LoadScene("Arena");
             yield return new WaitForSeconds(0.5f);
             var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
@@ -56,7 +56,7 @@ namespace Game.PlayMode.Tests
         public IEnumerator DefendButton_DodgesAndTheResourceShows()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
-            HudSettings.ClassName = "mage";
+            HudSettings.ClassName = "staff";
             SceneManager.LoadScene("Arena");
             yield return new WaitForSeconds(0.5f);
             var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
@@ -75,7 +75,7 @@ namespace Game.PlayMode.Tests
         public IEnumerator Dungeon_ShowsTheRoomAdvancesAndOffersARestartAfterADefeat()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
-            HudSettings.ClassName = "mage";
+            HudSettings.ClassName = "staff";
             SceneManager.LoadScene("Arena");
             yield return new WaitForSeconds(0.6f);
             var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
@@ -113,8 +113,8 @@ namespace Game.PlayMode.Tests
         public IEnumerator Style_PicksTheVariantsTheServerUses()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
-            HudSettings.ClassName = "mage";
-            HudSettings.SetStyle("mage", 1);
+            HudSettings.ClassName = "staff";
+            HudSettings.SetStyle("staff", 1);
             try
             {
                 SceneManager.LoadScene("Arena");
@@ -127,7 +127,7 @@ namespace Game.PlayMode.Tests
             }
             finally
             {
-                HudSettings.SetStyle("mage", 0);
+                HudSettings.SetStyle("staff", 0);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Game.PlayMode.Tests
         public IEnumerator HostMode_AcceptsAJoiningPlayerOverTheNetwork()
         {
             HudSettings.SessionMode = (int)SessionMode.Host;
-            HudSettings.ClassName = "mage";
+            HudSettings.ClassName = "staff";
             UdpClientTransport joiner = null;
             try
             {
@@ -145,7 +145,7 @@ namespace Game.PlayMode.Tests
                 Assert.IsNotNull(bootstrap.Host);
 
                 DefinitionLoader.Load(out var classes, out _);
-                joiner = new UdpClientTransport(new IPEndPoint(IPAddress.Loopback, bootstrap.Host.Port), "tank", 0, "Tester");
+                joiner = new UdpClientTransport(new IPEndPoint(IPAddress.Loopback, bootstrap.Host.Port), "sword_and_shield", 0, "Tester");
                 GameClient client = null;
                 var waited = 0f;
                 while (waited < 4f && (bootstrap.Views.Count < 2 + FirstRoomEnemies() || client == null || !client.HasLocalEntity))
@@ -153,7 +153,7 @@ namespace Game.PlayMode.Tests
                     joiner.Update(Time.deltaTime);
                     if (client == null && joiner.State == ConnectionState.Connected)
                     {
-                        client = new GameClient(joiner.PlayerId, joiner, classes.Get("tank"), new ClientConfig { Simulation = joiner.Simulation });
+                        client = new GameClient(joiner.PlayerId, joiner, classes.Get("sword_and_shield"), new ClientConfig { Simulation = joiner.Simulation });
                     }
 
                     client?.Update(Time.deltaTime);
