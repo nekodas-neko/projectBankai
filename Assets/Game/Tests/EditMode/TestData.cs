@@ -232,6 +232,14 @@ namespace Game.Core.Tests
             });
             registry.Add(new ClassDef
             {
+                Id = "lurcher",
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 3f, Power = 1f },
+                AutoAttack = "orange_slam",
+                AggroRange = 15f,
+                RecoverySeconds = 2f,
+            });
+            registry.Add(new ClassDef
+            {
                 Id = "dummy",
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 0f, Power = 1f },
             });

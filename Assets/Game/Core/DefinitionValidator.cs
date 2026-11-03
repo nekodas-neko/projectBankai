@@ -144,6 +144,11 @@ namespace Game.Core
                     errors.Add($"Class '{def.Id}': leash range must be 0 (none) or larger than the aggro range");
                 }
 
+                if (def.RecoverySeconds < 0f || def.RecoverySeconds > 10f)
+                {
+                    errors.Add($"Class '{def.Id}': recovery seconds must be between 0 and 10");
+                }
+
                 ValidateResource(def, abilities, errors);
                 ValidatePhases(def, classes, abilities, errors);
             }

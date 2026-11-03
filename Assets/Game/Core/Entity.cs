@@ -67,6 +67,7 @@ namespace Game.Core
         public float PerfectRemaining;
         public string PerfectRider;
         public float Winding;
+        public float Recovery;
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
         public float Radius;
@@ -141,6 +142,7 @@ namespace Game.Core
             DashSpeed = 0f;
             PerfectRemaining = 0f;
             Winding = 0f;
+            Recovery = 0f;
             DeadSeconds = 0f;
         }
 
@@ -383,6 +385,7 @@ namespace Game.Core
 
             PerfectRemaining = PerfectRemaining > dt ? PerfectRemaining - dt : 0f;
             Winding = Winding > dt ? Winding - dt : 0f;
+            Recovery = Recovery > dt ? Recovery - dt : 0f;
             ForcedSeconds = ForcedSeconds > dt ? ForcedSeconds - dt : 0f;
 
             if (ResourceSpec != null && ResourceSpec.Regen != 0f)

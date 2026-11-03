@@ -72,6 +72,10 @@ On the ability, tick **At Target** to make its area centre on the chosen player'
 
 The seeded `slime_bomb` (a red 3.8-unit ground circle, 0.8 s warning) is used by all three bosses on the farthest player from the first phase (the mushroom warden every 4.5 s, the brood mother every 7 s, the slime king every 10 s), and again later: the brood mother also drops one on someone other than its main target, and the slime king adds a faster one from 65% health and a random one from 30%. Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
 
+## Boss recovery: a pause after every attack
+
+A class has a **Recovery Seconds** field (0 by default). After one of its attacks starts, the enemy stays planted for the attack's windup plus this many seconds before it moves or attacks again. Timed mechanics (ground circles) keep running while it recovers. Bosses use it so they do not chase and swing without a break: there is a window to stand and hit, which is how an MMO boss feels. The tuning file can change it, for example `class.slime_boss.recoverySeconds = 1.5`.
+
 ## Red and orange attacks
 
 Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):

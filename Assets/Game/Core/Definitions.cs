@@ -173,6 +173,10 @@ namespace Game.Core
         public float ThreatMultiplier { get; set; } = 1f;
         public float BodyRadius { get; set; }
         public float LeashRange { get; set; }
+
+        // After an attack lands, the enemy stays planted this long before it moves or attacks again, so a boss does not
+        // chase and swing without a break. 0 keeps the old behaviour.
+        public float RecoverySeconds { get; set; }
         public PhaseDef[] Phases { get; set; } = Array.Empty<PhaseDef>();
     }
 

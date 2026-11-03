@@ -64,6 +64,11 @@ namespace Game.Core
                 return;
             }
 
+            if (npc.Recovery > 0f)
+            {
+                return;
+            }
+
             var target = PickTarget(npc, def.AggroRange);
             if (target == null)
             {
@@ -100,6 +105,7 @@ namespace Game.Core
                 if (npc.Cooldowns[slot] <= 0f && distance <= reach)
                 {
                     combat.Use(npc, slot, direction);
+                    npc.Recovery = def.RecoverySeconds > 0f ? attack.Windup + def.RecoverySeconds : 0f;
                     return;
                 }
             }
