@@ -129,6 +129,11 @@ namespace Game.Core
                     errors.Add($"Class '{def.Id}': aggro range needs an auto attack");
                 }
 
+                if (def.LeashRange < 0f || (def.LeashRange > 0f && def.LeashRange <= def.AggroRange))
+                {
+                    errors.Add($"Class '{def.Id}': leash range must be 0 (none) or larger than the aggro range");
+                }
+
                 ValidateResource(def, abilities, errors);
                 ValidatePhases(def, classes, abilities, errors);
             }
@@ -161,6 +166,11 @@ namespace Game.Core
 
                     foreach (var spawn in room.Spawns)
                     {
+                        if (spawn.Pack < 0)
+                        {
+                            errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} has a negative pack number");
+                        }
+
                         if (!classes.TryGet(spawn.Class, out var def))
                         {
                             errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} spawns unknown class '{spawn.Class}'");

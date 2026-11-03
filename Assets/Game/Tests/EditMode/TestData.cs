@@ -158,6 +158,15 @@ namespace Game.Core.Tests
             });
             registry.Add(new ClassDef
             {
+                Id = "grunt",
+                Role = Role.None,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 4f, Power = 1f },
+                AutoAttack = "basic",
+                AggroRange = 8f,
+                LeashRange = 14f,
+            });
+            registry.Add(new ClassDef
+            {
                 Id = "dummy",
                 Role = Role.None,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 0f, Power = 1f },

@@ -65,6 +65,10 @@ namespace Game.Core
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
         public float Radius;
+        public Vec2 Home;
+        public int Pack;
+        public bool IsBoss;
+        public bool Leashing;
         public int Phase = -1;
         public EntityId ForcedTarget;
         public float ForcedSeconds;
@@ -92,6 +96,7 @@ namespace Game.Core
                 ClassId = def.Id,
                 Role = def.Role,
                 Position = position,
+                Home = position,
                 Facing = new Vec2(0f, 1f),
                 Stats = def.Stats,
                 Health = def.Stats.MaxHealth,
@@ -121,6 +126,7 @@ namespace Game.Core
             Threat.Clear();
             ForcedSeconds = 0f;
             Phase = -1;
+            Leashing = false;
             System.Array.Clear(Cooldowns, 0, Cooldowns.Length);
             DashSpeed = 0f;
             PerfectRemaining = 0f;

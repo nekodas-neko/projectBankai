@@ -11,6 +11,8 @@ namespace Game.Client
         public ClassAsset spawnClass;
         public Vector2 position;
         public string skin = "";
+        public bool boss;
+        [Min(0)] public int pack;
     }
 
     [Serializable]
@@ -41,6 +43,8 @@ namespace Game.Client
                         X = spawn.position.x,
                         Y = spawn.position.y,
                         Skin = spawn.skin,
+                        Boss = spawn.boss,
+                        Pack = spawn.pack,
                     }).ToArray(),
                 }).ToArray(),
             };

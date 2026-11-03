@@ -110,6 +110,8 @@ namespace Game.Core
         public float X { get; set; }
         public float Y { get; set; }
         public string Skin { get; set; }
+        public bool Boss { get; set; }
+        public int Pack { get; set; }
     }
 
     public sealed class RoomDef
@@ -148,6 +150,7 @@ namespace Game.Core
         public float AggroRange { get; set; }
         public float ThreatMultiplier { get; set; } = 1f;
         public float BodyRadius { get; set; }
+        public float LeashRange { get; set; }
         public PhaseDef[] Phases { get; set; } = Array.Empty<PhaseDef>();
     }
 

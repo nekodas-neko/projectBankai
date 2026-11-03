@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using Game.Client;
 using Game.Core;
 using UnityEditor;
@@ -69,6 +70,8 @@ namespace Game.Editor
             Class("mage", Role.Dps, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", Role.None, 60f, 0f, 1f, slimeSlam);
             Class("slime_boss", Role.None, 800f, 0f, 1f, slimeSlam);
+            Class("mushroom_warden", Role.None, 320f, 0f, 1f, slimeSlam);
+            Class("brood_mother", Role.None, 520f, 0f, 1f, kingSlam);
 
             Tune("tank", c => c.defense == null, c =>
             {
@@ -123,6 +126,29 @@ namespace Game.Editor
             Tune("slime_boss", c => c.bodyRadius <= 0f, c => c.bodyRadius = 1.8f);
             Tune("slime", c => c.aggroRange <= 0f, c => { c.aggroRange = 12f; c.moveSpeed = 2.8f; });
             Tune("slime_boss", c => c.aggroRange <= 0f, c => { c.aggroRange = 22f; c.moveSpeed = 2.2f; });
+            Tune("slime", c => c.leashRange <= 0f, c => { c.aggroRange = 9f; c.leashRange = 18f; });
+            Tune("slime_boss", c => c.aggroRange > 12f, c => c.aggroRange = 12f);
+            Tune("mushroom_warden", c => c.aggroRange <= 0f, c =>
+            {
+                c.aggroRange = 10f;
+                c.moveSpeed = 2.6f;
+                c.bodyRadius = 1.2f;
+                c.skills = new[] { kingSmash };
+                c.phases = new[] { new PhaseData { healthBelow = 1f, attacks = new[] { kingSmash, slimeSlam } } };
+            });
+            Tune("brood_mother", c => c.aggroRange <= 0f, c =>
+            {
+                var slime = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
+                c.aggroRange = 11f;
+                c.moveSpeed = 2.4f;
+                c.bodyRadius = 1.5f;
+                c.skills = new[] { kingWave };
+                c.phases = new[]
+                {
+                    new PhaseData { healthBelow = 1f, attacks = new[] { kingWave, kingSlam } },
+                    new PhaseData { healthBelow = 0.5f, attacks = new[] { kingWave, kingSlam }, speedScale = 1.3f, spawnClass = slime, spawnCount = 2, spawnSkin = "slime_green" },
+                };
+            });
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -194,14 +220,22 @@ namespace Game.Editor
         public static void SeedDungeon()
         {
             var path = $"{DefinitionsRoot}/slime_cave.asset";
-            if (AssetDatabase.LoadAssetAtPath<DungeonAsset>(path) != null)
+            var asset = AssetDatabase.LoadAssetAtPath<DungeonAsset>(path);
+            if (asset != null && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
             {
                 return;
             }
 
             var slime = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
-            var boss = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime_boss.asset");
-            var asset = ScriptableObject.CreateInstance<DungeonAsset>();
+            var warden = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/mushroom_warden.asset");
+            var mother = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/brood_mother.asset");
+            var king = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime_boss.asset");
+            var created = asset == null;
+            if (created)
+            {
+                asset = ScriptableObject.CreateInstance<DungeonAsset>();
+            }
+
             asset.clearDelaySeconds = 3f;
             asset.rooms = new[]
             {
@@ -210,9 +244,12 @@ namespace Game.Editor
                     name = "Slime pit",
                     spawns = new[]
                     {
-                        Spawn(slime, 0f, 8f, "slime_green"),
-                        Spawn(slime, -8f, 4f, "slime_green"),
-                        Spawn(slime, 7f, -2f, "slime_green"),
+                        Spawn(slime, -8f, 8f, "slime_green", pack: 1),
+                        Spawn(slime, -6f, 10f, "slime_green", pack: 1),
+                        Spawn(slime, -10f, 10f, "slime_green", pack: 1),
+                        Spawn(slime, 8f, 8f, "slime_green", pack: 2),
+                        Spawn(slime, 6f, 11f, "slime_green", pack: 2),
+                        Spawn(warden, 0f, 17f, "monster_mushroom", boss: true),
                     },
                 },
                 new RoomData
@@ -220,26 +257,45 @@ namespace Game.Editor
                     name = "The swarm",
                     spawns = new[]
                     {
-                        Spawn(slime, 0f, 10f, "slime_green"),
-                        Spawn(slime, -8f, 7f, "slime_green"),
-                        Spawn(slime, 8f, 7f, "slime_green"),
-                        Spawn(slime, -10f, -1f, "slime_green"),
-                        Spawn(slime, 10f, -1f, "slime_green"),
+                        Spawn(slime, -10f, 6f, "slime_green", pack: 1),
+                        Spawn(slime, -8f, 8f, "slime_green", pack: 1),
+                        Spawn(slime, -12f, 8f, "slime_green", pack: 1),
+                        Spawn(slime, 10f, 6f, "slime_green", pack: 2),
+                        Spawn(slime, 8f, 8f, "slime_green", pack: 2),
+                        Spawn(slime, 12f, 8f, "slime_green", pack: 2),
+                        Spawn(slime, 0f, 11f, "slime_green", pack: 3),
+                        Spawn(slime, 2f, 13f, "slime_green", pack: 3),
+                        Spawn(mother, 0f, 17f, "monster_cthulhu", boss: true),
                     },
                 },
                 new RoomData
                 {
                     name = "King's hall",
-                    spawns = new[] { Spawn(boss, 0f, 15f, "boss_greendemon") },
+                    spawns = new[]
+                    {
+                        Spawn(slime, -6f, 9f, "slime_green", pack: 1),
+                        Spawn(slime, -8f, 11f, "slime_green", pack: 1),
+                        Spawn(slime, 6f, 9f, "slime_green", pack: 2),
+                        Spawn(slime, 8f, 11f, "slime_green", pack: 2),
+                        Spawn(king, 0f, 16f, "boss_greendemon", boss: true),
+                    },
                 },
             };
-            AssetDatabase.CreateAsset(asset, path);
+            if (created)
+            {
+                AssetDatabase.CreateAsset(asset, path);
+            }
+            else
+            {
+                EditorUtility.SetDirty(asset);
+            }
+
             AssetDatabase.SaveAssets();
         }
 
-        static SpawnData Spawn(ClassAsset spawnClass, float x, float y, string skin)
+        static SpawnData Spawn(ClassAsset spawnClass, float x, float y, string skin, bool boss = false, int pack = 0)
         {
-            return new SpawnData { spawnClass = spawnClass, position = new Vector2(x, y), skin = skin };
+            return new SpawnData { spawnClass = spawnClass, position = new Vector2(x, y), skin = skin, boss = boss, pack = pack };
         }
 
         [MenuItem("Game/Seed arena scene")]

@@ -148,7 +148,7 @@ namespace Game.PlayMode.Tests
                 joiner = new UdpClientTransport(new IPEndPoint(IPAddress.Loopback, bootstrap.Host.Port), "tank", 0, "Tester");
                 GameClient client = null;
                 var waited = 0f;
-                while (waited < 4f && (bootstrap.Views.Count < 5 || client == null || !client.HasLocalEntity))
+                while (waited < 4f && (bootstrap.Views.Count < 2 + FirstRoomEnemies() || client == null || !client.HasLocalEntity))
                 {
                     joiner.Update(Time.deltaTime);
                     if (client == null && joiner.State == ConnectionState.Connected)
@@ -162,7 +162,7 @@ namespace Game.PlayMode.Tests
                 }
 
                 Assert.AreEqual(ConnectionState.Connected, joiner.State);
-                Assert.AreEqual(5, bootstrap.Views.Count);
+                Assert.AreEqual(2 + FirstRoomEnemies(), bootstrap.Views.Count);
                 Assert.IsTrue(client.HasLocalEntity);
             }
             finally
@@ -170,6 +170,12 @@ namespace Game.PlayMode.Tests
                 joiner?.Dispose();
                 HudSettings.SessionMode = (int)SessionMode.Solo;
             }
+        }
+
+        static int FirstRoomEnemies()
+        {
+            DefinitionLoader.Load(out _, out _, out var dungeons);
+            return dungeons.Get("slime_cave").Rooms[0].Spawns.Length;
         }
 
         [UnityTest]
@@ -215,7 +221,7 @@ namespace Game.PlayMode.Tests
 
             yield return new WaitForSeconds(0.5f);
 
-            Assert.AreEqual(4, bootstrap.Views.Count);
+            Assert.AreEqual(1 + FirstRoomEnemies(), bootstrap.Views.Count);
             Assert.IsNotNull(bootstrap.Views.LocalRoot);
             var before = bootstrap.Views.LocalRoot.position;
 
