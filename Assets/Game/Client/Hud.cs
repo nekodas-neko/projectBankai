@@ -111,7 +111,7 @@ namespace Game.Client
         const float StickRadius = 130f;
         const float KnobSize = 120f;
 
-        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton ultimate, ActionButton defense, ResourceBar resource, DungeonBanner banner, bool moveOnRight)
+        Hud(GameObject root, RectTransform safeArea, VirtualStick moveStick, ActionButton attack, ActionButton special, ActionButton ultimate, ActionButton defense, ResourceBar resource, DungeonBanner banner, BossFrame bossFrame, bool moveOnRight)
         {
             Root = root;
             SafeArea = safeArea;
@@ -122,6 +122,7 @@ namespace Game.Client
             Defense = defense;
             Resource = resource;
             Banner = banner;
+            BossFrame = bossFrame;
             MoveOnRight = moveOnRight;
         }
 
@@ -142,6 +143,8 @@ namespace Game.Client
         public ResourceBar Resource { get; }
 
         public DungeonBanner Banner { get; }
+
+        public BossFrame BossFrame { get; }
 
         public bool MoveOnRight { get; }
 
@@ -178,7 +181,8 @@ namespace Game.Client
             var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 500f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);
             var resource = ResourceBar.Build(safeArea);
             var banner = DungeonBanner.Build(safeArea, callbacks.Restart);
-            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, moveOnRight);
+            var bossFrame = BossFrame.Build(safeArea);
+            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, moveOnRight);
         }
 
         public static RectTransform NewRect(string name, Transform parent)

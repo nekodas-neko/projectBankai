@@ -38,6 +38,7 @@ namespace Game.Core
                     ResourceId = e.ResourceSpec != null ? StableId.From(e.ResourceSpec.Id) : 0,
                     Charge = e.Charge,
                     ChargeMax = e.ChargeMax,
+                    Target = e.IsAlive ? e.Target : default,
                     Effects = e.EffectFlagsNow(),
                 });
             }

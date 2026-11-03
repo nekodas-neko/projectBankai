@@ -16,6 +16,7 @@ namespace Game.Core
         public const byte Blocking = 2;
         public const byte Shielded = 4;
         public const byte Dashing = 8;
+        public const byte Boss = 16;
     }
 
     public struct StatusEffect
@@ -72,6 +73,7 @@ namespace Game.Core
         public Vec2 Home;
         public int Pack;
         public bool IsBoss;
+        public EntityId Target;
         public bool Leashing;
         public int Phase = -1;
         public EntityId ForcedTarget;
@@ -131,6 +133,7 @@ namespace Game.Core
             ForcedSeconds = 0f;
             Phase = -1;
             Leashing = false;
+            Target = default;
             System.Array.Clear(Cooldowns, 0, Cooldowns.Length);
             System.Array.Clear(MechanicTimers, 0, MechanicTimers.Length);
             DashSpeed = 0f;
@@ -328,6 +331,11 @@ namespace Game.Core
             if (HasStatus(StatusType.Dashing))
             {
                 flags |= EffectFlags.Dashing;
+            }
+
+            if (IsBoss)
+            {
+                flags |= EffectFlags.Boss;
             }
 
             return flags;

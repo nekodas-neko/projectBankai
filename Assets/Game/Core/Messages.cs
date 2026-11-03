@@ -53,6 +53,7 @@ namespace Game.Core
         public int ResourceId;
         public float Charge;
         public float ChargeMax;
+        public EntityId Target;
         public byte Effects;
 
         public float GetCooldown(int slot)

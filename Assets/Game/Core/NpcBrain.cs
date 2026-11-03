@@ -59,6 +59,7 @@ namespace Game.Core
 
             if (npc.Leashing)
             {
+                npc.Target = default;
                 ReturnHome(npc);
                 return;
             }
@@ -66,8 +67,11 @@ namespace Game.Core
             var target = PickTarget(npc, def.AggroRange);
             if (target == null)
             {
+                npc.Target = default;
                 return;
             }
+
+            npc.Target = target.Id;
 
             if (npc.Pack != 0)
             {
