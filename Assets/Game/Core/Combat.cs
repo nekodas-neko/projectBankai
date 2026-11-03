@@ -27,9 +27,9 @@ namespace Game.Core
             return HitAreas.Reach(ability);
         }
 
-        public void Use(Entity user, int slot, Vec2 aim)
+        public void Use(Entity user, int slot, Vec2 aim, bool heavy = false)
         {
-            UseAt(user, slot, aim, false, default);
+            UseAt(user, slot, aim, false, default, heavy);
         }
 
         // An enemy mechanic: an ability whose area is centred on a point on the ground (where a player stands), not on the caster.
@@ -39,7 +39,7 @@ namespace Game.Core
             UseAt(user, slot, offset.SqrLength > 1e-6f ? offset.Normalized : user.Facing, true, point);
         }
 
-        void UseAt(Entity user, int slot, Vec2 aim, bool grounded, Vec2 point)
+        void UseAt(Entity user, int slot, Vec2 aim, bool grounded, Vec2 point, bool heavy = false)
         {
             if (slot < 0 || slot >= Entity.AbilitySlots || user.Cooldowns[slot] > 0f)
             {
@@ -53,6 +53,11 @@ namespace Game.Core
 
             var variantId = user.Variants[slot];
             var ability = book.Resolve(baseAbility, variantId);
+            if (heavy)
+            {
+                ability = book.Heavy(ability);
+            }
+
             if (!user.CanAfford(ability.ResourceCost) || user.Charge < ability.ChargeRequired)
             {
                 return;

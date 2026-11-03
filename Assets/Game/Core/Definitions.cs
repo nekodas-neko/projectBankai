@@ -64,6 +64,11 @@ namespace Game.Core
         public float Radius { get; set; }
         public float Damage { get; set; }
         public float Windup { get; set; }
+
+        // The heavy version of an attack (the attack button held): damage, healing and the resource it gives are scaled by
+        // HeavyDamageScale, and the wait before the next attack by HeavyCooldownScale. 0 for the damage scale turns it off.
+        public float HeavyDamageScale { get; set; } = 2.4f;
+        public float HeavyCooldownScale { get; set; } = 1.8f;
         public float ResourceCost { get; set; }
         public float Duration { get; set; }
         public float DashDistance { get; set; }

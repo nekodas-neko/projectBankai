@@ -175,7 +175,8 @@ namespace Game.Client
             BuildTextButton(devMenu, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.ToggleSession);
             BuildTextButton(devMenu, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -610f), callbacks.ToggleSkills);
             BuildTextButton(safeArea, "Menu", "Menu", new Vector2(240f, 90f), new Vector2(-40f, -60f), () => devMenu.gameObject.SetActive(!devMenu.gameObject.activeSelf));
-            var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
+            var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), false);
+            attack.HoldForHeavy = true;
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 380f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
             var ultimate = BuildActionButton(safeArea, moveOnRight, "Ult", new Vector2(350f, 560f), 76f, new Color(0.93f, 0.62f, 0.18f, 0.9f), false);
             var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 500f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);

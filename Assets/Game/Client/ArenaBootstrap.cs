@@ -449,6 +449,7 @@ namespace Game.Client
         void WireButtons()
         {
             Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
+            Hud.Attack.FiredHeavy += aim => LocalClient?.HeavyAttack(ToWorld(aim));
             Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
             Hud.Ultimate.Fired += aim => LocalClient?.Skill(Entity.UltimateSlot, ToWorld(aim));
             Hud.Defense.Fired += aim => LocalClient?.Defend(DefendDirection(aim));
