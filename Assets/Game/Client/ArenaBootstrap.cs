@@ -683,7 +683,7 @@ namespace Game.Client
             }
         }
 
-        // While the boss winds up a cast that can be interrupted, a bar under its frame counts it down.
+        // While the boss winds up a cast that can be interrupted, a bar under its frame and one above its head count it down.
         void UpdateBossCast(Snapshot snapshot, EntityState boss)
         {
             var windups = snapshot?.Windups;
@@ -691,12 +691,15 @@ namespace Game.Client
             {
                 if (windups[i].User == boss.Id && AbilityCatalog.TryGet(windups[i].Ability, out var cast) && cast.interruptible && cast.windup > 0f)
                 {
-                    Hud.BossFrame.ShowCast(cast.name, 1f - Mathf.Clamp01(windups[i].Remaining / cast.windup));
+                    var fraction = 1f - Mathf.Clamp01(windups[i].Remaining / cast.windup);
+                    Hud.BossFrame.ShowCast(cast.name, fraction);
+                    views.SetCast(boss.Id, fraction);
                     return;
                 }
             }
 
             Hud.BossFrame.HideCast();
+            views.SetCast(boss.Id, -1f);
         }
 
         void SyncTelegraphs()

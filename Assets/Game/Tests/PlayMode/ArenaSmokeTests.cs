@@ -119,6 +119,33 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator TheBossCastBarSitsAboveTheBossAndHidesAgain()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Entity boss = null;
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (entity.IsBoss && boss == null)
+                {
+                    boss = entity;
+                }
+            }
+
+            Assert.IsNotNull(boss);
+            Assert.IsFalse(bootstrap.Views.CastVisible(boss.Id));
+
+            bootstrap.Views.SetCast(boss.Id, 0.5f);
+            Assert.IsTrue(bootstrap.Views.CastVisible(boss.Id));
+
+            bootstrap.Views.SetCast(boss.Id, -1f);
+            Assert.IsFalse(bootstrap.Views.CastVisible(boss.Id));
+        }
+
+        [UnityTest]
         public IEnumerator DungeonMap_IsDrawnAClosedGateStopsThePlayerAndABossOpensIt()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;

@@ -28,6 +28,8 @@ namespace Game.Client
     {
         const float FlashSeconds = 0.12f;
         const float BarWidth = 1.2f;
+        const float CastBarWidth = 1.8f;
+        static readonly Color CastColor = new Color(0.4f, 0.7f, 1f);
         const float LocalSmoothing = 25f;
         const float SpeedSmoothing = 12f;
 
@@ -36,6 +38,7 @@ namespace Game.Client
         readonly Dictionary<int, View> views = new Dictionary<int, View>();
         readonly List<int> stale = new List<int>();
         readonly HashSet<int> seen = new HashSet<int>();
+        Material castMaterial;
 
         public EntityViews(Transform parent, ArenaAssets assets)
         {
@@ -69,6 +72,48 @@ namespace Game.Client
 
             material = null;
             return false;
+        }
+
+        // A bar above an enemy's health bar that fills while it winds up a cast; a negative fraction hides it.
+        public void SetCast(EntityId id, float fraction)
+        {
+            if (!views.TryGetValue(id.Value, out var view))
+            {
+                return;
+            }
+
+            if (fraction < 0f)
+            {
+                if (view.CastBack != null && view.CastBack.gameObject.activeSelf)
+                {
+                    view.CastBack.gameObject.SetActive(false);
+                    view.CastFill.gameObject.SetActive(false);
+                }
+
+                return;
+            }
+
+            if (view.CastBack == null)
+            {
+                castMaterial = castMaterial != null ? castMaterial : Telegraphs.Tinted(assets.barBackground, CastColor);
+                view.CastBack = CharacterVisual.Part(assets.cube, view.Root, "CastBackground");
+                view.CastBack.localScale = new Vector3(CastBarWidth + 0.1f, 0.26f, 0.05f);
+                view.CastBack.localPosition = new Vector3(0f, view.BarHeight + 0.3f, 0f);
+                view.CastBack.GetComponent<Renderer>().sharedMaterial = assets.barBackground;
+                view.CastFill = CharacterVisual.Part(assets.cube, view.Root, "CastFill");
+                view.CastFill.GetComponent<Renderer>().sharedMaterial = castMaterial != null ? castMaterial : assets.player;
+            }
+
+            fraction = Mathf.Clamp01(fraction);
+            view.CastBack.gameObject.SetActive(true);
+            view.CastFill.gameObject.SetActive(true);
+            view.CastFill.localScale = new Vector3(Mathf.Max(0.001f, CastBarWidth * fraction), 0.18f, 0.05f);
+            view.CastFill.localPosition = new Vector3(-CastBarWidth * 0.5f * (1f - fraction), view.BarHeight + 0.3f, -0.04f);
+        }
+
+        public bool CastVisible(EntityId id)
+        {
+            return views.TryGetValue(id.Value, out var view) && view.CastBack != null && view.CastBack.gameObject.activeSelf;
         }
 
         public void OnUse(EntityId id, int slot)
@@ -179,6 +224,12 @@ namespace Game.Client
             view.Ring.localScale = new Vector3(ringScale, 0.02f, ringScale);
             view.BarBackground.gameObject.SetActive(alive);
             view.BarFill.gameObject.SetActive(alive);
+            if (!alive && view.CastBack != null && view.CastBack.gameObject.activeSelf)
+            {
+                view.CastBack.gameObject.SetActive(false);
+                view.CastFill.gameObject.SetActive(false);
+            }
+
             var fraction = state.MaxHealth > 0f ? Mathf.Clamp01(state.Health / state.MaxHealth) : 0f;
             view.BarFill.localScale = new Vector3(BarWidth * fraction, 0.12f, 0.05f);
             view.BarFill.localPosition = new Vector3(-BarWidth * 0.5f * (1f - fraction), view.BarHeight, -0.04f);
@@ -221,6 +272,8 @@ namespace Game.Client
             public float RingSize;
             public Transform BarBackground;
             public Transform BarFill;
+            public Transform CastBack;
+            public Transform CastFill;
             public float BarHeight;
             public Vector3 LastPosition;
             public float Speed;
