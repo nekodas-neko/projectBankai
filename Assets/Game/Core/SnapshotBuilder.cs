@@ -36,6 +36,8 @@ namespace Game.Core
                     Resource = e.Resource,
                     MaxResource = e.MaxResource,
                     ResourceId = e.ResourceSpec != null ? StableId.From(e.ResourceSpec.Id) : 0,
+                    Charge = e.Charge,
+                    ChargeMax = e.ChargeMax,
                     Effects = e.EffectFlagsNow(),
                 });
             }

@@ -37,7 +37,7 @@ namespace Game.Core
 
             var variantId = user.Variants[slot];
             var ability = book.Resolve(baseAbility, variantId);
-            if (!user.CanAfford(ability.ResourceCost))
+            if (!user.CanAfford(ability.ResourceCost) || user.Charge < ability.ChargeRequired)
             {
                 return;
             }
@@ -45,6 +45,7 @@ namespace Game.Core
             var direction = ChooseDirection(user, ability, aim);
             user.Cooldowns[slot] = ability.Cooldown;
             user.AddResource(-ability.ResourceCost);
+            user.Charge = System.Math.Max(0f, user.Charge - ability.ChargeRequired);
             world.Uses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Variant = variantId, Direction = direction });
 
             switch (ability.Kind)
@@ -253,6 +254,7 @@ namespace Game.Core
             }
 
             target.Health += healed;
+            ChargeFrom(source, slot, healed, ultimate => ultimate.ChargeFromHealing);
             world.Events.Add(new DamageEvent
             {
                 Source = source.Id,
@@ -284,6 +286,7 @@ namespace Game.Core
                     var blocked = health * Clamp01(target.StatusMagnitude(StatusType.Blocking));
                     health -= blocked;
                     outcome = HitOutcome.Blocked;
+                    ChargeFrom(target, -1, blocked, ultimate => ultimate.ChargeFromBlocked);
                     if (spec != null)
                     {
                         target.AddResource(blocked * spec.GainBlocked);
@@ -295,6 +298,7 @@ namespace Game.Core
                 {
                     health -= absorbed;
                     outcome = health > 0f ? outcome : HitOutcome.Absorbed;
+                    ChargeFrom(target, -1, absorbed, ultimate => ultimate.ChargeFromBlocked);
                     if (spec != null)
                     {
                         target.AddResource(absorbed * spec.GainBlocked);
@@ -317,6 +321,9 @@ namespace Game.Core
                 {
                     source.AddResource(health * dealt.GainDealt);
                 }
+
+                ChargeFrom(source, slot, health, ultimate => ultimate.ChargeFromDealt);
+                ChargeFrom(target, -1, health, ultimate => ultimate.ChargeFromTaken);
             }
 
             world.Events.Add(new DamageEvent
@@ -415,6 +422,21 @@ namespace Game.Core
             var direction = offset.SqrLength > 1e-6f ? offset.Normalized : dodger.Facing;
             world.Uses.Add(new UseEvent { User = dodger.Id, Slot = (byte)Entity.DefenseSlot, Ability = StableId.From(rider.Id), Direction = direction });
             Strike(dodger, rider, Entity.DefenseSlot, direction, 0);
+        }
+
+        // The ultimate never charges itself: hits made by the ultimate slot are ignored (slot -1 means "not a hit of mine").
+        void ChargeFrom(Entity entity, int slot, float amount, Func<AbilityDef, float> rate)
+        {
+            if (slot == Entity.UltimateSlot || amount <= 0f)
+            {
+                return;
+            }
+
+            var ultimate = book.UltimateOf(entity);
+            if (ultimate != null)
+            {
+                entity.AddCharge(amount * rate(ultimate));
+            }
         }
 
         static float Clamp01(float value)

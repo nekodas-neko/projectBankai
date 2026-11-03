@@ -72,6 +72,33 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator UltimateButton_NeedsChargeThenFiresAndEmptiesIt()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+
+            Press(bootstrap.Hud.Ultimate, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.2f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var empty));
+            Assert.Greater(empty.ChargeMax, 0f);
+            Assert.AreEqual(0f, empty.GetCooldown(Entity.UltimateSlot));
+
+            player.Charge = player.ChargeMax;
+            yield return new WaitForSeconds(0.2f);
+            Press(bootstrap.Hud.Ultimate, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.2f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var fired));
+            Assert.Greater(fired.GetCooldown(Entity.UltimateSlot), 0f);
+            Assert.AreEqual(0f, fired.Charge, 1f);
+        }
+
+        [UnityTest]
         public IEnumerator Dungeon_ShowsTheRoomAdvancesAndOffersARestartAfterADefeat()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;

@@ -29,6 +29,11 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
+  chargeRequired: 0
+  chargeFromDealt: 0
+  chargeFromTaken: 0
+  chargeFromBlocked: 0
+  chargeFromHealing: 0
   variants:
   - id: verdant
     damageScale: 1.1

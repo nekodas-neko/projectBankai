@@ -10,7 +10,7 @@ namespace Game.Core
 
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 1 + 1 + 1 + 4 + 2;
-        const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
+        const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 4 + 4 + 1;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 4 + 8;
         const int WindupSize = 4 + 4 + 4 + 8 + 8 + 4;
@@ -84,6 +84,8 @@ namespace Game.Core
                 writer.Write(e.Resource);
                 writer.Write(e.MaxResource);
                 writer.Write(e.ResourceId);
+                writer.Write(e.Charge);
+                writer.Write(e.ChargeMax);
                 writer.Write(e.Effects);
             }
 
@@ -173,6 +175,8 @@ namespace Game.Core
                     Resource = reader.ReadSingle(),
                     MaxResource = reader.ReadSingle(),
                     ResourceId = reader.ReadInt32(),
+                    Charge = reader.ReadSingle(),
+                    ChargeMax = reader.ReadSingle(),
                     Effects = reader.ReadByte(),
                 });
             }
