@@ -3,14 +3,6 @@ using System.Collections.Generic;
 
 namespace Game.Core
 {
-    public enum Role : byte
-    {
-        None = 0,
-        Tank = 1,
-        Dps = 2,
-        Healer = 3,
-    }
-
     public enum Team : byte
     {
         Neutral = 0,
@@ -141,7 +133,7 @@ namespace Game.Core
         public const int SkillSlots = 3;
 
         public string Id { get; set; }
-        public Role Role { get; set; }
+        public bool Playable { get; set; }
         public Stats Stats { get; set; }
         public string AutoAttack { get; set; }
         public string[] Skills { get; set; } = Array.Empty<string>();

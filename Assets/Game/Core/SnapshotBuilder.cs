@@ -23,7 +23,6 @@ namespace Game.Core
                     Id = e.Id,
                     Owner = e.Owner,
                     Team = e.Team,
-                    Role = e.Role,
                     Appearance = e.Appearance,
                     Position = e.Position,
                     Facing = e.Facing,

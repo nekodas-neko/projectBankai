@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
   m_Name: healing_mace
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
-  role: 3
+  playable: 1
   maxHealth: 100
   moveSpeed: 6
   power: 1

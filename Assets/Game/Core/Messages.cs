@@ -38,7 +38,6 @@ namespace Game.Core
         public EntityId Id;
         public PlayerId Owner;
         public Team Team;
-        public Role Role;
         public int Appearance;
         public Vec2 Position;
         public Vec2 Facing;

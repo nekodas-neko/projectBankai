@@ -175,7 +175,7 @@ namespace Game.Core
                         {
                             errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} spawns unknown class '{spawn.Class}'");
                         }
-                        else if (def.Role != Role.None)
+                        else if (def.Playable)
                         {
                             errors.Add($"Dungeon '{dungeon.Id}': room {i + 1} spawns player class '{spawn.Class}'");
                         }

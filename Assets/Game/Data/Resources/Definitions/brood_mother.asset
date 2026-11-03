@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
   m_Name: brood_mother
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
-  role: 0
+  playable: 0
   maxHealth: 520
   moveSpeed: 2.4
   power: 1

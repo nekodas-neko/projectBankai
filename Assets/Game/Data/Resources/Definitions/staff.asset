@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
   m_Name: staff
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
-  role: 2
+  playable: 1
   maxHealth: 80
   moveSpeed: 6.5
   power: 1.2

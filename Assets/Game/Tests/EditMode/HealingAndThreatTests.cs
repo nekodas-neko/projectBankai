@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Game.Core.Tests
 {
-    public class RoleTests
+    public class HealingAndThreatTests
     {
         [Test]
         public void Heal_RestoresAnAllyAndClampsToMaxHealth()

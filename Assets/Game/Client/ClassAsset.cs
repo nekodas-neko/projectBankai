@@ -18,7 +18,7 @@ namespace Game.Client
     [CreateAssetMenu(menuName = "Game/Class", fileName = "new_class")]
     public class ClassAsset : DefinitionAsset
     {
-        public Role role = Role.Dps;
+        public bool playable;
         [Min(1f)] public float maxHealth = 100f;
         [Min(0f)] public float moveSpeed = 6f;
         [Min(0f)] public float power = 1f;
@@ -51,7 +51,7 @@ namespace Game.Client
             return new ClassDef
             {
                 Id = Id,
-                Role = role,
+                Playable = playable,
                 Stats = new Stats { MaxHealth = maxHealth, MoveSpeed = moveSpeed, Power = power },
                 AutoAttack = autoAttack != null ? autoAttack.Id : null,
                 Skills = skills.Where(skill => skill != null).Select(skill => skill.Id).ToArray(),

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
   m_Name: sword_and_shield
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
-  role: 1
+  playable: 1
   maxHealth: 180
   moveSpeed: 5
   power: 1
