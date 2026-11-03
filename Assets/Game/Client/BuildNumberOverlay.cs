@@ -11,6 +11,7 @@ namespace Game.Client
         RectTransform safeArea;
         Rect appliedSafeArea;
         Vector2Int appliedScreen;
+        int shownTuning = -1;
 
         public Text Label { get; private set; }
 
@@ -51,7 +52,7 @@ namespace Game.Client
             Label.alignment = TextAnchor.LowerLeft;
             Label.color = new Color(1f, 1f, 1f, 0.85f);
             Label.raycastTarget = false;
-            Label.text = BuildInfo.Version;
+            RefreshText();
 
             var shadow = labelObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
@@ -62,10 +63,22 @@ namespace Game.Client
 
         void Update()
         {
+            if (shownTuning != DefinitionLoader.TuningChanges)
+            {
+                RefreshText();
+            }
+
             if (Screen.safeArea != appliedSafeArea || appliedScreen.x != Screen.width || appliedScreen.y != Screen.height)
             {
                 ApplySafeArea();
             }
+        }
+
+        void RefreshText()
+        {
+            shownTuning = DefinitionLoader.TuningChanges;
+            var status = DefinitionLoader.TuningStatus;
+            Label.text = status.Length > 0 ? BuildInfo.Version + "\n" + status : BuildInfo.Version;
         }
 
         void ApplySafeArea()
