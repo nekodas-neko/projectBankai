@@ -46,20 +46,20 @@ namespace Game.Editor
             Tune(meteorFall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.chargeRequired = 1000f; a.chargeFromDealt = 0.8f; });
             var radiantBurst = Ability("radiant_burst", cooldown: 1f, range: 6f, radius: 6f, damage: 20f);
             Tune(radiantBurst, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.5f; a.heal = 50f; a.chargeRequired = 1000f; a.chargeFromDealt = 1.6f; });
-            var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 5f);
+            var slimeSlam = Ability("slime_slam", cooldown: 3.5f, range: 2f, radius: 1.2f, damage: 9f);
 
-            var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 9f);
+            var kingSlam = Ability("king_slam", cooldown: 5f, range: 3.4f, radius: 1.8f, damage: 15f);
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
             var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 16f);
             var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3.8f, damage: 14f);
             Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.avoidable = false; a.atTarget = true; });
-            var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 11f);
+            var kingWave = Ability("king_wave", cooldown: 8f, range: 9f, radius: 0f, damage: 17f);
             Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
 
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
             var arcaneStep = Ability("arcane_step", cooldown: 5.5f, range: 1f, radius: 0f, damage: 0f);
-            var shieldWall = Ability("shield_wall", cooldown: 4f, range: 1f, radius: 0f, damage: 0f);
+            var shieldWall = Ability("shield_wall", cooldown: 2.5f, range: 1f, radius: 0f, damage: 0f);
             var ward = Ability("ward", cooldown: 6f, range: 1f, radius: 0f, damage: 0f);
 
             Tune(arcaneStep, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Dodge; a.duration = 0.35f; a.dashDistance = 6f; a.perfectWindow = 0.18f; a.rider = arcaneCounter; });
