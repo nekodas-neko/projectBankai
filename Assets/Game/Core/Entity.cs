@@ -73,6 +73,9 @@ namespace Game.Core
         public Vec2 Home;
         public int Pack;
         public bool IsBoss;
+
+        // How close a player has to come before this enemy notices; 0 for players and things that never aggro.
+        public float AggroRange;
         public bool Summoned;
         public int Section;
         public EntityId Target;
@@ -111,6 +114,7 @@ namespace Game.Core
                 ResourceSpec = def.Resource,
                 ThreatMultiplier = def.ThreatMultiplier,
                 Radius = def.BodyRadius,
+                AggroRange = def.AggroRange,
                 Resource = def.Resource != null ? System.Math.Min(def.Resource.Start, def.Resource.Max) : 0f,
             };
 

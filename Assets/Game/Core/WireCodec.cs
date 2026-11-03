@@ -12,7 +12,7 @@ namespace Game.Core
         const int SnapshotHeaderSize = 1 + 4 + 4 + 1 + 1 + 1 + 4 + 2;
         public const int EntityBytes = EntitySize;
 
-        const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 4 + 4 + 4 + 1;
+        const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 4 + 4 + 4 + 1 + 1;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 4 + 8;
         const int WindupSize = 4 + 4 + 4 + 8 + 8 + 4;
@@ -95,6 +95,7 @@ namespace Game.Core
                 writer.Write(e.ChargeMax);
                 writer.Write(e.Target.Value);
                 writer.Write(e.Effects);
+                writer.Write(e.AggroQuarters);
             }
 
             writer.Write((ushort)snapshot.Events.Count);
@@ -187,6 +188,7 @@ namespace Game.Core
                     ChargeMax = reader.ReadSingle(),
                     Target = new EntityId(reader.ReadInt32()),
                     Effects = reader.ReadByte(),
+                    AggroQuarters = reader.ReadByte(),
                 });
             }
 
