@@ -557,7 +557,7 @@ namespace Game.Client
                 }
 
                 var key = unchecked((windup.User.Value * 397) ^ windup.Ability) | 1;
-                telegraphs.Show(key, new Vector3(windup.Origin.X, 0f, windup.Origin.Y), new Vector2(windup.Direction.X, windup.Direction.Y), ability.shape, range, radius, ability.angle, ability.windup, windup.Remaining);
+                telegraphs.Show(key, new Vector3(windup.Origin.X, 0f, windup.Origin.Y), new Vector2(windup.Direction.X, windup.Direction.Y), ability.shape, range, radius, ability.angle, ability.windup, windup.Remaining, ability.avoidable);
             }
 
             telegraphs.EndSync();

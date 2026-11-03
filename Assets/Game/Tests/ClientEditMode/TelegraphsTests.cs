@@ -28,6 +28,35 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void AWarningTintKeepsTheSeeThroughAmountOfTheMaterial()
+        {
+            var tinted = Telegraphs.Tint(new Color(0.1f, 0.2f, 0.3f, 0.4f), Telegraphs.RedArea);
+
+            Assert.AreEqual(Telegraphs.RedArea.r, tinted.r);
+            Assert.AreEqual(Telegraphs.RedArea.g, tinted.g);
+            Assert.AreEqual(Telegraphs.RedArea.b, tinted.b);
+            Assert.AreEqual(0.4f, tinted.a);
+        }
+
+        [Test]
+        public void RedAndOrangeWarningsAreClearlyDifferentColours()
+        {
+            Assert.Greater(Telegraphs.OrangeArea.g, Telegraphs.RedArea.g + 0.3f);
+            Assert.Greater(Telegraphs.OrangeFill.g, Telegraphs.RedFill.g + 0.3f);
+        }
+
+        [Test]
+        public void ARedWarningAndAnOrangeWarningBothShow()
+        {
+            telegraphs.BeginSync();
+            telegraphs.Show(1, Vector3.zero, Vector2.up, AbilityShape.Circle, 4f, 4f, 0f, 1f, 1f, true);
+            telegraphs.Show(2, Vector3.zero, Vector2.up, AbilityShape.Circle, 4f, 4f, 0f, 1f, 1f, false);
+            telegraphs.EndSync();
+
+            Assert.AreEqual(2, telegraphs.ActiveCount);
+        }
+
+        [Test]
         public void AWindupFromTheServerShowsOneWarning()
         {
             telegraphs.BeginSync();

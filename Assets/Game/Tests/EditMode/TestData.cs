@@ -34,6 +34,9 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Damage = 30f, ChargeRequired = 50f, ChargeFromDealt = 1f });
             registry.Add(new AbilityDef { Id = "bulwark_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 4f, Radius = 4f, Damage = 10f, ChargeRequired = 100f, ChargeFromTaken = 2f, ChargeFromBlocked = 3f });
             registry.Add(new AbilityDef { Id = "healing_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Heal = 20f, ChargeRequired = 40f, ChargeFromHealing = 2f });
+            registry.Add(new AbilityDef { Id = "red_windup", Shape = AbilityShape.Circle, Cooldown = 3f, Range = 4f, Radius = 4f, Damage = 20f, Windup = 1f, Avoidable = false });
+            registry.Add(new AbilityDef { Id = "red_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f, Avoidable = false });
+            registry.Add(new AbilityDef { Id = "orange_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f });
             registry.Add(new AbilityDef { Id = "counter", Cooldown = 0f, Range = 6f, Radius = 1f, Damage = 30f });
             registry.Add(new AbilityDef { Id = "dodge", Kind = AbilityKind.Dodge, Cooldown = 3f, Range = 1f, Duration = 0.5f, DashDistance = 1f, PerfectWindow = 0.15f, Rider = "counter" });
             registry.Add(new AbilityDef { Id = "guard", Kind = AbilityKind.Block, Cooldown = 4f, Range = 1f, Duration = 1f, Reduction = 0.6f });
@@ -179,6 +182,27 @@ namespace Game.Core.Tests
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "basic",
                 Skills = new[] { "mend", "healing_burst" },
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "red_brute",
+                Stats = new Stats { MaxHealth = 500f, MoveSpeed = 0f, Power = 1f },
+                AutoAttack = "red_slam",
+                AggroRange = 15f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "orange_brute",
+                Stats = new Stats { MaxHealth = 500f, MoveSpeed = 0f, Power = 1f },
+                AutoAttack = "orange_slam",
+                AggroRange = 15f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "red_warden",
+                Stats = new Stats { MaxHealth = 500f, MoveSpeed = 0f, Power = 1f },
+                AutoAttack = "red_windup",
+                AggroRange = 15f,
             });
             registry.Add(new ClassDef
             {

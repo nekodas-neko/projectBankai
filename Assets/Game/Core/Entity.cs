@@ -30,6 +30,7 @@ namespace Game.Core
         public float Amount;
         public float Age;
         public EntityId Source;
+        public bool Unavoidable;
     }
 
     public struct ThreatEntry
@@ -141,7 +142,7 @@ namespace Game.Core
             lastSource = default;
             for (var i = RecentHits.Count - 1; i >= 0; i--)
             {
-                if (RecentHits[i].Age > window)
+                if (RecentHits[i].Age > window || RecentHits[i].Unavoidable)
                 {
                     continue;
                 }

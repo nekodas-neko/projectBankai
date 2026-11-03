@@ -26,6 +26,18 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheSmashIsRedAndTheRestOfTheBossAttacksAreOrange()
+        {
+            DefinitionLoader.Load(out _, out var abilities);
+
+            Assert.IsFalse(abilities.Get("king_smash").Avoidable);
+            foreach (var id in new[] { "king_slam", "king_wave", "slime_slam", "sword_slash", "shield_bash", "fireball" })
+            {
+                Assert.IsTrue(abilities.Get(id).Avoidable, id);
+            }
+        }
+
+        [Test]
         public void SavedClassNamesFromBeforeTheWeaponRenameMapToTheWeapons()
         {
             Assert.AreEqual("sword_and_shield", HudSettings.Migrate("tank"));

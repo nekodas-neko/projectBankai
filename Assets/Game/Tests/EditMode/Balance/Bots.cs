@@ -28,6 +28,9 @@ namespace Game.Core.Tests
 
         public float ArenaRadius => SimulationSettings.Default.ArenaRadius;
 
+        // How big the thing being fought is, so a melee bot knows how close it has to stand.
+        public float EnemyRadius { get; set; } = 1f;
+
         public bool TryMe(out EntityState me)
         {
             return Client.TryGetLocalState(out me) && me.Health > 0f;
@@ -83,8 +86,8 @@ namespace Game.Core.Tests
         // How long after a warning appears a human can start to react.
         protected const float ReactionSeconds = 0.25f;
 
-        // Roughly the body radius of what the bot fights, so a melee bot knows when it is close enough.
-        protected const float EnemyBody = 1.4f;
+        const int Directions = 16;
+        const float EscapeMargin = 0.8f;
 
         public abstract string Name { get; }
 
@@ -126,6 +129,81 @@ namespace Game.Core.Tests
             return ability != null && HitAreas.Contains(ability, windup.Origin, windup.Direction, point, margin);
         }
 
+        // Looks for a direction to run in that leaves every warning that threatens the bot before it lands.
+        // With onlyUnavoidable set, orange warnings (that block or dodge can answer) are ignored.
+        protected static bool TryEscape(BotView view, in EntityState me, float speed, Vec2 enemyPosition, float desired, IReadOnlyList<WindupState> windups, bool onlyUnavoidable, out Vec2 best)
+        {
+            best = Vec2.Zero;
+            var bestScore = float.MaxValue;
+            var found = false;
+            for (var d = 0; d < Directions; d++)
+            {
+                var angle = d * 2f * MathF.PI / Directions;
+                var direction = new Vec2(MathF.Cos(angle), MathF.Sin(angle));
+                var safe = true;
+                var latest = 0f;
+                for (var i = 0; i < windups.Count && safe; i++)
+                {
+                    if (!Counts(view, windups[i], onlyUnavoidable) || !Noticed(view, windups[i]) || !Threatens(view, windups[i], me.Position, EscapeMargin))
+                    {
+                        continue;
+                    }
+
+                    var travel = windups[i].Remaining * speed;
+                    var end = (me.Position + direction * travel).ClampLength(view.ArenaRadius);
+                    safe = !Threatens(view, windups[i], end, EscapeMargin);
+                    latest = Math.Max(latest, windups[i].Remaining);
+                }
+
+                if (!safe)
+                {
+                    continue;
+                }
+
+                var endPoint = (me.Position + direction * (speed * latest)).ClampLength(view.ArenaRadius);
+                var score = Math.Abs((endPoint - enemyPosition).Length - desired);
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = direction;
+                    found = true;
+                }
+            }
+
+            return found;
+        }
+
+        // A person needs a moment to see a new warning; the bot starts to react only after that long.
+        protected static bool Noticed(BotView view, in WindupState windup)
+        {
+            var ability = view.Ability(windup.Ability);
+            return ability != null && ability.Windup - windup.Remaining >= ReactionSeconds - 0.001f;
+        }
+
+        protected static bool Counts(BotView view, in WindupState windup, bool onlyUnavoidable)
+        {
+            if (!onlyUnavoidable)
+            {
+                return true;
+            }
+
+            var ability = view.Ability(windup.Ability);
+            return ability != null && !ability.Avoidable;
+        }
+
+        protected static bool AnyThreat(BotView view, IReadOnlyList<WindupState> windups, Vec2 point, bool onlyUnavoidable)
+        {
+            for (var i = 0; i < windups.Count; i++)
+            {
+                if (Counts(view, windups[i], onlyUnavoidable) && Noticed(view, windups[i]) && Threatens(view, windups[i], point, EscapeMargin))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected static Vec2 Toward(Vec2 from, Vec2 to)
         {
             var offset = to - from;
@@ -161,13 +239,18 @@ namespace Game.Core.Tests
             }
 
             var move = Vec2.Zero;
-            if (view.TryNearestEnemy(me.Position, out var enemy))
+            var closeEnough = AttackReach(view) * 0.7f + view.EnemyRadius;
+            var hasEnemy = view.TryNearestEnemy(me.Position, out var enemy);
+            if (hasEnemy && (enemy.Position - me.Position).Length > closeEnough)
             {
-                var close = AttackReach(view) * 0.7f + 0.5f;
-                if ((enemy.Position - me.Position).Length > close + EnemyBody * 0.5f)
-                {
-                    move = Toward(me.Position, enemy.Position);
-                }
+                move = Toward(me.Position, enemy.Position);
+            }
+
+            // Red warnings cannot be blocked: leave the area, then come back.
+            var windups = view.Client.Latest.Windups;
+            if (hasEnemy && AnyThreat(view, windups, me.Position, true) && TryEscape(view, me, view.Kit.Stats.MoveSpeed, enemy.Position, closeEnough + 2f, windups, true, out var away))
+            {
+                move = away;
             }
 
             view.Client.SetMoveInput(move);
@@ -179,11 +262,11 @@ namespace Game.Core.Tests
                 return;
             }
 
-            var windups = view.Client.Latest.Windups;
             for (var i = 0; i < windups.Count; i++)
             {
                 var lead = Math.Max(0.1f, defense.Duration * 0.8f);
-                if (windups[i].Remaining <= lead && Threatens(view, windups[i], me.Position, 0.5f))
+                var ability = view.Ability(windups[i].Ability);
+                if (ability != null && ability.Avoidable && windups[i].Remaining <= lead && Threatens(view, windups[i], me.Position, 0.5f))
                 {
                     view.Client.Defend(Vec2.Zero);
                     return;
@@ -195,8 +278,6 @@ namespace Game.Core.Tests
     // How a ranged weapon is meant to play: keep a distance, keep attacking, and step out of every warning in time.
     public sealed class Kiter : BotBase
     {
-        const int Directions = 16;
-
         public override string Name => "kite";
 
         public override void Step(BotView view, float dt)
@@ -230,18 +311,10 @@ namespace Game.Core.Tests
             }
 
             var windups = view.Client.Latest.Windups;
-            var threatened = false;
-            for (var i = 0; i < windups.Count; i++)
-            {
-                if (Threatens(view, windups[i], me.Position, 0.8f))
-                {
-                    threatened = true;
-                    break;
-                }
-            }
+            var threatened = AnyThreat(view, windups, me.Position, false);
 
             var defended = false;
-            if (threatened && !TryEscape(view, me, speed, enemyPosition, desired, windups, out move))
+            if (threatened && !TryEscape(view, me, speed, enemyPosition, desired, windups, false, out move))
             {
                 var defense = view.Ability(view.Kit.Defense);
                 if (defense != null && me.GetCooldown(Entity.DefenseSlot) <= 0f)
@@ -258,46 +331,5 @@ namespace Game.Core.Tests
             }
         }
 
-        static bool TryEscape(BotView view, in EntityState me, float speed, Vec2 enemyPosition, float desired, IReadOnlyList<WindupState> windups, out Vec2 best)
-        {
-            best = Vec2.Zero;
-            var bestScore = float.MaxValue;
-            var found = false;
-            for (var d = 0; d < Directions; d++)
-            {
-                var angle = d * 2f * MathF.PI / Directions;
-                var direction = new Vec2(MathF.Cos(angle), MathF.Sin(angle));
-                var safe = true;
-                var latest = 0f;
-                for (var i = 0; i < windups.Count && safe; i++)
-                {
-                    if (!Threatens(view, windups[i], me.Position, 0.8f))
-                    {
-                        continue;
-                    }
-
-                    var travel = Math.Max(0f, windups[i].Remaining - ReactionSeconds) * speed;
-                    var end = (me.Position + direction * travel).ClampLength(view.ArenaRadius);
-                    safe = !Threatens(view, windups[i], end, 0.8f);
-                    latest = Math.Max(latest, windups[i].Remaining);
-                }
-
-                if (!safe)
-                {
-                    continue;
-                }
-
-                var endPoint = (me.Position + direction * (speed * latest)).ClampLength(view.ArenaRadius);
-                var score = Math.Abs((endPoint - enemyPosition).Length - desired);
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    best = direction;
-                    found = true;
-                }
-            }
-
-            return found;
-        }
     }
 }
