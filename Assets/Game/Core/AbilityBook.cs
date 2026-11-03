@@ -48,6 +48,35 @@ namespace Game.Core
             }
         }
 
+        readonly Dictionary<AbilityDef, AbilityDef> heavy = new Dictionary<AbilityDef, AbilityDef>();
+
+        // The heavy swing of an attack: the same ability hitting harder and recovering slower. Anything else, or an ability with
+        // the heavy version turned off, comes back unchanged.
+        public AbilityDef Heavy(AbilityDef ability)
+        {
+            if (ability.Kind != AbilityKind.Attack || ability.HeavyDamageScale <= 0f)
+            {
+                return ability;
+            }
+
+            if (heavy.TryGetValue(ability, out var cached))
+            {
+                return cached;
+            }
+
+            var scaled = ability.Clone();
+            scaled.Damage *= ability.HeavyDamageScale;
+            scaled.Heal *= ability.HeavyDamageScale;
+            scaled.Cooldown *= ability.HeavyCooldownScale;
+            if (scaled.ResourceCost < 0f)
+            {
+                scaled.ResourceCost *= ability.HeavyCooldownScale;
+            }
+
+            heavy.Add(ability, scaled);
+            return scaled;
+        }
+
         public AbilityDef Resolve(AbilityDef ability, int variantId)
         {
             if (variantId == 0)

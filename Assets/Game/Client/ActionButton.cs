@@ -10,6 +10,7 @@ namespace Game.Client
         const float DragThresholdScreenFraction = 0.03f;
         const float MaxDragScreenFraction = 0.14f;
         const float RepeatDelay = 0.25f;
+        const float PressedScale = 1.12f;
 
         Image cooldownFill;
         Text label;
@@ -21,6 +22,18 @@ namespace Game.Client
         float nextRepeat;
 
         public event Action<Vector2> Fired;
+
+        // Fired instead of Fired when the button was held for ChargeSeconds before it was let go (only with HoldForHeavy).
+        public event Action<Vector2> FiredHeavy;
+
+        // A tap is the light version and holding is the heavy one; the button grows while it charges. Dragging to aim cancels the charge, so an aimed attack is always the light one.
+        public bool HoldForHeavy { get; set; }
+
+        public float ChargeSeconds { get; set; } = 0.4f;
+
+        public float Charge => activePointer == int.MinValue || !HoldForHeavy || dragging ? 0f : Mathf.Clamp01(heldSeconds / ChargeSeconds);
+
+        public bool IsCharged => Charge >= 1f;
 
         public bool RepeatWhileHeld { get; set; }
 
@@ -103,11 +116,17 @@ namespace Game.Client
 
             var aim = dragging ? Aim : Vector2.zero;
             var fire = dragging || !repeated;
+            var heavy = IsCharged;
             activePointer = int.MinValue;
             dragging = false;
             Aim = Vector2.zero;
+            transform.localScale = Vector3.one;
 
-            if (fire)
+            if (heavy)
+            {
+                FiredHeavy?.Invoke(aim);
+            }
+            else if (fire)
             {
                 Fired?.Invoke(aim);
             }
@@ -115,6 +134,13 @@ namespace Game.Client
 
         void Update()
         {
+            if (activePointer != int.MinValue && HoldForHeavy)
+            {
+                heldSeconds += Time.unscaledDeltaTime;
+                transform.localScale = Vector3.one * Mathf.Lerp(1f, PressedScale, Charge);
+                return;
+            }
+
             if (activePointer == int.MinValue || dragging || !RepeatWhileHeld)
             {
                 return;

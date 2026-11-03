@@ -45,7 +45,7 @@ namespace Game.Core
             var type = reader.ReadByte();
             var aim = ReadVec2(reader);
 
-            if (type < (byte)CommandType.Move || type > (byte)CommandType.Restart || !aim.IsFinite)
+            if (type < (byte)CommandType.Move || type > (byte)CommandType.HeavyAttack || !aim.IsFinite)
             {
                 return false;
             }

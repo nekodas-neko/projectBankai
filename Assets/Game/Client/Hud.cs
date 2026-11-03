@@ -138,6 +138,8 @@ namespace Game.Client
 
         public MiniMap MiniMap { get; }
 
+        public QuestLogPanel Quest { get; private set; }
+
         public bool MoveOnRight { get; }
 
         public static Hud Create(bool moveOnRight, HudCallbacks callbacks)
@@ -160,14 +162,21 @@ namespace Game.Client
             safeArea.gameObject.AddComponent<SafeAreaFitter>();
 
             var stick = BuildMoveStick(safeArea, moveOnRight);
-            BuildTextButton(safeArea, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -60f), callbacks.SwapSides);
-            BuildTextButton(safeArea, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -170f), () => callbacks.Zoom?.Invoke(-1));
-            BuildTextButton(safeArea, "Skin", "Skin", new Vector2(115f, 90f), new Vector2(-165f, -280f), callbacks.CycleSkin);
-            BuildTextButton(safeArea, "Class", "Weapon", new Vector2(115f, 90f), new Vector2(-40f, -280f), callbacks.ToggleWeapons);
-            BuildTextButton(safeArea, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -170f), () => callbacks.Zoom?.Invoke(1));
-            BuildTextButton(safeArea, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -390f), callbacks.ToggleSession);
-            BuildTextButton(safeArea, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.ToggleSkills);
-            var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), true);
+            var quest = QuestLogPanel.Build(safeArea);
+
+            // The test buttons live in one folded menu so the right-hand side shows the dungeon log.
+            var devMenu = NewRect("DevMenu", safeArea);
+            devMenu.gameObject.SetActive(false);
+            BuildTextButton(devMenu, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -170f), callbacks.SwapSides);
+            BuildTextButton(devMenu, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -280f), () => callbacks.Zoom?.Invoke(-1));
+            BuildTextButton(devMenu, "Skin", "Skin", new Vector2(115f, 90f), new Vector2(-165f, -390f), callbacks.CycleSkin);
+            BuildTextButton(devMenu, "Class", "Weapon", new Vector2(115f, 90f), new Vector2(-40f, -390f), callbacks.ToggleWeapons);
+            BuildTextButton(devMenu, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -280f), () => callbacks.Zoom?.Invoke(1));
+            BuildTextButton(devMenu, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.ToggleSession);
+            BuildTextButton(devMenu, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -610f), callbacks.ToggleSkills);
+            BuildTextButton(safeArea, "Menu", "Menu", new Vector2(240f, 90f), new Vector2(-40f, -60f), () => devMenu.gameObject.SetActive(!devMenu.gameObject.activeSelf));
+            var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), false);
+            attack.HoldForHeavy = true;
             var special = BuildActionButton(safeArea, moveOnRight, "Skill", new Vector2(370f, 380f), 72f, new Color(0.50f, 0.47f, 0.87f, 0.9f), false);
             var ultimate = BuildActionButton(safeArea, moveOnRight, "Ult", new Vector2(350f, 560f), 76f, new Color(0.93f, 0.62f, 0.18f, 0.9f), false);
             var defense = BuildActionButton(safeArea, moveOnRight, "Defend", new Vector2(150f, 500f), 68f, new Color(0.30f, 0.62f, 0.45f, 0.9f), false);
@@ -175,7 +184,7 @@ namespace Game.Client
             var banner = DungeonBanner.Build(safeArea, callbacks.Restart);
             var bossFrame = BossFrame.Build(safeArea);
             var miniMap = MiniMap.Build(safeArea);
-            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, miniMap, moveOnRight);
+            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, miniMap, moveOnRight) { Quest = quest };
         }
 
         public static RectTransform NewRect(string name, Transform parent)

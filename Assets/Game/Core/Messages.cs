@@ -11,6 +11,9 @@ namespace Game.Core
         Skill3 = 5,
         Defend = 6,
         Restart = 7,
+
+        // The attack button held: the same slot-0 attack as a heavy swing.
+        HeavyAttack = 8,
     }
 
     public readonly struct Command
@@ -30,7 +33,7 @@ namespace Game.Core
 
         public Command WithPlayer(PlayerId player) => new Command(player, Sequence, Type, Aim);
 
-        public int AbilitySlot => Type == CommandType.Move || Type == CommandType.Restart ? -1 : (int)Type - (int)CommandType.Attack;
+        public int AbilitySlot => Type == CommandType.Move || Type == CommandType.Restart ? -1 : Type == CommandType.HeavyAttack ? 0 : (int)Type - (int)CommandType.Attack;
     }
 
     public struct EntityState

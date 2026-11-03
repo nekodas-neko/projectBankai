@@ -192,7 +192,9 @@ namespace Game.PlayMode.Tests
             SceneManager.LoadScene("Arena");
             yield return new WaitForSeconds(0.6f);
             var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
-            Assert.AreEqual("Room 1 / 3", bootstrap.Hud.Banner.RoomText);
+            StringAssert.StartsWith("Defeat the", bootstrap.Hud.Banner.RoomText);
+            var firstTask = bootstrap.Hud.Banner.RoomText;
+            StringAssert.Contains("> " + firstTask, bootstrap.Hud.Quest.Text);
             Assert.IsFalse(bootstrap.Hud.Banner.RestartVisible);
 
             foreach (var entity in bootstrap.Session.Server.Entities)
@@ -208,7 +210,8 @@ namespace Game.PlayMode.Tests
             Assert.IsTrue(bootstrap.Session.Server.Map.IsOpen(0));
 
             yield return new WaitForSeconds(3.5f);
-            Assert.AreEqual("Room 2 / 3", bootstrap.Hud.Banner.RoomText);
+            Assert.AreNotEqual(firstTask, bootstrap.Hud.Banner.RoomText, "the next boss is the task now");
+            StringAssert.Contains("[x] " + firstTask, bootstrap.Hud.Quest.Text);
 
             foreach (var entity in bootstrap.Session.Server.Entities)
             {
