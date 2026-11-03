@@ -33,6 +33,50 @@ namespace Game.Client.Tests
             return BalanceSim.Run(classes, abilities, weapon, boss, policy, 240f);
         }
 
+        // Every node of the weapon's tree taken at once, as the join message would carry it.
+        static int[] FullTree(string weapon)
+        {
+            var trees = SkillTreeCatalog.Load(classes, abilities);
+            var mastery = new WeaponMastery();
+            foreach (var node in trees.Get(weapon).Nodes)
+            {
+                mastery.Choices.Add(node.Id);
+            }
+
+            return SkillTreeRules.Loadout(trees.Get(weapon), mastery);
+        }
+
+        // The skill trees are choices, not upgrades to chase: a fully taken tree may help, but it must not turn a boss into a short fight
+        // or make the weapon unable to finish one it could finish with the default kit.
+        [Test, Category("Balance")]
+        public void AFullSkillTreeIsAnEdgeNotATrivialisation()
+        {
+            var table = new List<BalanceResult>();
+            foreach (var boss in Bosses)
+            {
+                foreach (var weapon in Weapons)
+                {
+                    var policy = weapon == "sword_and_shield" ? (IBotPolicy)new TankBlocker() : new Kiter();
+                    var plain = Play(weapon, boss, policy);
+                    var treed = BalanceSim.Run(classes, abilities, weapon, boss, policy, 240f, 1, FullTree(weapon));
+                    table.Add(plain);
+                    table.Add(treed);
+
+                    if (plain.BossDead)
+                    {
+                        Assert.IsTrue(treed.BossDead, $"{weapon} against {boss}: the full tree should not make the fight unwinnable" + BalanceSim.Table(new[] { plain, treed }));
+                        Assert.GreaterOrEqual(treed.Seconds, plain.Seconds * 0.7f, $"{weapon} against {boss}: the full tree cuts the fight by more than 30%" + BalanceSim.Table(new[] { plain, treed }));
+                    }
+                }
+            }
+
+            var text = "Plain, then full tree, for each weapon and boss\n" + BalanceSim.Table(table);
+            var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "tree-balance.txt"));
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, text);
+            TestContext.Progress.WriteLine(text);
+        }
+
         // Duos and the full three: the dungeon is designed for a tank, a damage dealer and a healer.
         static IEnumerable<List<KeyValuePair<string, IBotPolicy>>> PartyGroups()
         {
