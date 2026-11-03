@@ -19,6 +19,7 @@ namespace Game.Core
         public const byte Dashing = 8;
         public const byte Boss = 16;
         public const byte Staggered = 32;
+        public const byte Summoned = 64;
     }
 
     public struct StatusEffect
@@ -354,6 +355,11 @@ namespace Game.Core
             if (HasStatus(StatusType.Staggered))
             {
                 flags |= EffectFlags.Staggered;
+            }
+
+            if (Summoned)
+            {
+                flags |= EffectFlags.Summoned;
             }
 
             return flags;
