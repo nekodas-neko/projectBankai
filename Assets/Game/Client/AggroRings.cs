@@ -11,7 +11,7 @@ namespace Game.Client
     {
         const float Height = 0.05f;
         const float Thickness = 0.16f;
-        const float ShowBeyondRing = 10f;
+        const float ShowBeyondRing = 3f;
         const int Segments = 64;
         const int MaxRings = 24;
 
