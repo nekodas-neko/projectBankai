@@ -8,6 +8,7 @@ namespace Game.Core
         public const int Blocking = 2;
         public const int Shield = 3;
         public const int Dashing = 4;
+        public const int Staggered = 5;
     }
 
     public static class EffectFlags
@@ -17,6 +18,7 @@ namespace Game.Core
         public const byte Shielded = 4;
         public const byte Dashing = 8;
         public const byte Boss = 16;
+        public const byte Staggered = 32;
     }
 
     public struct StatusEffect
@@ -67,6 +69,7 @@ namespace Game.Core
         public float PerfectRemaining;
         public string PerfectRider;
         public float Winding;
+        public float Recovery;
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
         public float Radius;
@@ -141,6 +144,7 @@ namespace Game.Core
             DashSpeed = 0f;
             PerfectRemaining = 0f;
             Winding = 0f;
+            Recovery = 0f;
             DeadSeconds = 0f;
         }
 
@@ -340,6 +344,11 @@ namespace Game.Core
                 flags |= EffectFlags.Boss;
             }
 
+            if (HasStatus(StatusType.Staggered))
+            {
+                flags |= EffectFlags.Staggered;
+            }
+
             return flags;
         }
 
@@ -383,6 +392,7 @@ namespace Game.Core
 
             PerfectRemaining = PerfectRemaining > dt ? PerfectRemaining - dt : 0f;
             Winding = Winding > dt ? Winding - dt : 0f;
+            Recovery = Recovery > dt ? Recovery - dt : 0f;
             ForcedSeconds = ForcedSeconds > dt ? ForcedSeconds - dt : 0f;
 
             if (ResourceSpec != null && ResourceSpec.Regen != 0f)

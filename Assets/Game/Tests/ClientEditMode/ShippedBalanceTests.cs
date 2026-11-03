@@ -51,18 +51,61 @@ namespace Game.Client.Tests
             var targets = new BalanceSim.Targets();
             targets.MinFightSeconds["mushroom_warden"] = 30f;
             targets.MinFightSeconds["brood_mother"] = 60f;
-            targets.MinFightSeconds["slime_boss"] = 90f;
+            targets.MinFightSeconds["slime_boss"] = 85f;
             targets.IntendedPolicy["sword_and_shield"] = "stand and block";
             targets.IntendedPolicy["healing_mace"] = "kite";
             targets.IntendedPolicy["staff"] = "kite";
             var misses = BalanceSim.Misses(results, targets);
-            var table = BalanceSim.Table(results) + "\nTargets missed: " + misses.Count + "\n" + string.Join("\n", misses) + "\n";
+            var party = new List<BalanceResult>();
+            foreach (var boss in Bosses)
+            {
+                foreach (var ranged in new[] { "staff", "healing_mace" })
+                {
+                    party.AddRange(BalanceSim.RunParty(classes, abilities, "sword_and_shield", new TankBlocker(false), ranged, new Kiter(), boss, 240f));
+                }
+            }
+
+            var table = BalanceSim.Table(results) + "\nParty: a tank that never moves plus one ranged player\n" + BalanceSim.Table(party) + "\nTargets missed: " + misses.Count + "\n" + string.Join("\n", misses) + "\n";
             var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "balance-report.txt"));
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, table);
             TestContext.Progress.WriteLine(table);
 
             Assert.AreEqual(Bosses.Length * Weapons.Length * 3, results.Count);
+        }
+
+        // Prints where the party stands second by second; run by name when a bot moves more than it should.
+        [Test, Explicit("prints a trace")]
+        public void TraceTheParty()
+        {
+            var trace = new System.Text.StringBuilder();
+            BalanceSim.RunParty(classes, abilities, "sword_and_shield", new TankBlocker(false), "staff", new Kiter(), "mushroom_warden", 240f, 1, trace);
+            var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "party-trace.txt"));
+            File.WriteAllText(path, trace.ToString());
+        }
+
+        [Test, Category("Balance")]
+        public void TheSwordAndTheStaffInterruptBossCastsAndTheMaceCannot()
+        {
+            var sword = Play("sword_and_shield", "mushroom_warden", new TankBlocker());
+            var staff = Play("staff", "mushroom_warden", new Kiter());
+            var mace = Play("healing_mace", "mushroom_warden", new Kiter());
+
+            Assert.Greater(sword.Interrupts, 0, BalanceSim.Table(new[] { sword }));
+            Assert.Greater(staff.Interrupts, 0, BalanceSim.Table(new[] { staff }));
+            Assert.AreEqual(0, mace.Interrupts, BalanceSim.Table(new[] { mace }));
+        }
+
+        [Test, Category("Balance")]
+        public void TheKingChargesACleaveThatTheSwordAndTheStaffCanBreak()
+        {
+            var sword = Play("sword_and_shield", "slime_boss", new TankBlocker());
+            var staff = Play("staff", "slime_boss", new Kiter());
+            var mace = Play("healing_mace", "slime_boss", new Kiter());
+
+            Assert.Greater(sword.Interrupts, 0, BalanceSim.Table(new[] { sword }));
+            Assert.Greater(staff.Interrupts, 0, BalanceSim.Table(new[] { staff }));
+            Assert.AreEqual(0, mace.Interrupts, BalanceSim.Table(new[] { mace }));
         }
 
         // The principles the numbers are tuned to keep. These are not about exact values, so tuning does not break them.

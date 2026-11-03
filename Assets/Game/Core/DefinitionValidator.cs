@@ -79,6 +79,21 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': unknown rider '{ability.Rider}'");
                 }
 
+                if (ability.Interrupt < 0f || ability.Interrupt > 10f)
+                {
+                    errors.Add($"Ability '{ability.Id}': interrupt must be between 0 and 10 seconds");
+                }
+
+                if (ability.Interruptible && (ability.Windup < 0.5f || ability.AtTarget))
+                {
+                    errors.Add($"Ability '{ability.Id}': an interruptible cast needs a windup of at least 0.5 s and cannot be a ground circle");
+                }
+
+                if (ability.SummonCount < 0 || ability.SummonCount > 8 || (ability.SummonCount > 0 && !classes.TryGet(ability.SummonClass ?? string.Empty, out _)))
+                {
+                    errors.Add($"Ability '{ability.Id}': summons between 0 and 8 of an existing class");
+                }
+
                 ValidateKind(ability, errors);
             }
 
@@ -142,6 +157,11 @@ namespace Game.Core
                 if (def.LeashRange < 0f || (def.LeashRange > 0f && def.LeashRange <= def.AggroRange))
                 {
                     errors.Add($"Class '{def.Id}': leash range must be 0 (none) or larger than the aggro range");
+                }
+
+                if (def.RecoverySeconds < 0f || def.RecoverySeconds > 10f)
+                {
+                    errors.Add($"Class '{def.Id}': recovery seconds must be between 0 and 10");
                 }
 
                 ValidateResource(def, abilities, errors);

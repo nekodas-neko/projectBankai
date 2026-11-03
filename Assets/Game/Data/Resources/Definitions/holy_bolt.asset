@@ -36,6 +36,11 @@ MonoBehaviour:
   chargeFromTaken: 0
   chargeFromBlocked: 0
   chargeFromHealing: 0
+  interruptible: 0
+  interrupt: 0
+  summonClass: {fileID: 0}
+  summonSkin: 
+  summonCount: 0
   variants:
   - id: verdant
     damageScale: 1.1
