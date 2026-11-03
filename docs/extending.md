@@ -60,6 +60,18 @@ The skill next to the attack has only a short cooldown (about half a second, so 
 
 The ring on the button is the larger of the cooldown left and the missing part of the cost (`ActionButton.RingFill`). Seeded numbers: sword and shield rage 100 (the attack gives 10, the bash costs 30), staff focus 100 (the bolt gives 8, the fireball costs 35), healing mace mana 100 (the bolt gives 6, the pulse costs 30, plus a slow regen).
 
+## Boss mechanics: ground circles and other timed attacks
+
+A boss phase can have **Mechanics**: attacks on a timer that run alongside its normal attack cycle. Each one has an **Ability** (one of the boss's skills), an **Interval** in seconds, a **First Delay** after the phase starts, a **Count** (how many at once, 1 to 4, never twice on the same player) and a **Target** rule:
+
+- **Farthest:** the player farthest from the boss, which is how a boss reaches the ranged players.
+- **Random:** any living player.
+- **Not Top Threat:** anyone except the player the boss is mainly fighting (usually the tank).
+
+On the ability, tick **At Target** to make its area centre on the chosen player's position at the moment it starts, instead of on the boss. The warning is drawn on the ground there for the whole windup, and the boss keeps fighting while it winds up, so the player's answer is to walk out of it. Make it red (**Avoidable** off) for the "get out" version. Up to four mechanics per phase; the ability has to be one of the boss's own attacks (put it in the class's **Skills**).
+
+The seeded `slime_bomb` (a red 3-unit ground circle, 1.6 s warning) is used by the slime king from 65% health (on the farthest player every 7 s, and from 30% twice as often plus a random one) and by the brood mother (on someone other than its main target every 8 s). Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
+
 ## Red and orange attacks
 
 Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):

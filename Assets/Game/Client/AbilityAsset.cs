@@ -38,6 +38,7 @@ namespace Game.Client
         [Min(0f)] public float taunt;
         public AbilityAsset rider;
         public bool avoidable = true;
+        public bool atTarget;
         [Min(0f)] public float chargeRequired;
         [Min(0f)] public float chargeFromDealt;
         [Min(0f)] public float chargeFromTaken;
@@ -90,6 +91,7 @@ namespace Game.Client
                 Taunt = taunt,
                 Rider = rider != null ? rider.Id : null,
                 Avoidable = avoidable,
+                AtTarget = atTarget,
                 ChargeRequired = chargeRequired,
                 ChargeFromDealt = chargeFromDealt,
                 ChargeFromTaken = chargeFromTaken,

@@ -29,6 +29,8 @@ MonoBehaviour:
   heal: 0
   taunt: 0
   rider: {fileID: 0}
+  avoidable: 1
+  atTarget: 0
   chargeRequired: 0
   chargeFromDealt: 0
   chargeFromTaken: 0

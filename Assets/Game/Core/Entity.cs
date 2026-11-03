@@ -44,6 +44,7 @@ namespace Game.Core
         const float HitMemorySeconds = 1f;
 
         public const int UltimateSlot = 2;
+        public const int MaxMechanics = 4;
         public const int DefenseSlot = 1 + ClassDef.SkillSlots;
         public const int AbilitySlots = DefenseSlot + 1;
 
@@ -80,6 +81,7 @@ namespace Game.Core
         public readonly List<ThreatEntry> Threat = new List<ThreatEntry>();
         public readonly string[] AbilityIds = new string[AbilitySlots];
         public readonly float[] Cooldowns = new float[AbilitySlots];
+        public readonly float[] MechanicTimers = new float[MaxMechanics];
         public readonly int[] Variants = new int[AbilitySlots];
 
         public bool IsAlive => Health > 0f;
@@ -130,6 +132,7 @@ namespace Game.Core
             Phase = -1;
             Leashing = false;
             System.Array.Clear(Cooldowns, 0, Cooldowns.Length);
+            System.Array.Clear(MechanicTimers, 0, MechanicTimers.Length);
             DashSpeed = 0f;
             PerfectRemaining = 0f;
             Winding = 0f;

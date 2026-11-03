@@ -36,7 +36,7 @@ namespace Game.Core
             world = new World(config, classes);
             book = new AbilityBook(abilities);
             combat = new Combat(config, world, book);
-            brain = new NpcBrain(config, classes, book, world, combat);
+            brain = new NpcBrain(config, classes, book, world, combat, random);
             dungeon = new DungeonDirector(config, world, session, combat);
         }
 

@@ -38,6 +38,28 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheShippedBossesDropRedGroundCirclesOnPlayers()
+        {
+            DefinitionLoader.Load(out var classes, out var abilities);
+
+            var bomb = abilities.Get("slime_bomb");
+            Assert.IsTrue(bomb.AtTarget);
+            Assert.IsFalse(bomb.Avoidable);
+            Assert.Greater(bomb.Windup, 1f);
+
+            var king = classes.Get("slime_boss");
+            Assert.AreEqual(0, king.Phases[0].Mechanics.Length);
+            Assert.AreEqual(MechanicTarget.Farthest, king.Phases[1].Mechanics[0].Target);
+            Assert.AreEqual("slime_bomb", king.Phases[1].Mechanics[0].Ability);
+            Assert.GreaterOrEqual(king.Phases[2].Mechanics.Length, 2);
+
+            var mother = classes.Get("brood_mother");
+            Assert.AreEqual(MechanicTarget.NotTopThreat, mother.Phases[1].Mechanics[0].Target);
+
+            Assert.AreEqual(0, classes.Get("mushroom_warden").Phases[0].Mechanics.Length);
+        }
+
+        [Test]
         public void SavedClassNamesFromBeforeTheWeaponRenameMapToTheWeapons()
         {
             Assert.AreEqual("sword_and_shield", HudSettings.Migrate("tank"));

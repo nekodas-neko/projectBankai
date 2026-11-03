@@ -5,6 +5,16 @@ using UnityEngine;
 namespace Game.Client
 {
     [System.Serializable]
+    public class MechanicData
+    {
+        public AbilityAsset ability;
+        [Min(0.1f)] public float intervalSeconds = 6f;
+        [Min(0f)] public float firstDelaySeconds = 3f;
+        public MechanicTarget target;
+        [Range(1, 4)] public int count = 1;
+    }
+
+    [System.Serializable]
     public class PhaseData
     {
         [Range(0.01f, 1f)] public float healthBelow = 1f;
@@ -13,6 +23,7 @@ namespace Game.Client
         public ClassAsset spawnClass;
         [Min(0)] public int spawnCount;
         public string spawnSkin = "";
+        public MechanicData[] mechanics = new MechanicData[0];
     }
 
     [CreateAssetMenu(menuName = "Game/Class", fileName = "new_class")]
@@ -68,6 +79,14 @@ namespace Game.Client
                     SpawnClass = phase.spawnClass != null ? phase.spawnClass.Id : null,
                     SpawnCount = phase.spawnCount,
                     SpawnSkin = phase.spawnSkin,
+                    Mechanics = phase.mechanics.Where(mechanic => mechanic.ability != null).Select(mechanic => new MechanicDef
+                    {
+                        Ability = mechanic.ability.Id,
+                        IntervalSeconds = mechanic.intervalSeconds,
+                        FirstDelaySeconds = mechanic.firstDelaySeconds,
+                        Target = mechanic.target,
+                        Count = mechanic.count,
+                    }).ToArray(),
                 }).ToArray(),
                 Resource = hasResource
                     ? new ResourceDef
