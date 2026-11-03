@@ -68,6 +68,12 @@ namespace Game.Core
             Send(CommandType.Attack, aim);
         }
 
+        // The attack button held and let go: the heavy swing of the slot-0 attack.
+        public void HeavyAttack(Vec2 aim)
+        {
+            Send(CommandType.HeavyAttack, aim);
+        }
+
         public void Skill(int slot, Vec2 aim)
         {
             if (slot < 1 || slot > ClassDef.SkillSlots)

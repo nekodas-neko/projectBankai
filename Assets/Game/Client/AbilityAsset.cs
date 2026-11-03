@@ -28,6 +28,10 @@ namespace Game.Client
         [Min(0f)] public float radius = 0.5f;
         [Min(0f)] public float damage = 10f;
         [Min(0f)] public float windup;
+
+        // The attack button held: damage scale of the heavy swing (0 = no heavy version) and how much longer the wait after it is.
+        [Min(0f)] public float heavyDamageScale = 2.4f;
+        [Min(0.5f)] public float heavyCooldownScale = 1.8f;
         public float resourceCost;
         [Min(0f)] public float duration;
         [Min(0f)] public float dashDistance;
@@ -87,6 +91,8 @@ namespace Game.Client
                 Radius = radius,
                 Damage = damage,
                 Windup = windup,
+                HeavyDamageScale = heavyDamageScale,
+                HeavyCooldownScale = heavyCooldownScale,
                 ResourceCost = resourceCost,
                 Duration = duration,
                 DashDistance = dashDistance,

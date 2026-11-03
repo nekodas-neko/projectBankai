@@ -15,6 +15,11 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': cooldown must not be negative");
                 }
 
+                if (ability.HeavyDamageScale < 0f || ability.HeavyDamageScale > 10f || (ability.HeavyDamageScale > 0f && (ability.HeavyCooldownScale < 0.5f || ability.HeavyCooldownScale > 10f)))
+                {
+                    errors.Add($"Ability '{ability.Id}': heavy damage scale must be 0 to 10 (0 turns it off) and the heavy cooldown scale 0.5 to 10");
+                }
+
                 if (ability.Range <= 0f)
                 {
                     errors.Add($"Ability '{ability.Id}': range must be above zero");
