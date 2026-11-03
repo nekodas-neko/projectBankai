@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: slime_cave
   m_EditorClassIdentifier: Game.Client::Game.Client.DungeonAsset
   clearDelaySeconds: 3
+  healthPerExtraPlayer: 0.8
   rooms:
   - name: Slime pit
     offset: {x: 0, y: 0}

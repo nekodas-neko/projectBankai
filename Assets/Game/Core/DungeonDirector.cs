@@ -63,6 +63,8 @@ namespace Game.Core
                 return;
             }
 
+            ScaleEnemiesToParty();
+
             if (Map != null)
             {
                 StepMap(dt);
@@ -132,6 +134,38 @@ namespace Game.Core
                     Phase = DungeonPhase.Cleared;
                     timer = dungeon.ClearDelaySeconds;
                 }
+            }
+        }
+
+        // Enemies get tougher with each extra player. Anything spawned later (a boss's minions) or a player joining or leaving
+        // is caught here too: an enemy keeps the share of its health it has left when its maximum changes.
+        void ScaleEnemiesToParty()
+        {
+            var players = 0;
+            var entities = world.Entities;
+            for (var i = 0; i < entities.Count; i++)
+            {
+                if (entities[i].Owner.IsValid)
+                {
+                    players++;
+                }
+            }
+
+            var factor = 1f + dungeon.HealthPerExtraPlayer * System.Math.Max(0, players - 1);
+            for (var i = 0; i < entities.Count; i++)
+            {
+                var e = entities[i];
+                if (e.Owner.IsValid || e.Team != Team.Enemies || e.PartyScale == factor)
+                {
+                    continue;
+                }
+
+                var ratio = factor / e.PartyScale;
+                var stats = e.Stats;
+                stats.MaxHealth *= ratio;
+                e.Stats = stats;
+                e.Health *= ratio;
+                e.PartyScale = factor;
             }
         }
 

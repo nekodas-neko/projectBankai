@@ -171,6 +171,11 @@ namespace Game.Core
                     errors.Add($"Dungeon '{dungeon.Id}': clear delay must not be negative");
                 }
 
+                if (dungeon.HealthPerExtraPlayer < 0f || dungeon.HealthPerExtraPlayer > 5f)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': health per extra player must be between 0 and 5");
+                }
+
                 ValidateMap(dungeon, errors);
 
                 for (var i = 0; i < dungeon.Rooms.Length; i++)

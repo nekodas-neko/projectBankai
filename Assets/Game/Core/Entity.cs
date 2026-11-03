@@ -75,6 +75,9 @@ namespace Game.Core
         public int Pack;
         public bool IsBoss;
         public bool Summoned;
+
+        // The party-size multiplier already applied to this enemy's health.
+        public float PartyScale = 1f;
         public int Section;
         public EntityId Target;
         public bool Leashing;

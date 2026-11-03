@@ -316,6 +316,7 @@ namespace Game.Editor
             }
 
             asset.clearDelaySeconds = 3f;
+            asset.healthPerExtraPlayer = 0.8f;
             asset.rooms = new[]
             {
                 new RoomData
