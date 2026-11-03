@@ -41,6 +41,7 @@ namespace Game.Client
         MapView mapView;
         ClassDef playerClass;
         MasteryProgress mastery;
+        readonly FightStats fightStats = new FightStats();
         Registry<SkillTreeDef> skillTrees;
         SkillTreePanel skillPanel;
         string skillMessage = string.Empty;
@@ -131,6 +132,7 @@ namespace Game.Client
 
             var dt = Mathf.Min(Time.deltaTime, MaxFrameSeconds);
             mastery.Observe(LocalClient?.Latest);
+            fightStats.Step(LocalClient?.Latest, dt);
             mastery.Tick(dt);
             BuildNumberOverlay.Extra = mastery.Summary();
             var input = Hud.MoveStick.Value;
@@ -187,6 +189,7 @@ namespace Game.Client
             for (var i = 0; i < events.Count; i++)
             {
                 PlayHit(events[i]);
+                fightStats.Add(events[i], LocalClient.Latest);
             }
         }
 
@@ -455,6 +458,8 @@ namespace Game.Client
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
             Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null);
+            var phase = LocalClient.Latest?.Dungeon ?? DungeonPhase.None;
+            Hud.Banner.SetSummary(phase == DungeonPhase.Victory || phase == DungeonPhase.Defeat ? fightStats.Report(LocalClient.Player) : string.Empty);
 
             var aiming = Hud.Attack.IsAiming ? Hud.Attack : Hud.Special.IsAiming ? Hud.Special : null;
             if (aiming == null || views.LocalRoot == null)

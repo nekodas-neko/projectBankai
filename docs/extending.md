@@ -137,6 +137,10 @@ The shipped trees are `SkillTreeAsset`s in `Assets/Game/Data/Resources/Definitio
 
 Not built yet: the equipped weapon still comes from the Weapon test button (the profile follows it), the skill-tree screen, and loot.
 
+## The run summary
+
+`FightStats` (`Game.Client`) adds up the damage events the client already receives: damage dealt to enemies, healing, damage taken, and how many hits each player blocked or dodged and how many casts they stopped. Victory and Defeat show it under the Play again button, best damage first, with the run time (the clock only runs while the dungeon is fighting or between bosses, and a new run starts a fresh count). It is each client's own view: a hit that the client never saw because it was cut from its snapshot is not counted, so the numbers are close but not exact. Use it to compare weapons and to see who really took the hits.
+
 ## Aggro rings
 
 An enemy with an **Aggro Range** that has not noticed anyone yet is drawn with a thin yellow ring on the ground at that distance (`AggroRings`): step inside it and the enemy, and its pack, come for you. The ring disappears once the enemy has a target. The server sends the range in the snapshot (`EntityState.AggroRange`), so any class with an aggro range gets a ring without code; rings only draw within 10 units of the ring's edge so a big map stays readable.

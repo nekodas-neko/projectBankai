@@ -11,9 +11,11 @@ namespace Game.Client
         readonly Text message;
         readonly GameObject restartButton;
         readonly Text restartLabel;
+        readonly Text summary;
 
-        DungeonBanner(Text roomLabel, Text message, GameObject restartButton, Text restartLabel)
+        DungeonBanner(Text roomLabel, Text message, GameObject restartButton, Text restartLabel, Text summary)
         {
+            this.summary = summary;
             this.roomLabel = roomLabel;
             this.message = message;
             this.restartButton = restartButton;
@@ -25,6 +27,8 @@ namespace Game.Client
         public string MessageText => message.text;
 
         public bool RestartVisible => restartButton.activeSelf;
+
+        public string SummaryText => summary.text;
 
         public static DungeonBanner Build(RectTransform parent, Action onRestart)
         {
@@ -44,7 +48,11 @@ namespace Game.Client
             var label = NewText("Label", rect, 48, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(440f, 110f));
             buttonImage.gameObject.SetActive(false);
 
-            var banner = new DungeonBanner(room, message, buttonImage.gameObject, label);
+            var summary = NewText("FightSummary", parent, 30, new Vector2(0.5f, 0.5f), new Vector2(0f, -260f), new Vector2(1000f, 300f));
+            summary.alignment = TextAnchor.UpperCenter;
+            summary.lineSpacing = 1.15f;
+
+            var banner = new DungeonBanner(room, message, buttonImage.gameObject, label, summary);
             banner.Hide();
             return banner;
         }
@@ -53,7 +61,14 @@ namespace Game.Client
         {
             roomLabel.text = string.Empty;
             message.text = string.Empty;
+            summary.text = string.Empty;
             restartButton.SetActive(false);
+        }
+
+        // The damage, healing and damage taken per player, shown with Victory and Defeat; empty text hides it.
+        public void SetSummary(string text)
+        {
+            SetText(summary, text);
         }
 
         // In a continuous dungeon nobody is moved when a boss falls: a gate opens, and the fallen get back up.
