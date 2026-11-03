@@ -57,11 +57,11 @@ namespace Game.Editor
 
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
             var arcaneStep = Ability("arcane_step", cooldown: 3.5f, range: 1f, radius: 0f, damage: 0f);
-            var shieldWall = Ability("shield_wall", cooldown: 5f, range: 1f, radius: 0f, damage: 0f);
+            var shieldWall = Ability("shield_wall", cooldown: 4f, range: 1f, radius: 0f, damage: 0f);
             var ward = Ability("ward", cooldown: 6f, range: 1f, radius: 0f, damage: 0f);
 
             Tune(arcaneStep, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Dodge; a.duration = 0.35f; a.dashDistance = 6f; a.perfectWindow = 0.18f; a.rider = arcaneCounter; });
-            Tune(shieldWall, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Block; a.duration = 1.5f; a.reduction = 0.65f; });
+            Tune(shieldWall, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Block; a.duration = 1.5f; a.reduction = 0.7f; });
             Tune(ward, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Shield; a.duration = 4f; a.absorb = 40f; });
             Tune(slimeSlam, a => a.windup <= 0f, a => a.windup = 0.6f);
             Tune(radiantPulse, a => a.heal <= 0f, a => a.heal = 20f);
@@ -71,8 +71,8 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("sword_and_shield", true, 180f, 5f, 1f, swordSlash, shieldBash);
-            Class("healing_mace", true, 100f, 6f, 1f, holyBolt, radiantPulse);
+            Class("sword_and_shield", true, 240f, 4.5f, 1f, swordSlash, shieldBash);
+            Class("healing_mace", true, 90f, 6f, 1f, holyBolt, radiantPulse);
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
             Class("slime_boss", false, 800f, 0f, 1f, slimeSlam);

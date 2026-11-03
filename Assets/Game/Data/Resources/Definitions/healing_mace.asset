@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: healing_mace
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
   playable: 1
-  maxHealth: 100
+  maxHealth: 90
   moveSpeed: 6
   power: 1
   autoAttack: {fileID: 11400000, guid: 48571fde32c853145bc655a41335133b, type: 2}
