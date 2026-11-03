@@ -50,6 +50,16 @@ A **Block** ability needs a duration and a **Reduction** between 0 and 1. A **Sh
 
 On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus`; the HUD colours these three), a max, a start value, **Regen** per second (negative decays), and the three gains. Abilities with a **Resource Cost** need the class to have a resource, and the validator says so if not. A negative cost grants resource instead of spending it.
 
+## The ability button is gated by the weapon's resource
+
+The skill next to the attack has only a short cooldown (about half a second, so one tap cannot fire it twice); what limits it is the weapon's resource, and the ring around the button shows how far the resource is from the cost. The pattern, in data only:
+
+- the weapon's resource starts full (for example 100 rage),
+- the skill has a positive **Resource Cost** (30), so it can be used three times in a row,
+- the auto attack has a **negative** Resource Cost (-10), which gives resource back on every use, so two auto attacks earn the skill again.
+
+The ring on the button is the larger of the cooldown left and the missing part of the cost (`ActionButton.RingFill`). Seeded numbers: sword and shield rage 100 (the attack gives 10, the bash costs 30), staff focus 100 (the bolt gives 8, the fireball costs 35), healing mace mana 100 (the bolt gives 6, the pulse costs 30, plus a slow regen).
+
 ## Worked example: add a dungeon room
 
 A dungeon is one `DungeonAsset` (**Assets > Create > Game > Dungeon**, in `Assets/Game/Data/Resources/Definitions`). Add a room to **Rooms**, then add spawns: a class (not a player class), a position inside the arena (radius 20) and an optional skin id such as `slime_green`. Rooms run in order. The loader checks that every room has enemies and every class exists. The arena loads the dungeon named in `ArenaBootstrap` (`slime_cave`); a dungeon picker comes with the hub.

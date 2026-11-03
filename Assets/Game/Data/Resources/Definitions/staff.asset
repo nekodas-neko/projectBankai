@@ -29,8 +29,8 @@ MonoBehaviour:
   hasResource: 1
   resourceId: focus
   resourceMax: 100
-  resourceStart: 60
+  resourceStart: 100
   resourceRegen: 3
-  resourceGainDealt: 0.8
+  resourceGainDealt: 0
   resourceGainTaken: 0
   resourceGainBlocked: 0

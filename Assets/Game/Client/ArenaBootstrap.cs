@@ -395,13 +395,16 @@ namespace Game.Client
 
         void UpdateButton(ActionButton button, bool hasState, EntityState state, int slot, string abilityId)
         {
-            if (!hasState || !abilityDefs.TryGet(abilityId, out var ability) || ability.Cooldown <= 0f)
+            if (!hasState || !abilityDefs.TryGet(abilityId, out var ability))
             {
                 button.SetCooldown(0f);
                 return;
             }
 
-            button.SetCooldown(state.GetCooldown(slot) / (ability.Cooldown * CooldownScale(ability, slot)));
+            var cooldown = ability.Cooldown > 0f ? state.GetCooldown(slot) / (ability.Cooldown * CooldownScale(ability, slot)) : 0f;
+            var variant = VariantOf(ability, slot);
+            var cost = ability.ResourceCost * (variant != null ? variant.CostScale : 1f);
+            button.SetCooldown(ActionButton.RingFill(cooldown, state.Resource, state.MaxResource, cost));
         }
 
         int[] Loadout(string className)

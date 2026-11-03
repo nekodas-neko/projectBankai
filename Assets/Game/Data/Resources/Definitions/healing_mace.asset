@@ -30,7 +30,7 @@ MonoBehaviour:
   resourceId: mana
   resourceMax: 100
   resourceStart: 100
-  resourceRegen: 4
+  resourceRegen: 2
   resourceGainDealt: 0
   resourceGainTaken: 0
   resourceGainBlocked: 0.6
