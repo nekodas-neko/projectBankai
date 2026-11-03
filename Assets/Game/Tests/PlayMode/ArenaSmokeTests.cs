@@ -111,7 +111,7 @@ namespace Game.PlayMode.Tests
             Assert.AreEqual("Boss - idle", bootstrap.Hud.BossFrame.Text);
 
             var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
-            player.Position = new Vec2(0f, 12f);
+            player.Position = new Vec2(0f, 24f);
             yield return new WaitForSeconds(0.6f);
 
             Assert.AreEqual("Boss - targeting YOU", bootstrap.Hud.BossFrame.Text);
@@ -134,10 +134,11 @@ namespace Game.PlayMode.Tests
             Assert.IsTrue(bootstrap.Hud.MiniMap.IsVisible);
             Assert.Greater(bootstrap.Hud.MiniMap.VisibleDots, 1);
 
-            player.Position = new Vec2(0f, 19f);
-            bootstrap.Hud.MoveStick.Value = new Vector2(0f, 1f);
+            // The first gate is on the east wall of the warden's chamber.
+            player.Position = new Vec2(8f, 29f);
+            bootstrap.Hud.MoveStick.Value = new Vector2(1f, 0f);
             yield return new WaitForSeconds(1.5f);
-            Assert.Less(player.Position.Y, 22f, "the closed gate stops the player");
+            Assert.Less(player.Position.X, 12.5f, "the closed gate stops the player");
 
             foreach (var entity in server.Entities)
             {
@@ -152,7 +153,7 @@ namespace Game.PlayMode.Tests
 
             yield return new WaitForSeconds(1.5f);
             bootstrap.Hud.MoveStick.Value = Vector2.zero;
-            Assert.Greater(player.Position.Y, 24f, "the open gate lets the player through");
+            Assert.Greater(player.Position.X, 15f, "the open gate lets the player through");
         }
 
         [UnityTest]
