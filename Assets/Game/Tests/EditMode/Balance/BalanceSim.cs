@@ -17,6 +17,9 @@ namespace Game.Core.Tests
         public float DamageTaken;
         public float DamageDealt;
         public float UltimatesFired;
+
+        // How far the player walked over the fight (world units).
+        public float Moved;
     }
 
     // Plays one weapon against one boss in the plain-C# server, through the same client API a phone uses,
@@ -42,20 +45,107 @@ namespace Game.Core.Tests
                 ally.Stats = stats;
                 ally.Health = 1e6f;
             }
-            var view = new BotView(client, abilities, classes.Get(weapon)) { EnemyRadius = classes.Get(boss).BodyRadius };
-            var result = new BalanceResult { Weapon = weapon, Boss = boss, Policy = policy.Name };
-            var events = new List<DamageEvent>();
-            var uses = new List<UseEvent>();
-            var maxHealth = classes.Get(weapon).Stats.MaxHealth;
-            var ultimateId = classes.Get(weapon).Skills.Length > Entity.UltimateSlot - 1 ? StableId.From(classes.Get(weapon).Skills[Entity.UltimateSlot - 1]) : 0;
-            var me = default(EntityState);
-            var ticks = (int)(maxSeconds / Step);
 
+            var tracker = new Tracker(client, abilities, classes, weapon, boss, policy);
+            return Play(session, new[] { tracker }, maxSeconds)[0];
+        }
+
+        // A party fight: the tank holds its ground at the front and the ranged player stands back, both against one boss.
+        // Returns the tank's result first and the ranged player's second.
+        public static BalanceResult[] RunParty(Registry<ClassDef> classes, Registry<AbilityDef> abilities, string tankWeapon, IBotPolicy tankPolicy, string rangedWeapon, IBotPolicy rangedPolicy, string boss, float maxSeconds = 240f, ulong seed = 1, StringBuilder trace = null)
+        {
+            var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
+            var tank = session.AddPlayer(new PlayerId(1), tankWeapon);
+            var ranged = session.AddPlayer(new PlayerId(2), rangedWeapon);
+            session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
+            var trackers = new[]
+            {
+                new Tracker(tank, abilities, classes, tankWeapon, boss, tankPolicy),
+                new Tracker(ranged, abilities, classes, rangedWeapon, boss, rangedPolicy),
+            };
+            return Play(session, trackers, maxSeconds, trace);
+        }
+
+        static BalanceResult[] Play(LocalSession session, Tracker[] trackers, float maxSeconds, StringBuilder trace = null)
+        {
+            var ticks = (int)(maxSeconds / Step);
+            var bossDead = false;
+            var seconds = 0f;
             for (var tick = 0; tick < ticks; tick++)
             {
-                policy.Step(view, Step);
+                for (var i = 0; i < trackers.Length; i++)
+                {
+                    trackers[i].Policy.Step(trackers[i].View, Step);
+                }
+
                 session.Advance(Step);
 
+                var anyAlive = false;
+                for (var i = 0; i < trackers.Length; i++)
+                {
+                    trackers[i].Observe();
+                    anyAlive |= trackers[i].Alive;
+                }
+
+                seconds = (tick + 1) * Step;
+                if (trace != null && tick % 30 == 29)
+                {
+                    AppendTrace(trace, seconds, session.Server, trackers);
+                }
+
+                if (EnemiesAlive(session.Server) == 0)
+                {
+                    bossDead = true;
+                    break;
+                }
+
+                if (!anyAlive)
+                {
+                    break;
+                }
+            }
+
+            var results = new BalanceResult[trackers.Length];
+            for (var i = 0; i < trackers.Length; i++)
+            {
+                results[i] = trackers[i].Finish(seconds, bossDead);
+            }
+
+            return results;
+        }
+
+        // One player's side of a run: the bot, what it has seen and what it has added up so far.
+        sealed class Tracker
+        {
+            readonly GameClient client;
+            readonly float maxHealth;
+            readonly int ultimateId;
+            readonly List<DamageEvent> events = new List<DamageEvent>();
+            readonly List<UseEvent> uses = new List<UseEvent>();
+            Vec2 last;
+            bool hasLast;
+            EntityState me;
+
+            public Tracker(GameClient client, Registry<AbilityDef> abilities, Registry<ClassDef> classes, string weapon, string boss, IBotPolicy policy)
+            {
+                this.client = client;
+                Policy = policy;
+                View = new BotView(client, abilities, classes.Get(weapon)) { EnemyRadius = classes.Get(boss).BodyRadius };
+                Result = new BalanceResult { Weapon = weapon, Boss = boss, Policy = policy.Name };
+                maxHealth = classes.Get(weapon).Stats.MaxHealth;
+                ultimateId = classes.Get(weapon).Skills.Length > Entity.UltimateSlot - 1 ? StableId.From(classes.Get(weapon).Skills[Entity.UltimateSlot - 1]) : 0;
+            }
+
+            public IBotPolicy Policy { get; }
+
+            public BotView View { get; }
+
+            public BalanceResult Result { get; }
+
+            public bool Alive => client.TryGetLocalState(out var state) && state.Health > 0f;
+
+            public void Observe()
+            {
                 events.Clear();
                 client.DrainEvents(events);
                 for (var i = 0; i < events.Count; i++)
@@ -68,11 +158,11 @@ namespace Game.Core.Tests
 
                     if (hit.Target == client.LocalEntity)
                     {
-                        result.DamageTaken += hit.Amount;
+                        Result.DamageTaken += hit.Amount;
                     }
                     else if (hit.Source == client.LocalEntity)
                     {
-                        result.DamageDealt += hit.Amount;
+                        Result.DamageDealt += hit.Amount;
                     }
                 }
 
@@ -82,30 +172,50 @@ namespace Game.Core.Tests
                 {
                     if (uses[i].User == client.LocalEntity && ultimateId != 0 && uses[i].Ability == ultimateId)
                     {
-                        result.UltimatesFired++;
+                        Result.UltimatesFired++;
                     }
                 }
 
-                result.Seconds = (tick + 1) * Step;
-                if (client.TryGetLocalState(out me))
+                if (client.TryGetLocalState(out me) && me.Health > 0f)
                 {
-                    if (me.Health <= 0f)
+                    if (hasLast)
                     {
-                        break;
+                        Result.Moved += (me.Position - last).Length;
                     }
-                }
 
-                if (EnemiesAlive(session.Server) == 0)
-                {
-                    result.BossDead = true;
-                    break;
+                    last = me.Position;
+                    hasLast = true;
                 }
             }
 
-            result.Survived = client.TryGetLocalState(out me) && me.Health > 0f;
-            result.HealthLeft = result.Survived && maxHealth > 0f ? me.Health / maxHealth : 0f;
-            result.MaxHealth = maxHealth;
-            return result;
+            public BalanceResult Finish(float seconds, bool bossDead)
+            {
+                Result.Seconds = seconds;
+                Result.BossDead = bossDead;
+                Result.Survived = client.TryGetLocalState(out me) && me.Health > 0f;
+                Result.HealthLeft = Result.Survived && maxHealth > 0f ? me.Health / maxHealth : 0f;
+                Result.MaxHealth = maxHealth;
+                return Result;
+            }
+        }
+
+        // One line a second for finding out why a bot moves: where everyone is and who the boss is after.
+        static void AppendTrace(StringBuilder trace, float seconds, GameServer server, Tracker[] trackers)
+        {
+            trace.Append(seconds.ToString("0", CultureInfo.InvariantCulture)).Append("s");
+            foreach (var entity in server.Entities)
+            {
+                if (!entity.IsAlive)
+                {
+                    continue;
+                }
+
+                var who = entity.Owner.IsValid ? "P" + entity.Owner.Value : entity.Team == Team.Enemies ? "E" + entity.ClassId : "?";
+                var target = entity.Target.IsValid ? server.FindEntity(entity.Target) : null;
+                trace.Append(string.Format(CultureInfo.InvariantCulture, "  {0}({1:0.0},{2:0.0}){3}", who, entity.Position.X, entity.Position.Y, target != null && target.Owner.IsValid ? "->P" + target.Owner.Value : string.Empty));
+            }
+
+            trace.AppendLine();
         }
 
         static int EnemiesAlive(GameServer server)
@@ -195,15 +305,15 @@ namespace Game.Core.Tests
         public static string Table(IReadOnlyList<BalanceResult> results)
         {
             var text = new StringBuilder();
-            text.AppendLine("weapon              boss              policy           result     time  hp left  taken  dealt  ults");
+            text.AppendLine("weapon              boss              policy           result     time  hp left  taken  dealt  ults  moved");
             for (var i = 0; i < results.Count; i++)
             {
                 var r = results[i];
                 var outcome = r.BossDead && r.Survived ? "WIN" : r.Survived ? "timeout" : "DEAD";
                 text.AppendLine(string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0,-19} {1,-17} {2,-16} {3,-8} {4,5:0.0}s {5,7:P0} {6,6:0} {7,6:0} {8,5:0}",
-                    r.Weapon, r.Boss, r.Policy, outcome, r.Seconds, r.HealthLeft, r.DamageTaken, r.DamageDealt, r.UltimatesFired));
+                    "{0,-19} {1,-17} {2,-16} {3,-8} {4,5:0.0}s {5,7:P0} {6,6:0} {7,6:0} {8,5:0} {9,5:0}m",
+                    r.Weapon, r.Boss, r.Policy, outcome, r.Seconds, r.HealthLeft, r.DamageTaken, r.DamageDealt, r.UltimatesFired, r.Moved));
             }
 
             return text.ToString();

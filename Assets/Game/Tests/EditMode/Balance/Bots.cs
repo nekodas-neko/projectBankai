@@ -229,7 +229,15 @@ namespace Game.Core.Tests
     // How the tank is meant to play: walk up, then stay put, attack, and use the defensive skill on the warnings that land on it.
     public sealed class TankBlocker : BotBase
     {
-        public override string Name => "stand and block";
+        readonly bool stepsOutOfRed;
+
+        // With stepsOutOfRed off the tank never leaves its spot: it only blocks (the MMO tank, a rock at the front).
+        public TankBlocker(bool stepsOutOfRed = true)
+        {
+            this.stepsOutOfRed = stepsOutOfRed;
+        }
+
+        public override string Name => stepsOutOfRed ? "stand and block" : "hold ground";
 
         public override void Step(BotView view, float dt)
         {
@@ -248,7 +256,7 @@ namespace Game.Core.Tests
 
             // Red warnings cannot be blocked: leave the area, then come back.
             var windups = view.Client.Latest.Windups;
-            if (hasEnemy && AnyThreat(view, windups, me.Position, true) && TryEscape(view, me, view.Kit.Stats.MoveSpeed, enemy.Position, closeEnough + 2f, windups, true, out var away))
+            if (stepsOutOfRed && hasEnemy && AnyThreat(view, windups, me.Position, true) && TryEscape(view, me, view.Kit.Stats.MoveSpeed, enemy.Position, closeEnough + 2f, windups, true, out var away))
             {
                 move = away;
             }

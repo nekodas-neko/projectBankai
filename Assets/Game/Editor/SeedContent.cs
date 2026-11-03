@@ -54,7 +54,7 @@ namespace Game.Editor
             var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3.8f, damage: 14f);
             Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.avoidable = false; a.atTarget = true; });
             var kingWave = Ability("king_wave", cooldown: 8f, range: 9f, radius: 0f, damage: 17f);
-            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
+            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
 
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
@@ -164,6 +164,7 @@ namespace Game.Editor
             var slimeSpit = Ability("slime_spit", cooldown: 0.5f, range: 30f, radius: 4.6f, damage: 18f);
             Tune(slimeSpit, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = true; a.atTarget = true; });
             Tune(kingSmash, a => a.cooldown < 10f, a => a.cooldown = 14f);
+            Tune(kingSmash, a => !a.avoidable, a => a.avoidable = true);
             Tune("mushroom_warden", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
             {
                 c.skills = new[] { c.skills[0], slimeSpit };
