@@ -32,7 +32,7 @@ namespace Game.Client
 
         public static DungeonBanner Build(RectTransform parent, Action onRestart)
         {
-            var room = NewText("RoomLabel", parent, 40, new Vector2(0.5f, 1f), new Vector2(0f, -62f), new Vector2(300f, 70f));
+            var room = NewText("RoomLabel", parent, 40, new Vector2(0.5f, 1f), new Vector2(0f, -62f), new Vector2(760f, 70f));
             var message = NewText("DungeonMessage", parent, 64, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(900f, 260f));
 
             var buttonImage = Hud.NewImage("RestartButton", parent, null, new Color(0.15f, 0.55f, 0.35f, 0.95f), true);
@@ -72,7 +72,7 @@ namespace Game.Client
         }
 
         // In a continuous dungeon nobody is moved when a boss falls: a gate opens, and the fallen get back up.
-        public void Update(Snapshot snapshot, bool localDown, bool continuous = false)
+        public void Update(Snapshot snapshot, bool localDown, bool continuous = false, string objective = "")
         {
             if (snapshot == null || snapshot.Dungeon == DungeonPhase.None || snapshot.RoomCount == 0)
             {
@@ -80,7 +80,7 @@ namespace Game.Client
                 return;
             }
 
-            SetText(roomLabel, $"Room {snapshot.Room} / {snapshot.RoomCount}");
+            SetText(roomLabel, objective ?? string.Empty);
             string text;
             var showRestart = false;
             switch (snapshot.Dungeon)

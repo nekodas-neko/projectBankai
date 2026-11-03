@@ -213,7 +213,7 @@ namespace Game.Core
                 }
                 else
                 {
-                    combat.Use(entity, command.AbilitySlot, command.Aim);
+                    combat.Use(entity, command.AbilitySlot, command.Aim, command.Type == CommandType.HeavyAttack);
                 }
             }
         }

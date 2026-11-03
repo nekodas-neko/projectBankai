@@ -449,6 +449,7 @@ namespace Game.Client
         void WireButtons()
         {
             Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
+            Hud.Attack.FiredHeavy += aim => LocalClient?.HeavyAttack(ToWorld(aim));
             Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
             Hud.Ultimate.Fired += aim => LocalClient?.Skill(Entity.UltimateSlot, ToWorld(aim));
             Hud.Defense.Fired += aim => LocalClient?.Defend(DefendDirection(aim));
@@ -463,7 +464,9 @@ namespace Game.Client
             UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
-            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null);
+            var quests = QuestLog.Build(dungeonDefs.Get(DungeonId), LocalClient.Latest);
+            Hud.Quest.Show(quests);
+            Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null, QuestLog.Current(quests));
             var phase = LocalClient.Latest?.Dungeon ?? DungeonPhase.None;
             Hud.Banner.SetSummary(phase == DungeonPhase.Victory || phase == DungeonPhase.Defeat ? fightStats.Report(LocalClient.Player) : string.Empty);
 
@@ -683,7 +686,7 @@ namespace Game.Client
             }
         }
 
-        // While the boss winds up a cast that can be interrupted, a bar under its frame counts it down.
+        // While the boss winds up a cast that can be interrupted, a bar under its frame and one above its head count it down.
         void UpdateBossCast(Snapshot snapshot, EntityState boss)
         {
             var windups = snapshot?.Windups;
@@ -691,12 +694,15 @@ namespace Game.Client
             {
                 if (windups[i].User == boss.Id && AbilityCatalog.TryGet(windups[i].Ability, out var cast) && cast.interruptible && cast.windup > 0f)
                 {
-                    Hud.BossFrame.ShowCast(cast.name, 1f - Mathf.Clamp01(windups[i].Remaining / cast.windup));
+                    var fraction = 1f - Mathf.Clamp01(windups[i].Remaining / cast.windup);
+                    Hud.BossFrame.ShowCast(cast.name, fraction);
+                    views.SetCast(boss.Id, fraction);
                     return;
                 }
             }
 
             Hud.BossFrame.HideCast();
+            views.SetCast(boss.Id, -1f);
         }
 
         void SyncTelegraphs()

@@ -119,6 +119,33 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator TheBossCastBarSitsAboveTheBossAndHidesAgain()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Entity boss = null;
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (entity.IsBoss && boss == null)
+                {
+                    boss = entity;
+                }
+            }
+
+            Assert.IsNotNull(boss);
+            Assert.IsFalse(bootstrap.Views.CastVisible(boss.Id));
+
+            bootstrap.Views.SetCast(boss.Id, 0.5f);
+            Assert.IsTrue(bootstrap.Views.CastVisible(boss.Id));
+
+            bootstrap.Views.SetCast(boss.Id, -1f);
+            Assert.IsFalse(bootstrap.Views.CastVisible(boss.Id));
+        }
+
+        [UnityTest]
         public IEnumerator DungeonMap_IsDrawnAClosedGateStopsThePlayerAndABossOpensIt()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
@@ -165,7 +192,9 @@ namespace Game.PlayMode.Tests
             SceneManager.LoadScene("Arena");
             yield return new WaitForSeconds(0.6f);
             var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
-            Assert.AreEqual("Room 1 / 3", bootstrap.Hud.Banner.RoomText);
+            StringAssert.StartsWith("Defeat the", bootstrap.Hud.Banner.RoomText);
+            var firstTask = bootstrap.Hud.Banner.RoomText;
+            StringAssert.Contains("> " + firstTask, bootstrap.Hud.Quest.Text);
             Assert.IsFalse(bootstrap.Hud.Banner.RestartVisible);
 
             foreach (var entity in bootstrap.Session.Server.Entities)
@@ -181,7 +210,8 @@ namespace Game.PlayMode.Tests
             Assert.IsTrue(bootstrap.Session.Server.Map.IsOpen(0));
 
             yield return new WaitForSeconds(3.5f);
-            Assert.AreEqual("Room 2 / 3", bootstrap.Hud.Banner.RoomText);
+            Assert.AreNotEqual(firstTask, bootstrap.Hud.Banner.RoomText, "the next boss is the task now");
+            StringAssert.Contains("[x] " + firstTask, bootstrap.Hud.Quest.Text);
 
             foreach (var entity in bootstrap.Session.Server.Entities)
             {
