@@ -1,0 +1,27 @@
+# Example tuning file. Copy it to tuning.txt, edit, then run tools\tune.ps1.
+# Any line can be removed or commented out; anything not listed keeps its shipped value.
+
+# The slime king's big circle hits harder and takes longer to wind up
+ability.king_smash.damage = 26
+ability.king_smash.windup = 1.4
+
+# The tank's block
+ability.shield_wall.reduction = 0.7
+ability.shield_wall.cooldown = 4
+
+# Weapon health and speed (a nested name is separated by dots)
+class.sword_and_shield.stats.maxHealth = 240
+class.staff.stats.maxHealth = 80
+class.healing_mace.stats.moveSpeed = 6
+
+# The weapon resource: starts full, regenerates, and the attack gives some back (a negative cost gives resource)
+class.healing_mace.resource.regen = 2
+ability.holy_bolt.resourceCost = -6
+
+# A skill variant by its id, and a boss phase by its position (0 is the first)
+ability.fireball.variants.frost.damageScale = 0.9
+class.slime_boss.phases.2.speedScale = 1.4
+
+# The ultimate: how much charge it needs, and how fast damage dealt fills it
+ability.meteor_fall.chargeRequired = 100
+ability.meteor_fall.chargeFromDealt = 1
