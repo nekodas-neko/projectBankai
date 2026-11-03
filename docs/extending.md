@@ -76,6 +76,16 @@ The everyday ground circle is the orange `slime_spit` (4.6-unit circle, 1.2 s wa
 
 A class has a **Recovery Seconds** field (0 by default). After one of its attacks starts, the enemy stays planted for the attack's windup plus this many seconds before it moves or attacks again. Timed mechanics (ground circles) keep running while it recovers. Bosses use it so they do not chase and swing without a break: there is a window to stand and hit, which is how an MMO boss feels. The tuning file can change it, for example `class.slime_boss.recoverySeconds = 1.5`.
 
+## Casts, interrupts and adds
+
+Three fields on an ability make a classic boss moment:
+
+- **Interruptible** marks the ability as a *cast*. While it winds up the caster stands still (so it cannot be a ground circle) and the client can show a cast bar. Give it a windup of a second or more, a small **Radius** (0.01) when it should not hurt anyone, and put it on the boss as a phase **mechanic** (a timer), which fires it whether or not anyone is in reach. A heal cast is just **Heal** on that ability; the healing area includes the boss itself.
+- **Interrupt** (seconds) goes on the *player's* ability. When it hits an enemy that is winding up an interruptible cast, the cast is cancelled (it does nothing) and the enemy is **Staggered** for that long: it cannot move, attack, cast or fire mechanics. The hit sends an `Interrupted` event. An interrupt on a hit that is not catching a cast does nothing extra.
+- **Summon Class / Summon Count / Summon Skin** make the ability add that many of a class around the caster when it resolves. The adds are fixed on the *farthest* player (the ranged or healing one) for 12 seconds, which is what makes the tank use a taunt. A taunt sets the forced target and pulls them. Adds count as summoned: they are removed when the boss dies, and they get the party-size health scale like everything else.
+
+So an interruptible summon is "interrupt the cast or deal with the adds", and an interruptible heal is "interrupt it or the fight gets longer". The validator checks a cast has a windup of at least half a second and is not a ground circle, that an interrupt is 0 to 10 seconds, and that a summon names a real class.
+
 ## Red and orange attacks
 
 Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):

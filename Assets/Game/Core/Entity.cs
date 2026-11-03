@@ -8,6 +8,7 @@ namespace Game.Core
         public const int Blocking = 2;
         public const int Shield = 3;
         public const int Dashing = 4;
+        public const int Staggered = 5;
     }
 
     public static class EffectFlags
@@ -17,6 +18,7 @@ namespace Game.Core
         public const byte Shielded = 4;
         public const byte Dashing = 8;
         public const byte Boss = 16;
+        public const byte Staggered = 32;
     }
 
     public struct StatusEffect
@@ -340,6 +342,11 @@ namespace Game.Core
             if (IsBoss)
             {
                 flags |= EffectFlags.Boss;
+            }
+
+            if (HasStatus(StatusType.Staggered))
+            {
+                flags |= EffectFlags.Staggered;
             }
 
             return flags;
