@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: mushroom_warden
   m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
   playable: 0
-  maxHealth: 320
+  maxHealth: 900
   moveSpeed: 2.6
   power: 1
   autoAttack: {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}

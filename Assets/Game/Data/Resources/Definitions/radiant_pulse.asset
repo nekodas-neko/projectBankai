@@ -18,7 +18,7 @@ MonoBehaviour:
   cooldown: 0.5
   range: 5
   radius: 3
-  damage: 10
+  damage: 14
   windup: 0
   resourceCost: 30
   duration: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
   reduction: 0
   absorb: 0
   perfectWindow: 0
-  heal: 20
+  heal: 14
   taunt: 0
   rider: {fileID: 0}
   avoidable: 1

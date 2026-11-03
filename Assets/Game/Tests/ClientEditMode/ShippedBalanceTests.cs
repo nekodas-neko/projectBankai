@@ -52,6 +52,9 @@ namespace Game.Client.Tests
             targets.MinFightSeconds["mushroom_warden"] = 30f;
             targets.MinFightSeconds["brood_mother"] = 60f;
             targets.MinFightSeconds["slime_boss"] = 90f;
+            targets.IntendedPolicy["sword_and_shield"] = "stand and block";
+            targets.IntendedPolicy["healing_mace"] = "kite";
+            targets.IntendedPolicy["staff"] = "kite";
             var misses = BalanceSim.Misses(results, targets);
             var table = BalanceSim.Table(results) + "\nTargets missed: " + misses.Count + "\n" + string.Join("\n", misses) + "\n";
             var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "balance-report.txt"));

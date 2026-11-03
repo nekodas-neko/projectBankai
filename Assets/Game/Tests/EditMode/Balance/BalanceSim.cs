@@ -116,11 +116,18 @@ namespace Game.Core.Tests
 
             public float DefaultMinFightSeconds { get; set; } = 40f;
 
-            // An ultimate is a moment in a fight, not a rotation.
-            public float MaxUltimatesPerFight { get; set; } = 2f;
+            // An ultimate is a moment in a fight, not a rotation: at most this many a minute.
+            public float MaxUltimatesPerMinute { get; set; } = 1.5f;
 
             // Played the way it is meant to be played, nobody should finish a fight nearly dead.
             public float MinHealthLeftWhenPlayedWell { get; set; } = 0.3f;
+
+            // Even a slow weapon should finish a boss alone within this long (seconds); a timeout means it cannot.
+            public float MaxFightSeconds { get; set; } = 180f;
+
+            // The way each weapon is meant to be played. A weapon with an entry is only judged on that policy,
+            // because a staff that stands and blocks is not a style anyone is asking for.
+            public Dictionary<string, string> IntendedPolicy { get; } = new Dictionary<string, string>();
         }
 
         public static List<string> Misses(IReadOnlyList<BalanceResult> results, Targets targets)
@@ -129,7 +136,7 @@ namespace Game.Core.Tests
             for (var i = 0; i < results.Count; i++)
             {
                 var r = results[i];
-                if (r.Policy == "stand still")
+                if (r.Policy == "stand still" || (targets.IntendedPolicy.TryGetValue(r.Weapon, out var intended) && intended != r.Policy))
                 {
                     continue;
                 }
@@ -141,9 +148,15 @@ namespace Game.Core.Tests
                     misses.Add(string.Format(CultureInfo.InvariantCulture, "{0}: over in {1:0.0}s, target at least {2:0}s", who, r.Seconds, shortest));
                 }
 
-                if (r.UltimatesFired > targets.MaxUltimatesPerFight)
+                if (r.Survived && (!r.BossDead || r.Seconds > targets.MaxFightSeconds))
                 {
-                    misses.Add(string.Format(CultureInfo.InvariantCulture, "{0}: {1:0} ultimates, target at most {2:0}", who, r.UltimatesFired, targets.MaxUltimatesPerFight));
+                    misses.Add(string.Format(CultureInfo.InvariantCulture, "{0}: not finished in {1:0}s, target at most {2:0}s", who, r.Seconds, targets.MaxFightSeconds));
+                }
+
+                var perMinute = r.Seconds > 0f ? r.UltimatesFired * 60f / r.Seconds : 0f;
+                if (perMinute > targets.MaxUltimatesPerMinute)
+                {
+                    misses.Add(string.Format(CultureInfo.InvariantCulture, "{0}: {1:0.0} ultimates a minute ({2:0} in {3:0}s), target at most {4:0.0}", who, perMinute, r.UltimatesFired, r.Seconds, targets.MaxUltimatesPerMinute));
                 }
 
                 if (!r.Survived || (r.BossDead && r.HealthLeft < targets.MinHealthLeftWhenPlayedWell))

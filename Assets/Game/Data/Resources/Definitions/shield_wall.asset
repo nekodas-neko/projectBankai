@@ -23,7 +23,7 @@ MonoBehaviour:
   resourceCost: 0
   duration: 1.5
   dashDistance: 0
-  reduction: 0.7
+  reduction: 0.75
   absorb: 0
   perfectWindow: 0
   heal: 0
