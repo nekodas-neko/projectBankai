@@ -54,11 +54,16 @@ namespace Game.Client
         float sinceSave;
         string notice = string.Empty;
         float noticeLeft;
+        readonly LootTableDef loot;
+        readonly ulong lootSeed;
 
-        public MasteryProgress(ProfileStore store, MasteryRules rules)
+        // The loot table is optional (no table, no drops). The seed varies the rolls between sessions; a test passes its own.
+        public MasteryProgress(ProfileStore store, MasteryRules rules, LootTableDef loot = null, ulong lootSeed = 0)
         {
             this.store = store;
             this.rules = rules;
+            this.loot = loot;
+            this.lootSeed = lootSeed != 0 ? lootSeed : (ulong)System.Environment.TickCount * 2654435761UL;
             Profile = store.Load();
         }
 
@@ -68,15 +73,31 @@ namespace Game.Client
 
         public bool Dirty => dirty;
 
-        // Starter weapons are owned under their type name, so the weapon in hand is equipped by that name.
+        // Carries a weapon of that type: the one already in hand if it matches, otherwise the strongest owned.
         public void Equip(string weaponType)
         {
-            var changed = Profile.EquippedUid != weaponType;
-            if (Profile.Equip(weaponType) && changed)
+            var before = Profile.EquippedUid;
+            if (Profile.EquipType(weaponType) && Profile.EquippedUid != before)
             {
                 dirty = true;
             }
         }
+
+        // Picks a specific owned weapon (from the inventory screen) and saves.
+        public bool EquipWeapon(string uid)
+        {
+            if (!Profile.Equip(uid))
+            {
+                return false;
+            }
+
+            dirty = true;
+            Flush();
+            return true;
+        }
+
+        // The power scale of the weapon in hand, sent when joining.
+        public float WeaponPower => Profile.Equipped?.Power ?? 1f;
 
         // Spends points on a tree node for a weapon type and saves at once (the loadout is sent when the session starts).
         public bool TryChoose(SkillTreeDef tree, string weaponType, string nodeId, out string reason)
@@ -125,12 +146,48 @@ namespace Game.Client
                 noticeLeft = NoticeSeconds;
             }
 
+            for (var i = 0; i < bosses; i++)
+            {
+                Drop();
+            }
+
             if (gained > 0 || bosses > 0)
             {
                 Flush();
             }
 
             return gained;
+        }
+
+        // Personal loot: the boss that fell gives this player a weapon of their own (unless the bag is full).
+        void Drop()
+        {
+            if (loot == null)
+            {
+                return;
+            }
+
+            if (Profile.Weapons.Count >= PlayerProfile.MaxWeapons)
+            {
+                notice = "Boss down. Your weapon bag is full, so the drop was lost.";
+                noticeLeft = NoticeSeconds;
+                return;
+            }
+
+            var rolls = Profile.LootRolls++;
+            var weapon = LootRoller.Roll(loot, new SeededRandom(lootSeed + (ulong)rolls * 7919UL), rolls + 1);
+            if (weapon != null && Profile.Add(weapon))
+            {
+                notice = "Dropped: " + Describe(weapon);
+                noticeLeft = NoticeSeconds;
+            }
+        }
+
+        // "Staff +8%": the weapon type and how far its power is from a starter weapon.
+        public static string Describe(OwnedWeapon weapon)
+        {
+            var percent = (int)System.Math.Round((weapon.Power - 1f) * 100f);
+            return percent == 0 ? Name(weapon.Type) : $"{Name(weapon.Type)} {(percent > 0 ? "+" : string.Empty)}{percent}%";
         }
 
         public void Tick(float dt)
@@ -184,7 +241,7 @@ namespace Game.Client
             var level = mastery.Level(rules);
             var bar = needed > 0 ? $"{into}/{needed}" : "max";
             var points = mastery.PointsAvailable(rules);
-            return $"{Name(type)} mastery {level} ({bar}){(points > 0 ? $", {points} {(points == 1 ? "point" : "points")}" : string.Empty)}";
+            return $"{Describe(Profile.Equipped)} mastery {level} ({bar}){(points > 0 ? $", {points} {(points == 1 ? "point" : "points")}" : string.Empty)}";
         }
 
         public static string Name(string weaponType)

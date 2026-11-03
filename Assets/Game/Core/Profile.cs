@@ -21,6 +21,12 @@ namespace Game.Core
         public List<OwnedWeapon> Weapons { get; } = new List<OwnedWeapon>();
         public string EquippedUid { get; set; } = string.Empty;
 
+        // How many drops have been rolled; it seeds the next roll and numbers the weapon's id.
+        public int LootRolls { get; set; }
+
+        // The inventory holds this many weapons; a drop that would not fit is lost.
+        public const int MaxWeapons = 30;
+
         public OwnedWeapon Equipped
         {
             get
@@ -70,7 +76,7 @@ namespace Game.Core
 
         public bool Add(OwnedWeapon weapon)
         {
-            if (weapon == null || !ProfileText.IsId(weapon.Uid) || !ProfileText.IsId(weapon.Type) || Has(weapon.Uid))
+            if (weapon == null || Weapons.Count >= MaxWeapons || !ProfileText.IsId(weapon.Uid) || !ProfileText.IsId(weapon.Type) || Has(weapon.Uid))
             {
                 return false;
             }
@@ -93,6 +99,26 @@ namespace Game.Core
         }
 
         // Only a weapon the character owns can be equipped.
+        // The weapon of that type to carry: the one already in hand if it is that type, otherwise the strongest one owned.
+        public bool EquipType(string weaponType)
+        {
+            if (EquippedType == weaponType)
+            {
+                return true;
+            }
+
+            OwnedWeapon best = null;
+            foreach (var weapon in Weapons)
+            {
+                if (weapon.Type == weaponType && (best == null || weapon.Power > best.Power))
+                {
+                    best = weapon;
+                }
+            }
+
+            return best != null && Equip(best.Uid);
+        }
+
         public bool Equip(string uid)
         {
             if (!Has(uid))
@@ -148,6 +174,7 @@ namespace Game.Core
                     .Append(string.IsNullOrEmpty(weapon.Modifier) ? "-" : weapon.Modifier).Append('\n');
             }
 
+            text.Append("loot ").Append(profile.LootRolls).Append('\n');
             var types = new List<string>(profile.Mastery.Keys);
             types.Sort(StringComparer.Ordinal);
             foreach (var type in types)
@@ -232,6 +259,15 @@ namespace Game.Core
                     }
 
                     return true;
+                case "loot" when parts.Length == 2:
+                    if (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var rolls))
+                    {
+                        error = "bad loot count";
+                        return false;
+                    }
+
+                    profile.LootRolls = rolls;
+                    return true;
                 case "mastery" when parts.Length == 4:
                     if (!IsId(parts[1]) || !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var xp)
                         || !int.TryParse(parts[3], NumberStyles.None, CultureInfo.InvariantCulture, out var spent))
@@ -255,6 +291,7 @@ namespace Game.Core
                     return true;
                 case "equipped":
                 case "weapon":
+                case "loot":
                 case "mastery":
                 case "choice":
                     error = $"'{parts[0]}' has the wrong number of fields";
