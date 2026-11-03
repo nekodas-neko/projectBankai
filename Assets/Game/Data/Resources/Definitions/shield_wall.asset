@@ -15,7 +15,7 @@ MonoBehaviour:
   kind: 2
   shape: 0
   angle: 0
-  cooldown: 5
+  cooldown: 4
   range: 1
   radius: 0
   damage: 0
@@ -23,7 +23,7 @@ MonoBehaviour:
   resourceCost: 0
   duration: 1.5
   dashDistance: 0
-  reduction: 0.65
+  reduction: 0.7
   absorb: 0
   perfectWindow: 0
   heal: 0
