@@ -29,7 +29,7 @@ namespace Game.Core.Tests
             var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
             var client = session.AddPlayer(new PlayerId(1), weapon);
             session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
-            var view = new BotView(client, abilities, classes.Get(weapon));
+            var view = new BotView(client, abilities, classes.Get(weapon)) { EnemyRadius = classes.Get(boss).BodyRadius };
             var result = new BalanceResult { Weapon = weapon, Boss = boss, Policy = policy.Name };
             var events = new List<DamageEvent>();
             var uses = new List<UseEvent>();

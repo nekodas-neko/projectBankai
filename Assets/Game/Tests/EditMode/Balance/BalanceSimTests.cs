@@ -57,6 +57,15 @@ namespace Game.Core.Tests
             Assert.Less(block.DamageTaken / block.Seconds, still.DamageTaken / still.Seconds, BalanceSim.Table(new[] { still, block }));
         }
 
+        [Test]
+        public void TheTankStepsOutOfARedWarningInsteadOfBlockingIt()
+        {
+            var result = Play("knight", "red_warden", new TankBlocker());
+
+            Assert.Greater(result.DamageDealt, 0f, "the tank should still reach the boss and fight");
+            Assert.Less(result.DamageTaken, 1f, BalanceSim.Table(new[] { result }));
+        }
+
         // Prints the table for the small test dataset; run by name when you want to see the numbers.
         [Test, Explicit("prints a report")]
         public void ReportOnTheTestData()
