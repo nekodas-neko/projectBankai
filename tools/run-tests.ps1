@@ -1,6 +1,7 @@
 param(
     [ValidateSet('EditMode', 'PlayMode')]
-    [string]$Platform = 'EditMode'
+    [string]$Platform = 'EditMode',
+    [string]$Filter = ''
 )
 
 . (Join-Path $PSScriptRoot 'common.ps1')
@@ -10,7 +11,12 @@ $results = Join-Path $root "Logs\test-results-$Platform.xml"
 $log = Join-Path $root "Logs\test-$Platform.log"
 Remove-Item $results -ErrorAction SilentlyContinue
 
-$exit = Invoke-Unity -Root $root -LogFile $log -Arguments @('-runTests', '-testPlatform', $Platform, '-testResults', "`"$results`"")
+$arguments = @('-runTests', '-testPlatform', $Platform, '-testResults', "`"$results`"")
+if ($Filter) {
+    $arguments += @('-testFilter', "`"$Filter`"")
+}
+
+$exit = Invoke-Unity -Root $root -LogFile $log -Arguments $arguments
 
 if (Test-Path $results) {
     $run = ([xml](Get-Content $results)).'test-run'
