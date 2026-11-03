@@ -74,7 +74,10 @@ namespace Game.Client
             var className = HudSettings.ClassName;
             playerClass = classDefs.Get(className);
             skillTrees = SkillTreeCatalog.Load(classDefs, abilityDefs);
-            mastery = new MasteryProgress(ProfileStore.ForDevice(), MasteryCatalog.Load(), LootCatalog.LoadBossDrop(classDefs));
+            var masteryRules = MasteryCatalog.Load();
+            var lootTables = LootCatalog.Load(classDefs);
+            lootTables.TryGet(LootTableAsset.BossDrop, out var bossDrop);
+            mastery = new MasteryProgress(ProfileStore.ForDevice(), masteryRules, bossDrop, 0, new RewardBook(classDefs, masteryRules), lootTables);
             mastery.Equip(className);
             loadout = Loadout(className);
             views = new EntityViews(transform, assets);

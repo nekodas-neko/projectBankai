@@ -10,6 +10,7 @@ namespace Game.Client
     {
         public const string Folder = ResourcesFolder + "/Loot";
         public const string BossDrop = "boss_drop";
+        public const string MobDrop = "mob_drop";
 
         public string[] weaponTypes = new string[0];
         [Range(0.8f, 1.3f)] public float powerMin = 0.95f;
@@ -23,8 +24,8 @@ namespace Game.Client
 
     public static class LootCatalog
     {
-        // The boss drop table, or null (no drops) when it is missing or invalid; an invalid one is logged.
-        public static LootTableDef LoadBossDrop(Registry<ClassDef> classes)
+        // Every loot table in the folder, or an empty registry (no drops) when any is invalid; invalid ones are logged.
+        public static Registry<LootTableDef> Load(Registry<ClassDef> classes)
         {
             var tables = new Registry<LootTableDef>();
             foreach (var asset in Resources.LoadAll<LootTableAsset>(LootTableAsset.Folder))
@@ -36,10 +37,16 @@ namespace Game.Client
             if (errors.Count > 0)
             {
                 Debug.LogError("Invalid loot tables, no drops:\n" + string.Join("\n", errors));
-                return null;
+                return new Registry<LootTableDef>();
             }
 
-            return tables.TryGet(LootTableAsset.BossDrop, out var table) ? table : null;
+            return tables;
+        }
+
+        // The boss drop table, or null when it is missing or invalid.
+        public static LootTableDef LoadBossDrop(Registry<ClassDef> classes)
+        {
+            return Load(classes).TryGet(LootTableAsset.BossDrop, out var table) ? table : null;
         }
     }
 }
