@@ -1,6 +1,6 @@
 # projectBankai
 
-Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: tank/DPS/healer roles, telegraphed boss fights, dungeons. One thumb on a phone. First target: 2 players clearing a small dungeon together, then up to 4 with AI fill.
+Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: telegraphed boss fights, dungeons, and a role (tank, damage, healing) that comes from the weapon you carry and not from a class you pick. One thumb on a phone. First target: 2 players clearing a small dungeon together, then up to 4 with AI fill.
 
 ## Public repo rules
 - This repo is public. Never commit secrets: Unity license data, keystores, Apple certificates, API keys, tokens. They live in GitHub Actions secrets.
@@ -22,11 +22,11 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: ta
 - Game logic is plain C# in `Game.Core`, an assembly with no UnityEngine references and no MonoBehaviours. Damage, threat, healing, cooldowns, boss phase machines, telegraph timing, party AI and `GameServer` live there.
 - Local network sessions (no internet): `Game.Net` hosts a `GameServer` over UDP (`UdpGameHost`) and joins with `UdpClientTransport`; `LanScanner` finds hosts. See `docs/dev-loop.md`. Hosting, accounts and a backend are parked until the game is more polished.
 - Client/server split from day one, even offline. `GameServer` runs the authoritative fixed-tick simulation. `GameClient` handles input, display, prediction. They talk through `ITransport`. Solo uses an in-process loopback transport, so solo and co-op share one code path.
-- Clients send commands only (Move, Attack, Skill1-3), never results. The server validates range, cooldown, role and rate.
+- Clients send commands only (Move, Attack, Skill1-3), never results. The server validates range, cooldown, resource and rate.
 - The simulation runs headless: no rendering, no real-time clock, time is passed in. Randomness is seeded and injected.
 - State is small and serializable: `EntityId`, owning `PlayerId`, compact structs, IDs not references. No singletons for "the player"; everything takes a party or session so 1, 2 and 4 players use the same code.
 - Party AI are ordinary server entities.
-- One entity model for players, AI, bosses and mobs. Roles, classes and weapons are data plus ability implementations.
+- One entity model for players, AI, bosses and mobs. Weapons, classes and abilities are data plus ability implementations. There is no role field; what a character does comes from its weapon.
 - Everything tunable is data (ScriptableObjects or JSON). New skills, bosses, telegraph shapes, status effects and weapons plug in through registries or interfaces, so adding one means adding files.
 - Everything is a template (from jsboiss): new content is made by copying a template, swapping the sprite or model and changing values, with no code. The intended mechanism is a "based on" field on definitions that stores only the differences from the parent, and abilities assembled from a list of effects instead of one flat record. Not built yet; being confirmed with jsboiss and planned into the first weapons PR.
 - The loopback transport has configurable fake latency and packet loss.

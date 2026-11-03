@@ -229,7 +229,6 @@ namespace Game.Core.Tests
             classes.Add(new ClassDef
             {
                 Id = "tethered",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 10f, MoveSpeed = 1f, Power = 1f },
                 AutoAttack = "basic",
                 AggroRange = 10f,

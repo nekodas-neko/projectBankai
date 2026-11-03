@@ -14,7 +14,6 @@ namespace Game.Core.Tests
 
             Assert.AreEqual(new PlayerId(1), entity.Owner);
             Assert.AreEqual(Team.Players, entity.Team);
-            Assert.AreEqual(Role.Dps, entity.Role);
             Assert.AreEqual(100f, entity.Health);
             Assert.AreEqual("basic", entity.AbilityIds[0]);
             Assert.AreEqual("bolt", entity.AbilityIds[1]);

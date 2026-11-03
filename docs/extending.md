@@ -7,7 +7,7 @@ The rule: adding a skill, class or boss means adding files, not editing the fram
 | Thing | Where it lives | Status |
 |---|---|---|
 | Abilities (cooldown, range, width, damage, windup, resource cost) | `AbilityAsset` files in `Assets/Game/Data/Resources/Definitions` | Data. One file each. |
-| Classes, which for players are weapons (display name, skin prefix, role, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range, body radius, threat multiplier, boss phases) | `ClassAsset` files in the same folder | Data. One file each. |
+| Classes, which for players are weapons (display name, skin prefix, playable flag, stats, auto-attack, up to 3 skills, one defensive skill, resource, aggro range, body radius, threat multiplier, boss phases) | `ClassAsset` files in the same folder | Data. One file each. |
 | Defensive skills: dodge (dash and brief invulnerability, optional counter rider), block (damage reduction), shield (absorb) | Ability `kind` plus its numbers | Data. The three kinds are code in `GameServer`; a fourth kind is a `core-change`. |
 | Class resource (mana, rage, focus): max, start, regen or decay, gain per damage dealt, taken and blocked | `ClassAsset` resource fields | Data. Abilities spend it with `resourceCost`. |
 | Windup (delay between starting an attack and it landing) | `windup` on an ability | Data. Clients draw the warning area while it counts down. |
@@ -61,7 +61,7 @@ Between rooms everyone is fully restored. That is a tuning choice, not a rule; c
 ## Worked example: add a class
 
 1. **Assets > Create > Game > Class**, save as `Assets/Game/Data/Resources/Definitions/ranger.asset`.
-2. Set role, max health, move speed and power. Set **Auto Attack** and up to three **Skills** from existing or new ability assets.
+2. Set max health, move speed and power (tick **Playable** only for a weapon a player can pick). Set **Auto Attack** and up to three **Skills** from existing or new ability assets.
 3. To play it, change the class id passed to `AddPlayer` in `ArenaBootstrap` (a class picker comes with the hub).
 4. Add a test: load the definitions with `DefinitionLoader.Load` and assert the class and its abilities resolve. See `DefinitionLoaderTests`.
 
@@ -101,7 +101,7 @@ A variant is a changed version of one ability, for the skill tree to unlock late
 A boss is an ordinary class with phases. The seeded `slime_boss` is the reference.
 
 1. Make the boss attacks as abilities. Give each a **Windup** and a **Shape** (circle for a slam around the boss, cone for a sweep, line for a thrust) with the numbers for range, radius and angle. The warning area is drawn from those, so nothing else is needed for the telegraph.
-2. Make a class with role None, its health, move speed, **Aggro Range**, **Body Radius** and an auto attack. Add the attacks to **Skills**.
+2. Make a class (not **Playable**) with its health, move speed, **Aggro Range**, **Body Radius** and an auto attack. Add the attacks to **Skills**.
 3. Add **Phases** on the class asset. Each phase has **Health Below** (a fraction, highest first), the **Attacks** it chooses from, an optional **Speed Scale**, and optionally **Spawn Class**, **Spawn Count** and **Spawn Skin** for minions that appear when the phase starts.
 4. Put it in a dungeon room as a spawn.
 
@@ -144,7 +144,7 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 - State uses floats. The server is authoritative so cross-machine determinism is not required; tests only prove same-seed repeatability on one machine.
 - `WireCodec` allocates per message, so the combat allocation budget is not met.
 - The networking library is not chosen; everything sits behind `ITransport`. Whether to move to Netcode for GameObjects is an open decision (issue 58).
-- The player kits are now named for their weapons (`sword_and_shield`, `healing_mace`, `staff`) but are still `ClassDef` assets with a role; roles go away and weapons gain skill trees next (issue 50). The skin names still use the old prefixes. Mobs and bosses keep class definitions.
+- The player kits are named for their weapons (`sword_and_shield`, `healing_mace`, `staff`) and are marked **Playable**; there are no roles. They are still `ClassDef` assets; weapons gain skill trees next (issue 50). The skin names still use the old prefixes. Mobs and bosses keep class definitions.
 - Definitions are copied, not derived: a variant of a monster is a duplicate asset. A "based on" link is planned (issue 50).
 - AI-controlled party members do not exist yet; the intended hook is server-side controllers that emit the same commands as a phone.
 - Definitions load from `Resources`, which is fine for the prototype. Revisit if content grows large.

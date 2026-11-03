@@ -65,13 +65,13 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("sword_and_shield", Role.Tank, 180f, 5f, 1f, swordSlash, shieldBash);
-            Class("healing_mace", Role.Healer, 100f, 6f, 1f, holyBolt, radiantPulse);
-            Class("staff", Role.Dps, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
-            Class("slime", Role.None, 60f, 0f, 1f, slimeSlam);
-            Class("slime_boss", Role.None, 800f, 0f, 1f, slimeSlam);
-            Class("mushroom_warden", Role.None, 320f, 0f, 1f, slimeSlam);
-            Class("brood_mother", Role.None, 520f, 0f, 1f, kingSlam);
+            Class("sword_and_shield", true, 180f, 5f, 1f, swordSlash, shieldBash);
+            Class("healing_mace", true, 100f, 6f, 1f, holyBolt, radiantPulse);
+            Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
+            Class("slime", false, 60f, 0f, 1f, slimeSlam);
+            Class("slime_boss", false, 800f, 0f, 1f, slimeSlam);
+            Class("mushroom_warden", false, 320f, 0f, 1f, slimeSlam);
+            Class("brood_mother", false, 520f, 0f, 1f, kingSlam);
 
             Tune("sword_and_shield", c => c.defense == null, c =>
             {
@@ -549,7 +549,7 @@ namespace Game.Editor
             EditorUtility.SetDirty(asset);
         }
 
-        static void Class(string id, Role role, float health, float speed, float power, AbilityAsset auto, params AbilityAsset[] skills)
+        static void Class(string id, bool playable, float health, float speed, float power, AbilityAsset auto, params AbilityAsset[] skills)
         {
             var path = $"{DefinitionsRoot}/{id}.asset";
             if (AssetDatabase.LoadAssetAtPath<ClassAsset>(path) != null)
@@ -558,7 +558,7 @@ namespace Game.Editor
             }
 
             var asset = ScriptableObject.CreateInstance<ClassAsset>();
-            asset.role = role;
+            asset.playable = playable;
             asset.maxHealth = health;
             asset.moveSpeed = speed;
             asset.power = power;

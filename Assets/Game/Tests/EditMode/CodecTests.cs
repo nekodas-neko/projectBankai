@@ -26,7 +26,6 @@ namespace Game.Core.Tests
                 Id = new EntityId(3),
                 Owner = new PlayerId(2),
                 Team = Team.Players,
-                Role = Role.Healer,
                 Appearance = 123456,
                 Position = new Vec2(1f, 2f),
                 Facing = new Vec2(0f, 1f),
@@ -42,7 +41,6 @@ namespace Game.Core.Tests
             Assert.AreEqual(99, decoded.Tick);
             Assert.AreEqual(7, decoded.AckedSequence);
             Assert.AreEqual(1, decoded.Entities.Count);
-            Assert.AreEqual(Role.Healer, decoded.Entities[0].Role);
             Assert.AreEqual(42f, decoded.Entities[0].Health);
             Assert.AreEqual(12.5f, decoded.Events[0].Amount);
             Assert.AreEqual(123456, decoded.Entities[0].Appearance);

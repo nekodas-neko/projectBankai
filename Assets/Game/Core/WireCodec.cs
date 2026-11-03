@@ -10,7 +10,7 @@ namespace Game.Core
 
         const int CommandSize = 1 + 4 + 1 + 8;
         const int SnapshotHeaderSize = 1 + 4 + 4 + 1 + 1 + 1 + 4 + 2;
-        const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
+        const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 4 + 8;
         const int WindupSize = 4 + 4 + 4 + 8 + 8 + 4;
@@ -71,7 +71,6 @@ namespace Game.Core
                 writer.Write(e.Id.Value);
                 writer.Write(e.Owner.Value);
                 writer.Write((byte)e.Team);
-                writer.Write((byte)e.Role);
                 writer.Write(e.Appearance);
                 Write(writer, e.Position);
                 Write(writer, e.Facing);
@@ -161,7 +160,6 @@ namespace Game.Core
                     Id = new EntityId(reader.ReadInt32()),
                     Owner = new PlayerId(reader.ReadInt32()),
                     Team = (Team)reader.ReadByte(),
-                    Role = (Role)reader.ReadByte(),
                     Appearance = reader.ReadInt32(),
                     Position = ReadVec2(reader),
                     Facing = ReadVec2(reader),

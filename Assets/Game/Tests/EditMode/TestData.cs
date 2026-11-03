@@ -44,7 +44,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "fighter",
-                Role = Role.Dps,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 6f, Power = 1f },
                 AutoAttack = "basic",
                 Skills = new[] { "bolt" },
@@ -52,7 +52,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "rogue",
-                Role = Role.Dps,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 6f, Power = 1f },
                 AutoAttack = "basic",
                 Defense = "dodge",
@@ -60,7 +60,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "knight",
-                Role = Role.Tank,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "basic",
                 Defense = "guard",
@@ -69,7 +69,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "cleric",
-                Role = Role.Healer,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "basic",
                 Defense = "ward",
@@ -78,7 +78,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "caster",
-                Role = Role.Dps,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "jab",
                 Skills = new[] { "heavy" },
@@ -87,7 +87,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "priest",
-                Role = Role.Healer,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "basic",
                 Skills = new[] { "mend", "pulse" },
@@ -95,7 +95,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "warden",
-                Role = Role.Tank,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 200f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "basic",
                 Skills = new[] { "provoke" },
@@ -104,7 +104,7 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "shaman",
-                Role = Role.Dps,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "nova",
                 Skills = new[] { "wave" },
@@ -112,7 +112,6 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "boss",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 1000f, MoveSpeed = 3f, Power = 1f },
                 AutoAttack = "basic",
                 Skills = new[] { "nova", "wave" },
@@ -127,7 +126,6 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "giant",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 500f, MoveSpeed = 3f, Power = 1f },
                 AutoAttack = "basic",
                 AggroRange = 30f,
@@ -136,14 +134,13 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "bulky",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 0f, Power = 1f },
                 BodyRadius = 0.5f,
             });
             registry.Add(new ClassDef
             {
                 Id = "sparker",
-                Role = Role.Dps,
+                Playable = true,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
                 AutoAttack = "spark",
                 Resource = new ResourceDef { Id = "focus", Max = 100f, Start = 100f },
@@ -151,7 +148,6 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "brute",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 500f, MoveSpeed = 3f, Power = 1f },
                 AutoAttack = "smash",
                 AggroRange = 15f,
@@ -159,7 +155,6 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "grunt",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 4f, Power = 1f },
                 AutoAttack = "basic",
                 AggroRange = 8f,
@@ -168,7 +163,6 @@ namespace Game.Core.Tests
             registry.Add(new ClassDef
             {
                 Id = "dummy",
-                Role = Role.None,
                 Stats = new Stats { MaxHealth = 100f, MoveSpeed = 0f, Power = 1f },
             });
             return registry;

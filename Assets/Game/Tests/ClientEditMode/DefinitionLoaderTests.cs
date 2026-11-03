@@ -12,14 +12,15 @@ namespace Game.Client.Tests
             DefinitionLoader.Load(out var classes, out var abilities);
 
             Assert.IsTrue(classes.TryGet("staff", out var mage));
-            Assert.AreEqual(Role.Dps, mage.Role);
+            Assert.IsTrue(mage.Playable);
             Assert.AreEqual("arcane_bolt", mage.AutoAttack);
             CollectionAssert.AreEqual(new[] { "fireball" }, mage.Skills);
             Assert.IsTrue(abilities.TryGet("fireball", out var fireball));
             Assert.AreEqual(30f, fireball.Damage);
 
-            Assert.AreEqual(Role.Tank, classes.Get("sword_and_shield").Role);
-            Assert.AreEqual(Role.Healer, classes.Get("healing_mace").Role);
+            Assert.IsTrue(classes.Get("sword_and_shield").Playable);
+            Assert.IsTrue(classes.Get("healing_mace").Playable);
+            Assert.IsFalse(classes.Get("slime").Playable);
             Assert.IsTrue(classes.TryGet("slime", out _));
             Assert.IsTrue(classes.TryGet("slime_boss", out _));
         }
