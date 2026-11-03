@@ -15,12 +15,12 @@ MonoBehaviour:
   kind: 0
   shape: 0
   angle: 0
-  cooldown: 6
+  cooldown: 0.5
   range: 3.5
   radius: 1.8
   damage: 14
   windup: 0
-  resourceCost: 25
+  resourceCost: 30
   duration: 0
   dashDistance: 0
   reduction: 0

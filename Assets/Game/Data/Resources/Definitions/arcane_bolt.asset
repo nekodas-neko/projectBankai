@@ -20,7 +20,7 @@ MonoBehaviour:
   radius: 0.5
   damage: 9
   windup: 0
-  resourceCost: 0
+  resourceCost: -8
   duration: 0
   dashDistance: 0
   reduction: 0

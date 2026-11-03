@@ -44,6 +44,14 @@ namespace Game.Client
             }
         }
 
+        // How much of the dark ring still covers the button: the cooldown left, or how far the weapon's resource
+        // is from the cost, whichever is more. A cost of zero or less (an attack that gives resource) never darkens it.
+        public static float RingFill(float cooldownFraction, float resource, float maxResource, float cost)
+        {
+            var missing = cost > 0f && maxResource > 0f ? 1f - Mathf.Clamp01(resource / cost) : 0f;
+            return Mathf.Clamp01(Mathf.Max(cooldownFraction, missing));
+        }
+
         public void SetCooldown(float fraction)
         {
             fraction = Mathf.Clamp01(fraction);

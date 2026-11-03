@@ -35,11 +35,11 @@ namespace Game.Editor
             }
 
             var swordSlash = Ability("sword_slash", cooldown: 0.6f, range: 2.8f, radius: 1.2f, damage: 9f);
-            var shieldBash = Ability("shield_bash", cooldown: 6f, range: 3.5f, radius: 1.8f, damage: 14f);
+            var shieldBash = Ability("shield_bash", cooldown: 0.5f, range: 3.5f, radius: 1.8f, damage: 14f);
             var holyBolt = Ability("holy_bolt", cooldown: 0.9f, range: 12f, radius: 0.5f, damage: 6f);
-            var radiantPulse = Ability("radiant_pulse", cooldown: 5f, range: 5f, radius: 3f, damage: 10f);
+            var radiantPulse = Ability("radiant_pulse", cooldown: 0.5f, range: 5f, radius: 3f, damage: 10f);
             var arcaneBolt = Ability("arcane_bolt", cooldown: 0.8f, range: 14f, radius: 0.5f, damage: 9f);
-            var fireball = Ability("fireball", cooldown: 3f, range: 18f, radius: 1f, damage: 30f);
+            var fireball = Ability("fireball", cooldown: 0.5f, range: 18f, radius: 1f, damage: 30f);
             var bulwarkCrash = Ability("bulwark_crash", cooldown: 1f, range: 5f, radius: 5f, damage: 40f);
             Tune(bulwarkCrash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.4f; a.taunt = 4f; a.chargeRequired = 100f; a.chargeFromDealt = 1.5f; });
             var meteorFall = Ability("meteor_fall", cooldown: 1f, range: 6f, radius: 6f, damage: 70f);
@@ -66,8 +66,10 @@ namespace Game.Editor
             Tune(slimeSlam, a => a.windup <= 0f, a => a.windup = 0.6f);
             Tune(radiantPulse, a => a.heal <= 0f, a => a.heal = 20f);
             Tune(shieldBash, a => a.taunt <= 0f, a => a.taunt = 3f);
-            Tune(shieldBash, a => a.resourceCost == 0f, a => a.resourceCost = 25f);
-            Tune(holyBolt, a => a.resourceCost == 0f, a => a.resourceCost = 8f);
+            Tune(shieldBash, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
+            Tune(swordSlash, a => a.resourceCost == 0f, a => a.resourceCost = -10f);
+            Tune(arcaneBolt, a => a.resourceCost == 0f, a => a.resourceCost = -8f);
+            Tune(holyBolt, a => a.resourceCost == 0f, a => a.resourceCost = -6f);
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
@@ -85,9 +87,9 @@ namespace Game.Editor
                 c.hasResource = true;
                 c.resourceId = "rage";
                 c.resourceMax = 100f;
-                c.resourceStart = 0f;
-                c.resourceRegen = -2f;
-                c.resourceGainDealt = 0.4f;
+                c.resourceStart = 100f;
+                c.resourceRegen = 0f;
+                c.resourceGainDealt = 0f;
                 c.resourceGainTaken = 0.6f;
                 c.resourceGainBlocked = 1.2f;
             });
@@ -98,7 +100,7 @@ namespace Game.Editor
                 c.resourceId = "mana";
                 c.resourceMax = 100f;
                 c.resourceStart = 100f;
-                c.resourceRegen = 4f;
+                c.resourceRegen = 2f;
                 c.resourceGainBlocked = 0.6f;
             });
             Tune("staff", c => c.defense == null, c =>
@@ -107,9 +109,9 @@ namespace Game.Editor
                 c.hasResource = true;
                 c.resourceId = "focus";
                 c.resourceMax = 100f;
-                c.resourceStart = 60f;
+                c.resourceStart = 100f;
                 c.resourceRegen = 3f;
-                c.resourceGainDealt = 0.8f;
+                c.resourceGainDealt = 0f;
             });
             Tune("sword_and_shield", c => c.skills.Length < 2, c => c.skills = new[] { c.skills[0], bulwarkCrash });
             Tune("healing_mace", c => c.skills.Length < 2, c => c.skills = new[] { c.skills[0], radiantBurst });
