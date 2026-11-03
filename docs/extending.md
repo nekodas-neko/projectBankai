@@ -72,6 +72,16 @@ On the ability, tick **At Target** to make its area centre on the chosen player'
 
 The seeded `slime_bomb` (a red 3.8-unit ground circle, 0.8 s warning) is used by all three bosses on the farthest player from the first phase (the mushroom warden every 4.5 s, the brood mother every 7 s, the slime king every 10 s), and again later: the brood mother also drops one on someone other than its main target, and the slime king adds a faster one from 65% health and a random one from 30%. Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
 
+## Casts, interrupts and adds
+
+Three fields on an ability make a classic boss moment:
+
+- **Interruptible** marks the ability as a *cast*. While it winds up the caster stands still (so it cannot be a ground circle) and the client can show a cast bar. Give it a windup of a second or more, a small **Radius** (0.01) when it should not hurt anyone, and put it on the boss as a phase **mechanic** (a timer), which fires it whether or not anyone is in reach. A heal cast is just **Heal** on that ability; the healing area includes the boss itself.
+- **Interrupt** (seconds) goes on the *player's* ability. When it hits an enemy that is winding up an interruptible cast, the cast is cancelled (it does nothing) and the enemy is **Staggered** for that long: it cannot move, attack, cast or fire mechanics. The hit sends an `Interrupted` event. An interrupt on a hit that is not catching a cast does nothing extra.
+- **Summon Class / Summon Count / Summon Skin** make the ability add that many of a class around the caster when it resolves. The adds are fixed on the *farthest* player (the ranged or healing one) for 12 seconds, which is what makes the tank use a taunt. A taunt sets the forced target and pulls them. Adds count as summoned: they are removed when the boss dies, and they get the party-size health scale like everything else.
+
+So an interruptible summon is "interrupt the cast or deal with the adds", and an interruptible heal is "interrupt it or the fight gets longer". The validator checks a cast has a windup of at least half a second and is not a ground circle, that an interrupt is 0 to 10 seconds, and that a summon names a real class.
+
 ## Red and orange attacks
 
 Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):

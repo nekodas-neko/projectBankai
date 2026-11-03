@@ -36,16 +36,17 @@ namespace Game.Core
                 return;
             }
 
+            var staggered = npc.HasStatus(StatusType.Staggered);
             if (def.Phases.Length > 0)
             {
                 EnterPhases(npc, def);
-                if (IsEngaged(npc, def))
+                if (!staggered && IsEngaged(npc, def))
                 {
                     StepMechanics(npc, def);
                 }
             }
 
-            if (npc.Winding > 0f)
+            if (npc.Winding > 0f || staggered)
             {
                 return;
             }
@@ -232,6 +233,12 @@ namespace Game.Core
             {
                 npc.MechanicTimers[i] -= dt;
                 if (npc.MechanicTimers[i] > 0f)
+                {
+                    continue;
+                }
+
+                // A cast needs the caster standing free: if it is busy, try again next tick instead of losing the turn.
+                if (npc.Winding > 0f && book.TryGet(mechanics[i].Ability, out var wanted) && !wanted.AtTarget)
                 {
                     continue;
                 }
