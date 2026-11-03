@@ -77,6 +77,49 @@ namespace Game.Client.Tests
             TestContext.Progress.WriteLine(text);
         }
 
+        // Loot varies a weapon's power inside the range of the shipped tables. The best drop must be an edge, not a runaway, and the
+        // worst must still finish what the starter weapon finishes.
+        [Test, Category("Balance")]
+        public void TheBestAndWorstDropsStayCloseToTheStarterWeapon()
+        {
+            var tables = LootCatalog.Load(classes);
+            var best = 1f;
+            var worst = 1f;
+            foreach (var table in tables.All)
+            {
+                best = System.Math.Max(best, table.PowerMax);
+                worst = System.Math.Min(worst, table.PowerMin);
+            }
+
+            var rows = new List<BalanceResult>();
+            foreach (var boss in Bosses)
+            {
+                foreach (var weapon in Weapons)
+                {
+                    var policy = weapon == "sword_and_shield" ? (IBotPolicy)new TankBlocker() : new Kiter();
+                    var starter = Play(weapon, boss, policy);
+                    var strong = BalanceSim.Run(classes, abilities, weapon, boss, policy, 240f, 1, null, best);
+                    var weak = BalanceSim.Run(classes, abilities, weapon, boss, policy, 240f, 1, null, worst);
+                    rows.Add(starter);
+                    rows.Add(strong);
+                    rows.Add(weak);
+
+                    if (starter.BossDead)
+                    {
+                        Assert.IsTrue(strong.BossDead, $"{weapon} against {boss}: the best drop should still win" + BalanceSim.Table(new[] { starter, strong }));
+                        Assert.GreaterOrEqual(strong.Seconds, starter.Seconds * 0.75f, $"{weapon} against {boss}: the best drop (x{best}) cuts the fight by more than 25%" + BalanceSim.Table(new[] { starter, strong }));
+                        Assert.IsTrue(weak.BossDead || weak.Seconds >= 240f, $"{weapon} against {boss}: the worst drop (x{worst}) should not die where the starter wins" + BalanceSim.Table(new[] { starter, weak }));
+                    }
+                }
+            }
+
+            var text = $"Starter, then best drop (x{best}), then worst drop (x{worst}), for each weapon and boss" + System.Environment.NewLine + BalanceSim.Table(rows);
+            var path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs", "power-balance.txt"));
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, text);
+            TestContext.Progress.WriteLine(text);
+        }
+
         // Duos and the full three: the dungeon is designed for a tank, a damage dealer and a healer.
         static IEnumerable<List<KeyValuePair<string, IBotPolicy>>> PartyGroups()
         {
