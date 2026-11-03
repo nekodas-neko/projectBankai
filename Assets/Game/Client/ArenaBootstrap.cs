@@ -36,6 +36,7 @@ namespace Game.Client
         EntityViews views;
         AimIndicator aimIndicator;
         Telegraphs telegraphs;
+        BossTargetMarker bossMarker;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
@@ -69,6 +70,7 @@ namespace Game.Client
             views = new EntityViews(transform, assets);
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
+            bossMarker = new BossTargetMarker(transform, assets.cylinder, assets.telegraphFill);
             viewCamera = Camera.main;
             BuildHud();
 
@@ -145,6 +147,7 @@ namespace Game.Client
 
             views.Sync(LocalClient, dt);
             SyncTelegraphs();
+            UpdateBossTarget();
             UpdateButtons();
 
             uses.Clear();
@@ -534,6 +537,43 @@ namespace Game.Client
             var pitch = viewCamera != null ? viewCamera.transform.eulerAngles.x : 60f;
             var scale = Mathf.Max(0.3f, Mathf.Sin(pitch * Mathf.Deg2Rad));
             return new Vec2(screenAim.x, screenAim.y / scale).Normalized;
+        }
+
+        void UpdateBossTarget()
+        {
+            var snapshot = LocalClient.Latest;
+            var entities = snapshot?.Entities;
+            var found = false;
+            var boss = default(EntityState);
+            for (var i = 0; entities != null && i < entities.Count; i++)
+            {
+                if ((entities[i].Effects & EffectFlags.Boss) != 0 && entities[i].Health > 0f)
+                {
+                    boss = entities[i];
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                Hud.BossFrame.Hide();
+                bossMarker.Hide();
+                return;
+            }
+
+            var targetState = default(EntityState);
+            var hasTarget = boss.Target.IsValid && snapshot.TryFind(boss.Target, out targetState);
+            var isLocal = hasTarget && targetState.Id == LocalClient.LocalEntity;
+            Hud.BossFrame.Show(boss.Health, boss.MaxHealth, hasTarget, isLocal, hasTarget ? targetState.Owner.Value : 0);
+            if (hasTarget && views.TryGetPosition(boss.Target, out var position))
+            {
+                bossMarker.Show(position, Time.time);
+            }
+            else
+            {
+                bossMarker.Hide();
+            }
         }
 
         void SyncTelegraphs()
