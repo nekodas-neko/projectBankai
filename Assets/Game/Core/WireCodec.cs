@@ -13,6 +13,7 @@ namespace Game.Core
         const int EntitySize = 4 + 4 + 1 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 1;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
         const int UseSize = 4 + 1 + 4 + 4 + 8;
+        const int WindupSize = 4 + 4 + 4 + 8 + 8 + 4;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
 
@@ -53,7 +54,7 @@ namespace Game.Core
 
         public static byte[] Encode(Snapshot snapshot)
         {
-            var size = SnapshotHeaderSize + snapshot.Entities.Count * EntitySize + 2 + snapshot.Events.Count * EventSize + 2 + snapshot.Uses.Count * UseSize;
+            var size = SnapshotHeaderSize + snapshot.Entities.Count * EntitySize + 2 + snapshot.Events.Count * EventSize + 2 + snapshot.Uses.Count * UseSize + 2 + snapshot.Windups.Count * WindupSize;
             using var stream = new MemoryStream(size);
             using var writer = new BinaryWriter(stream);
             writer.Write(SnapshotMessage);
@@ -109,6 +110,18 @@ namespace Game.Core
                 writer.Write(use.Ability);
                 writer.Write(use.Variant);
                 Write(writer, use.Direction);
+            }
+
+            writer.Write((ushort)snapshot.Windups.Count);
+            for (var i = 0; i < snapshot.Windups.Count; i++)
+            {
+                var windup = snapshot.Windups[i];
+                writer.Write(windup.User.Value);
+                writer.Write(windup.Ability);
+                writer.Write(windup.Variant);
+                Write(writer, windup.Origin);
+                Write(writer, windup.Direction);
+                writer.Write(windup.Remaining);
             }
 
             return stream.ToArray();
@@ -187,7 +200,7 @@ namespace Game.Core
             }
 
             int useCount = reader.ReadUInt16();
-            if (useCount > MaxEvents || Remaining(stream) != useCount * UseSize)
+            if (useCount > MaxEvents || Remaining(stream) < useCount * UseSize + 2)
             {
                 return false;
             }
@@ -201,6 +214,25 @@ namespace Game.Core
                     Ability = reader.ReadInt32(),
                     Variant = reader.ReadInt32(),
                     Direction = ReadVec2(reader),
+                });
+            }
+
+            int windupCount = reader.ReadUInt16();
+            if (windupCount > MaxEvents || Remaining(stream) != windupCount * WindupSize)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < windupCount; i++)
+            {
+                result.Windups.Add(new WindupState
+                {
+                    User = new EntityId(reader.ReadInt32()),
+                    Ability = reader.ReadInt32(),
+                    Variant = reader.ReadInt32(),
+                    Origin = ReadVec2(reader),
+                    Direction = ReadVec2(reader),
+                    Remaining = reader.ReadSingle(),
                 });
             }
 

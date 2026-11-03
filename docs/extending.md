@@ -137,7 +137,7 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 - Move commands are one tick each, capped at 2 per tick. Reconciliation replays unacknowledged moves and drops ones older than 1 second.
 - Hits are areas (line, circle or cone), instant or after a windup. No projectiles. A windup hit uses the position and direction from when the attack started.
 - Enemy behaviour is basic: attack whoever has the most threat (or the nearest hostile in aggro range), use the attacks of the current phase, and obey a taunt. No pathfinding. Enemy decisions live in `NpcBrain`, ability rules in `Combat`, dungeon progression in `DungeonDirector`; `GameServer` only coordinates them (see below).
-- A client starts a telegraph when the use event arrives, so a late event restarts the warning and a player who joins mid-windup misses it (issue 54).
+- Every snapshot lists the windups still going on (who, ability, origin, direction, time left), and the client draws telegraphs from that list. A late or joining client shows only the time left, and a warning the server stops sending disappears. Dodges and attack effects are still not predicted locally (issue 56).
 - A dodge ignores Move commands while dashing, so the client briefly predicts movement the server discards. It snaps back on the next snapshot.
 - Outside a dungeon dead players respawn after 5 seconds. Inside one they stay down until the next room or a restart.
 - A dungeon is one arena with several waves (rooms); different layouts per room, doors and travel between rooms are not built.

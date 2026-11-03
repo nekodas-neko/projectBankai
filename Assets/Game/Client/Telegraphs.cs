@@ -18,6 +18,7 @@ namespace Game.Client
         readonly List<Marker> active = new List<Marker>();
         readonly Stack<Marker> pool = new Stack<Marker>();
         readonly Dictionary<int, Mesh> wedges = new Dictionary<int, Mesh>();
+        int stamp;
 
         public Telegraphs(Transform parent, Mesh cube, Mesh cylinder, Material area, Material fill)
         {
@@ -30,7 +31,46 @@ namespace Game.Client
 
         public int ActiveCount => active.Count;
 
-        public void Add(Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds)
+        // The server sends every windup that is still going on in each snapshot. A client that joins late or gets
+        // the first snapshot late draws only the time that is left, and a warning the server dropped disappears.
+        public void BeginSync()
+        {
+            stamp++;
+        }
+
+        public void Show(int key, Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds, float remaining)
+        {
+            for (var i = 0; i < active.Count; i++)
+            {
+                if (active[i].Key == key)
+                {
+                    active[i].Stamp = stamp;
+                    return;
+                }
+            }
+
+            var before = active.Count;
+            Add(origin, worldDirection, shape, range, radius, angle, seconds, Mathf.Clamp(seconds - remaining, 0f, seconds));
+            if (active.Count > before)
+            {
+                active[active.Count - 1].Key = key;
+                active[active.Count - 1].Stamp = stamp;
+            }
+        }
+
+        public void EndSync()
+        {
+            for (var i = active.Count - 1; i >= 0; i--)
+            {
+                if (active[i].Key != 0 && active[i].Stamp != stamp)
+                {
+                    Retire(active[i]);
+                    active.RemoveAt(i);
+                }
+            }
+        }
+
+        public void Add(Vector3 origin, Vector2 worldDirection, AbilityShape shape, float range, float radius, float angle, float seconds, float elapsed = 0f)
         {
             if (seconds <= 0f)
             {
@@ -54,7 +94,8 @@ namespace Game.Client
             marker.Range = range;
             marker.Radius = radius;
             marker.Seconds = seconds;
-            marker.Elapsed = 0f;
+            marker.Elapsed = elapsed;
+            marker.Key = 0;
 
             var mesh = shape == AbilityShape.Circle ? cylinder : shape == AbilityShape.Cone ? Wedge(angle) : cube;
             marker.AreaFilter.sharedMesh = mesh;
@@ -204,6 +245,8 @@ namespace Game.Client
             public float Radius;
             public float Seconds;
             public float Elapsed;
+            public int Key;
+            public int Stamp;
         }
     }
 }

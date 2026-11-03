@@ -158,7 +158,7 @@ namespace Game.Core
 
             if (Tick % config.SnapshotInterval == 0)
             {
-                session.Broadcast(SnapshotBuilder.Build(Tick, world, dungeon));
+                session.Broadcast(SnapshotBuilder.Build(Tick, world, dungeon, combat));
             }
         }
 
