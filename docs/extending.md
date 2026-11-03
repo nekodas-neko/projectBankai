@@ -86,6 +86,10 @@ Three fields on an ability make a classic boss moment:
 
 So an interruptible summon is "interrupt the cast or deal with the adds", and an interruptible heal is "interrupt it or the fight gets longer". The validator checks a cast has a windup of at least half a second and is not a ground circle, that an interrupt is 0 to 10 seconds, and that a summon names a real class.
 
+### The shipped casts
+
+The mushroom warden casts **Devour** (2.2 s, every 18 s from 10 s in): if nobody stops it, it heals 140 health. The brood mother casts **Brood call** (2.5 s, every 22 s): three slimes appear and go for the farthest player. Both show a blue cast bar under the boss frame counting down; a stagger shows as "Boss - staggered!". **Shield bash** (2 s stagger) and **fireball** (1.5 s) are the interrupts; the healing mace has none, so a mace player lets the tank or the mage stop casts, and a taunt pulls the adds. The balance sim's bots save an interrupt skill for a cast when the boss has any, and its table has an "ints" column (casts stopped) so you can see who is stopping what.
+
 ## Red and orange attacks
 
 Every attack warning is **orange** or **red**. An ability has an **Avoidable** tickbox (on by default):

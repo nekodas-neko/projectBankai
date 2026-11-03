@@ -190,6 +190,25 @@ namespace Game.Editor
             Tune("mushroom_warden", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1f);
             Tune("brood_mother", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1.3f);
             Tune("slime_boss", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1.5f);
+            // Casts: bosses stand still while they wind these up, and shield bash and fireball can interrupt them.
+            var slimeClass = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
+            var devour = Ability("devour", cooldown: 0.5f, range: 6f, radius: 0.01f, damage: 0f);
+            Tune(devour, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 2.2f; a.heal = 140f; a.interruptible = true; });
+            var broodCall = Ability("brood_call", cooldown: 0.5f, range: 6f, radius: 0.01f, damage: 0f);
+            Tune(broodCall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 2.5f; a.interruptible = true; a.summonClass = slimeClass; a.summonSkin = "slime_green"; a.summonCount = 3; });
+            Tune(shieldBash, a => a.interrupt <= 0f, a => a.interrupt = 2f);
+            Tune(fireball, a => a.interrupt <= 0f, a => a.interrupt = 1.5f);
+            Tune("mushroom_warden", c => c.skills.Length < 3 && !c.skills.Contains(devour), c =>
+            {
+                c.skills = c.skills.Concat(new[] { devour }).ToArray();
+                c.phases[0].mechanics = c.phases[0].mechanics.Concat(new[] { new MechanicData { ability = devour, intervalSeconds = 18f, firstDelaySeconds = 10f, target = MechanicTarget.Random, count = 1 } }).ToArray();
+            });
+            Tune("brood_mother", c => c.skills.Contains(slimeSpit) && !c.skills.Contains(broodCall), c =>
+            {
+                c.skills = new[] { c.skills[0], slimeBomb, broodCall };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 12f, target = MechanicTarget.Random, count = 1 } };
+                c.phases[1].mechanics = new[] { c.phases[1].mechanics[0], new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 14f, target = MechanicTarget.Random, count = 1 } };
+            });
             Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("staff", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
@@ -271,6 +290,8 @@ namespace Game.Editor
             Link("king_wave", slime, hitSlime);
             Link("slime_bomb", slime, hitSlime);
             Link("slime_spit", slime, hitSlime);
+            Link("devour", holy, hitHoly);
+            Link("brood_call", slime, hitSlime);
             Link("bulwark_crash", shield, hitSpark);
             Link("meteor_fall", fire, hitFire);
             Link("radiant_burst", pulse, hitHoly);

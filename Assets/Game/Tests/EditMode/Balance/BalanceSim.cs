@@ -20,6 +20,9 @@ namespace Game.Core.Tests
 
         // How far the player walked over the fight (world units).
         public float Moved;
+
+        // Boss casts this player stopped.
+        public int Interrupts;
     }
 
     // Plays one weapon against one boss in the plain-C# server, through the same client API a phone uses,
@@ -130,7 +133,7 @@ namespace Game.Core.Tests
             {
                 this.client = client;
                 Policy = policy;
-                View = new BotView(client, abilities, classes.Get(weapon)) { EnemyRadius = classes.Get(boss).BodyRadius };
+                View = new BotView(client, abilities, classes.Get(weapon)) { EnemyRadius = classes.Get(boss).BodyRadius, EnemyCasts = HasCasts(classes.Get(boss), abilities) };
                 Result = new BalanceResult { Weapon = weapon, Boss = boss, Policy = policy.Name };
                 maxHealth = classes.Get(weapon).Stats.MaxHealth;
                 ultimateId = classes.Get(weapon).Skills.Length > Entity.UltimateSlot - 1 ? StableId.From(classes.Get(weapon).Skills[Entity.UltimateSlot - 1]) : 0;
@@ -139,6 +142,19 @@ namespace Game.Core.Tests
             public IBotPolicy Policy { get; }
 
             public BotView View { get; }
+
+            static bool HasCasts(ClassDef boss, Registry<AbilityDef> abilities)
+            {
+                foreach (var id in boss.Skills)
+                {
+                    if (abilities.TryGet(id, out var skill) && skill.Interruptible)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
 
             public BalanceResult Result { get; }
 
@@ -151,7 +167,12 @@ namespace Game.Core.Tests
                 for (var i = 0; i < events.Count; i++)
                 {
                     var hit = events[i];
-                    if (hit.Outcome == HitOutcome.Healed)
+                    if (hit.Outcome == HitOutcome.Interrupted && hit.Source == client.LocalEntity)
+                    {
+                        Result.Interrupts++;
+                    }
+
+                    if (hit.Outcome == HitOutcome.Healed || hit.Outcome == HitOutcome.Interrupted)
                     {
                         continue;
                     }
@@ -305,15 +326,15 @@ namespace Game.Core.Tests
         public static string Table(IReadOnlyList<BalanceResult> results)
         {
             var text = new StringBuilder();
-            text.AppendLine("weapon              boss              policy           result     time  hp left  taken  dealt  ults  moved");
+            text.AppendLine("weapon              boss              policy           result     time  hp left  taken  dealt  ults  moved  ints");
             for (var i = 0; i < results.Count; i++)
             {
                 var r = results[i];
                 var outcome = r.BossDead && r.Survived ? "WIN" : r.Survived ? "timeout" : "DEAD";
                 text.AppendLine(string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0,-19} {1,-17} {2,-16} {3,-8} {4,5:0.0}s {5,7:P0} {6,6:0} {7,6:0} {8,5:0} {9,5:0}m",
-                    r.Weapon, r.Boss, r.Policy, outcome, r.Seconds, r.HealthLeft, r.DamageTaken, r.DamageDealt, r.UltimatesFired, r.Moved));
+                    "{0,-19} {1,-17} {2,-16} {3,-8} {4,5:0.0}s {5,7:P0} {6,6:0} {7,6:0} {8,5:0} {9,5:0}m {10,5:0}",
+                    r.Weapon, r.Boss, r.Policy, outcome, r.Seconds, r.HealthLeft, r.DamageTaken, r.DamageDealt, r.UltimatesFired, r.Moved, r.Interrupts));
             }
 
             return text.ToString();
