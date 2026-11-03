@@ -22,7 +22,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
   - {fileID: 11400000, guid: c950949bbbc1c704793a57dd594111f1, type: 2}
   defense: {fileID: 0}
-  aggroRange: 11
+  aggroRange: 9
   threatMultiplier: 1
   bodyRadius: 1.5
   leashRange: 0
