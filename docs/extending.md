@@ -70,7 +70,27 @@ A boss phase can have **Mechanics**: attacks on a timer that run alongside its n
 
 On the ability, tick **At Target** to make its area centre on the chosen player's position at the moment it starts, instead of on the boss. The warning is drawn on the ground there for the whole windup, and the boss keeps fighting while it winds up, so the player's answer is to walk out of it. Make it red (**Avoidable** off) for the "get out" version. Up to four mechanics per phase; the ability has to be one of the boss's own attacks (put it in the class's **Skills**).
 
-The seeded `slime_bomb` (a red 3.8-unit ground circle, 0.8 s warning) is used by all three bosses on the farthest player from the first phase (the mushroom warden every 4.5 s, the brood mother every 7 s, the slime king every 10 s), and again later: the brood mother also drops one on someone other than its main target, and the slime king adds a faster one from 65% health and a random one from 30%. Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
+The everyday ground circle is the orange `slime_spit` (4.6-unit circle, 1.2 s warning, 18 damage; block, dodge or walk out). It is deliberately infrequent so ranged players are not on the move all the time: the mushroom warden drops one on its farthest player every 8 s, the brood mother every 10 s, and the slime king every 14 s, then every 12 s, then every 10 s plus a random one every 16 s in its later phases. Red attacks are rarer still and only ever aimed at players who can walk: the brood mother's red `slime_bomb` (every 18 s from its second phase). The slime king's big smash (cooldown 14 s) is orange, so a tank holding its ground can block it. Every number can be changed from the tuning file, for example `class.slime_boss.phases.1.mechanics.0.intervalSeconds = 5`.
+
+## Boss recovery: a pause after every attack
+
+A class has a **Recovery Seconds** field (0 by default). After one of its attacks starts, the enemy stays planted for the attack's windup plus this many seconds before it moves or attacks again. Timed mechanics (ground circles) keep running while it recovers. Bosses use it so they do not chase and swing without a break: there is a window to stand and hit, which is how an MMO boss feels. The tuning file can change it, for example `class.slime_boss.recoverySeconds = 1.5`.
+
+## Casts, interrupts and adds
+
+Three fields on an ability make a classic boss moment:
+
+- **Interruptible** marks the ability as a *cast*. While it winds up the caster stands still (so it cannot be a ground circle) and the client can show a cast bar. Give it a windup of a second or more, a small **Radius** (0.01) when it should not hurt anyone, and put it on the boss as a phase **mechanic** (a timer), which fires it whether or not anyone is in reach. A heal cast is just **Heal** on that ability; the healing area includes the boss itself.
+- **Interrupt** (seconds) goes on the *player's* ability. When it hits an enemy that is winding up an interruptible cast, the cast is cancelled (it does nothing) and the enemy is **Staggered** for that long: it cannot move, attack, cast or fire mechanics. The hit sends an `Interrupted` event. An interrupt on a hit that is not catching a cast does nothing extra.
+- **Summon Class / Summon Count / Summon Skin** make the ability add that many of a class around the caster when it resolves. The adds are fixed on the *farthest* player (the ranged or healing one) for 12 seconds, which is what makes the tank use a taunt. A taunt sets the forced target and pulls them. Adds count as summoned: they are removed when the boss dies, and they get the party-size health scale like everything else.
+
+So an interruptible summon is "interrupt the cast or deal with the adds", and an interruptible heal is "interrupt it or the fight gets longer". The validator checks a cast has a windup of at least half a second and is not a ground circle, that an interrupt is 0 to 10 seconds, and that a summon names a real class.
+
+### The shipped casts
+
+The mushroom warden casts **Devour** (2.2 s, every 18 s from 10 s in): if nobody stops it, it heals 140 health. The brood mother casts **Brood call** (2.5 s, every 22 s): three slimes appear and go for the farthest player. Both show a blue cast bar under the boss frame counting down; a stagger shows as "Boss - staggered!". **Shield bash** (2 s stagger) and **fireball** (1.5 s) are the interrupts; the healing mace has none, so a mace player lets the tank or the mage stop casts, and a taunt pulls the adds. The balance sim's bots save an interrupt skill for a cast when the boss has any, and its table has an "ints" column (casts stopped) so you can see who is stopping what.
+
+The slime king has no free skill slot (a class has three), so its cast is a swap: its cone attack is **King cleave**, a 2 s charge-up (24 damage, every 15 s, orange) that can be interrupted. Stopping it staggers the king; otherwise block it or leave the cone. A cast does not have to be harmless, any attack with a windup can be marked interruptible.
 
 ## Red and orange attacks
 
@@ -100,6 +120,10 @@ A map has many more enemies in view than a round room did, so a snapshot may not
 ## Party size: enemies get tougher with each player
 
 A dungeon has **Health Per Extra Player** (0 means no scaling; the cave uses 0.8). Every enemy's health is multiplied by 1 + that number x (players - 1): a solo player meets the normal health, two players 1.8 times, three players 2.6 times. It follows the party while the dungeon runs: someone joining or leaving changes the maximum, and an enemy that was hurt keeps the same share of its health left; anything spawned later (a boss's minions) is scaled too. The design target is three players, tank, damage and healer, with solo and duo possible for a skilled or well-geared player, so the number is a tuning knob: if three players finish a boss too fast, raise it.
+
+## Aggro rings
+
+An enemy with an **Aggro Range** that has not noticed anyone yet is drawn with a thin yellow ring on the ground at that distance (`AggroRings`): step inside it and the enemy, and its pack, come for you. The ring disappears once the enemy has a target. The server sends the range in the snapshot (`EntityState.AggroRange`), so any class with an aggro range gets a ring without code; rings only draw within 10 units of the ring's edge so a big map stays readable.
 
 ## Worked example: add a dungeon room
 

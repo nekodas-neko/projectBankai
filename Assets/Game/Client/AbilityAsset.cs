@@ -44,6 +44,12 @@ namespace Game.Client
         [Min(0f)] public float chargeFromTaken;
         [Min(0f)] public float chargeFromBlocked;
         [Min(0f)] public float chargeFromHealing;
+        [Tooltip("A cast: the caster stands still while it winds up and an Interrupt hit cancels it.")] public bool interruptible;
+        [Min(0f)] [Tooltip("Seconds an enemy is staggered when this hits it while it casts something interruptible. 0 = cannot interrupt.")] public float interrupt;
+        [Tooltip("Summons adds around the caster when it resolves; they go for the farthest player.")] public ClassAsset summonClass;
+        public string summonSkin = "";
+        [Range(0, 8)] public int summonCount;
+
         public VariantData[] variants = new VariantData[0];
         public GameObject castEffect;
         public GameObject hitEffect;
@@ -97,6 +103,11 @@ namespace Game.Client
                 ChargeFromTaken = chargeFromTaken,
                 ChargeFromBlocked = chargeFromBlocked,
                 ChargeFromHealing = chargeFromHealing,
+                Interruptible = interruptible,
+                Interrupt = interrupt,
+                SummonClass = summonClass != null ? summonClass.Id : null,
+                SummonSkin = summonSkin,
+                SummonCount = summonCount,
                 Variants = variants.Select(variant => new VariantDef
                 {
                     Id = variant.id,

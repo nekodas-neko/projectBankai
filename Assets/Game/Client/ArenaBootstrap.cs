@@ -37,6 +37,7 @@ namespace Game.Client
         AimIndicator aimIndicator;
         Telegraphs telegraphs;
         BossTargetMarker bossMarker;
+        AggroRings aggroRings;
         MapView mapView;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
@@ -72,6 +73,7 @@ namespace Game.Client
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
             bossMarker = new BossTargetMarker(transform, assets.cylinder, assets.telegraphFill);
+            aggroRings = new AggroRings(transform, assets.telegraphFill);
             viewCamera = Camera.main;
             BuildHud();
 
@@ -150,6 +152,7 @@ namespace Game.Client
             UpdateMap();
             SyncTelegraphs();
             UpdateBossTarget();
+            aggroRings.Sync(LocalClient.Latest, LocalClient.LocalEntity, views);
             UpdateButtons();
 
             uses.Clear();
@@ -605,7 +608,9 @@ namespace Game.Client
             var targetState = default(EntityState);
             var hasTarget = boss.Target.IsValid && snapshot.TryFind(boss.Target, out targetState);
             var isLocal = hasTarget && targetState.Id == LocalClient.LocalEntity;
-            Hud.BossFrame.Show(boss.Health, boss.MaxHealth, hasTarget, isLocal, hasTarget ? targetState.Owner.Value : 0);
+            var staggered = (boss.Effects & EffectFlags.Staggered) != 0;
+            Hud.BossFrame.Show(boss.Health, boss.MaxHealth, hasTarget, isLocal, hasTarget ? targetState.Owner.Value : 0, staggered);
+            UpdateBossCast(snapshot, boss);
             if (hasTarget && views.TryGetPosition(boss.Target, out var position))
             {
                 bossMarker.Show(position, Time.time);
@@ -614,6 +619,22 @@ namespace Game.Client
             {
                 bossMarker.Hide();
             }
+        }
+
+        // While the boss winds up a cast that can be interrupted, a bar under its frame counts it down.
+        void UpdateBossCast(Snapshot snapshot, EntityState boss)
+        {
+            var windups = snapshot?.Windups;
+            for (var i = 0; windups != null && i < windups.Count; i++)
+            {
+                if (windups[i].User == boss.Id && AbilityCatalog.TryGet(windups[i].Ability, out var cast) && cast.interruptible && cast.windup > 0f)
+                {
+                    Hud.BossFrame.ShowCast(cast.name, 1f - Mathf.Clamp01(windups[i].Remaining / cast.windup));
+                    return;
+                }
+            }
+
+            Hud.BossFrame.HideCast();
         }
 
         void SyncTelegraphs()
@@ -664,7 +685,7 @@ namespace Game.Client
 
         void PlayHit(DamageEvent hit)
         {
-            if (hit.Outcome == HitOutcome.Dodged || hit.Outcome == HitOutcome.Absorbed)
+            if (hit.Outcome == HitOutcome.Dodged || hit.Outcome == HitOutcome.Absorbed || hit.Outcome == HitOutcome.Interrupted)
             {
                 return;
             }

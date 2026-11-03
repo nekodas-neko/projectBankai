@@ -38,6 +38,11 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "bomb", Shape = AbilityShape.Circle, Cooldown = 0.1f, Range = 30f, Radius = 2f, Damage = 25f, Windup = 1f, Avoidable = false, AtTarget = true });
             registry.Add(new AbilityDef { Id = "red_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f, Avoidable = false });
             registry.Add(new AbilityDef { Id = "orange_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f });
+            registry.Add(new AbilityDef { Id = "nibble", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 2f, Radius = 2f, Damage = 0.1f });
+            registry.Add(new AbilityDef { Id = "mend_cast", Shape = AbilityShape.Circle, Cooldown = 20f, Range = 6f, Radius = 0.01f, Heal = 60f, Windup = 1.5f, Interruptible = true });
+            registry.Add(new AbilityDef { Id = "call_cast", Shape = AbilityShape.Circle, Cooldown = 20f, Range = 6f, Radius = 0.01f, Windup = 1f, Interruptible = true, SummonClass = "dummy", SummonSkin = "slime_green", SummonCount = 2 });
+            registry.Add(new AbilityDef { Id = "kick", Shape = AbilityShape.Circle, Cooldown = 0.2f, Range = 3f, Radius = 3f, Damage = 1f, Interrupt = 2f });
+            registry.Add(new AbilityDef { Id = "taunting_kick", Shape = AbilityShape.Circle, Cooldown = 0.2f, Range = 3f, Radius = 3f, Damage = 1f, Taunt = 5f });
             registry.Add(new AbilityDef { Id = "counter", Cooldown = 0f, Range = 6f, Radius = 1f, Damage = 30f });
             registry.Add(new AbilityDef { Id = "dodge", Kind = AbilityKind.Dodge, Cooldown = 3f, Range = 1f, Duration = 0.5f, DashDistance = 1f, PerfectWindow = 0.15f, Rider = "counter" });
             registry.Add(new AbilityDef { Id = "guard", Kind = AbilityKind.Block, Cooldown = 4f, Range = 1f, Duration = 1f, Reduction = 0.6f });
@@ -229,6 +234,62 @@ namespace Game.Core.Tests
                 AutoAttack = "basic",
                 AggroRange = 8f,
                 LeashRange = 14f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "lurcher",
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 3f, Power = 1f },
+                AutoAttack = "orange_slam",
+                AggroRange = 15f,
+                RecoverySeconds = 2f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "kicker",
+                Stats = new Stats { MaxHealth = 500f, MoveSpeed = 4f, Power = 1f },
+                AutoAttack = "kick",
+                BodyRadius = 0.5f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "taunter",
+                Stats = new Stats { MaxHealth = 500f, MoveSpeed = 4f, Power = 1f },
+                AutoAttack = "taunting_kick",
+                BodyRadius = 0.5f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "mender",
+                Stats = new Stats { MaxHealth = 300f, MoveSpeed = 0f, Power = 1f },
+                AutoAttack = "nibble",
+                Skills = new[] { "mend_cast" },
+                AggroRange = 15f,
+                BodyRadius = 1f,
+                Phases = new[]
+                {
+                    new PhaseDef
+                    {
+                        Attacks = new[] { "nibble" },
+                        Mechanics = new[] { new MechanicDef { Ability = "mend_cast", IntervalSeconds = 20f, FirstDelaySeconds = 0.5f, Target = MechanicTarget.Farthest } },
+                    },
+                },
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "summoner",
+                Stats = new Stats { MaxHealth = 300f, MoveSpeed = 0f, Power = 1f },
+                AutoAttack = "nibble",
+                Skills = new[] { "call_cast" },
+                AggroRange = 15f,
+                BodyRadius = 1f,
+                Phases = new[]
+                {
+                    new PhaseDef
+                    {
+                        Attacks = new[] { "nibble" },
+                        Mechanics = new[] { new MechanicDef { Ability = "call_cast", IntervalSeconds = 20f, FirstDelaySeconds = 0.5f, Target = MechanicTarget.Farthest } },
+                    },
+                },
             });
             registry.Add(new ClassDef
             {

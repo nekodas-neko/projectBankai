@@ -26,37 +26,76 @@ namespace Game.Client.Tests
         }
 
         [Test]
-        public void TheSmashIsRedAndTheRestOfTheBossAttacksAreOrange()
+        public void OnlyTheGroundBombIsRedAndEveryBossMeleeAttackIsOrange()
         {
             DefinitionLoader.Load(out _, out var abilities);
 
-            Assert.IsFalse(abilities.Get("king_smash").Avoidable);
-            foreach (var id in new[] { "king_slam", "king_wave", "slime_slam", "sword_slash", "shield_bash", "fireball" })
+            Assert.IsFalse(abilities.Get("slime_bomb").Avoidable);
+            foreach (var id in new[] { "king_smash", "king_slam", "king_wave", "slime_slam", "slime_spit", "sword_slash", "shield_bash", "fireball" })
             {
                 Assert.IsTrue(abilities.Get(id).Avoidable, id);
             }
         }
 
         [Test]
-        public void TheShippedBossesDropRedGroundCirclesOnPlayers()
+        public void TheShippedBossesDropGroundCirclesOnPlayersAndRedOnesAreRare()
         {
             DefinitionLoader.Load(out var classes, out var abilities);
+
+            var spit = abilities.Get("slime_spit");
+            Assert.IsTrue(spit.AtTarget);
+            Assert.IsTrue(spit.Avoidable, "the everyday ground circle is orange: block, dodge or walk out");
+            Assert.Greater(spit.Windup, 0.5f);
 
             var bomb = abilities.Get("slime_bomb");
             Assert.IsTrue(bomb.AtTarget);
             Assert.IsFalse(bomb.Avoidable);
-            Assert.Greater(bomb.Windup, 0.5f);
 
             var king = classes.Get("slime_boss");
             Assert.AreEqual(MechanicTarget.Farthest, king.Phases[0].Mechanics[0].Target);
             Assert.AreEqual(MechanicTarget.Farthest, king.Phases[1].Mechanics[0].Target);
-            Assert.AreEqual("slime_bomb", king.Phases[1].Mechanics[0].Ability);
+            Assert.AreEqual("slime_spit", king.Phases[1].Mechanics[0].Ability);
             Assert.GreaterOrEqual(king.Phases[2].Mechanics.Length, 2);
 
             var mother = classes.Get("brood_mother");
             Assert.AreEqual(MechanicTarget.NotTopThreat, mother.Phases[1].Mechanics[0].Target);
+            Assert.GreaterOrEqual(mother.Phases[1].Mechanics[0].IntervalSeconds, 15f, "the red bomb is rare");
 
-            Assert.AreEqual("slime_bomb", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability);
+            Assert.AreEqual("slime_spit", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability);
+            Assert.GreaterOrEqual(abilities.Get("king_smash").Cooldown, 12f, "the king's smash is rare");
+        }
+
+        [Test]
+        public void TheWardenAndTheMotherCastAndTheSwordAndStaffCanInterrupt()
+        {
+            DefinitionLoader.Load(out var classes, out var abilities);
+
+            var devour = abilities.Get("devour");
+            Assert.IsTrue(devour.Interruptible);
+            Assert.Greater(devour.Heal, 0f);
+            Assert.Contains("devour", classes.Get("mushroom_warden").Skills);
+
+            var call = abilities.Get("brood_call");
+            Assert.IsTrue(call.Interruptible);
+            Assert.AreEqual("slime", call.SummonClass);
+            Assert.Greater(call.SummonCount, 0);
+            Assert.Contains("brood_call", classes.Get("brood_mother").Skills);
+
+            Assert.Greater(abilities.Get("shield_bash").Interrupt, 0f);
+            Assert.Greater(abilities.Get("fireball").Interrupt, 0f);
+            Assert.AreEqual(0f, abilities.Get("holy_bolt").Interrupt);
+            Assert.AreEqual(0f, abilities.Get("radiant_pulse").Interrupt);
+        }
+
+        [Test]
+        public void TheShippedBossesPauseAfterEveryAttack()
+        {
+            DefinitionLoader.Load(out var classes, out _);
+
+            foreach (var id in new[] { "mushroom_warden", "brood_mother", "slime_boss" })
+            {
+                Assert.Greater(classes.Get(id).RecoverySeconds, 0.5f, id);
+            }
         }
 
         [Test]

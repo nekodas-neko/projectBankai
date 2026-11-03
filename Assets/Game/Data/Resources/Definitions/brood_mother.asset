@@ -20,11 +20,13 @@ MonoBehaviour:
   skills:
   - {fileID: 11400000, guid: 516de0c70c998724599f11690487ed02, type: 2}
   - {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
+  - {fileID: 11400000, guid: c950949bbbc1c704793a57dd594111f1, type: 2}
   defense: {fileID: 0}
   aggroRange: 11
   threatMultiplier: 1
   bodyRadius: 1.5
   leashRange: 0
+  recoverySeconds: 1.3
   displayName: 
   skinPrefix: 
   phases:
@@ -37,10 +39,10 @@ MonoBehaviour:
     spawnCount: 0
     spawnSkin: 
     mechanics:
-    - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
-      intervalSeconds: 7
-      firstDelaySeconds: 5
-      target: 1
+    - ability: {fileID: 11400000, guid: c950949bbbc1c704793a57dd594111f1, type: 2}
+      intervalSeconds: 22
+      firstDelaySeconds: 12
+      target: 0
       count: 1
   - healthBelow: 0.5
     attacks:
@@ -52,9 +54,14 @@ MonoBehaviour:
     spawnSkin: slime_green
     mechanics:
     - ability: {fileID: 11400000, guid: b3251a1f616ed424f846df4a1f056845, type: 2}
-      intervalSeconds: 8
+      intervalSeconds: 18
       firstDelaySeconds: 3
       target: 2
+      count: 1
+    - ability: {fileID: 11400000, guid: c950949bbbc1c704793a57dd594111f1, type: 2}
+      intervalSeconds: 22
+      firstDelaySeconds: 14
+      target: 0
       count: 1
   hasResource: 0
   resourceId: 

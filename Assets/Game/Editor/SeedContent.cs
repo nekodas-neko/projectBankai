@@ -46,20 +46,20 @@ namespace Game.Editor
             Tune(meteorFall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.chargeRequired = 1000f; a.chargeFromDealt = 0.8f; });
             var radiantBurst = Ability("radiant_burst", cooldown: 1f, range: 6f, radius: 6f, damage: 20f);
             Tune(radiantBurst, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.5f; a.heal = 50f; a.chargeRequired = 1000f; a.chargeFromDealt = 1.6f; });
-            var slimeSlam = Ability("slime_slam", cooldown: 2f, range: 2f, radius: 1.2f, damage: 5f);
+            var slimeSlam = Ability("slime_slam", cooldown: 3.5f, range: 2f, radius: 1.2f, damage: 9f);
 
-            var kingSlam = Ability("king_slam", cooldown: 3f, range: 3.4f, radius: 1.8f, damage: 9f);
+            var kingSlam = Ability("king_slam", cooldown: 5f, range: 3.4f, radius: 1.8f, damage: 15f);
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
             var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 16f);
             var slimeBomb = Ability("slime_bomb", cooldown: 0.5f, range: 30f, radius: 3.8f, damage: 14f);
             Tune(slimeBomb, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.8f; a.avoidable = false; a.atTarget = true; });
-            var kingWave = Ability("king_wave", cooldown: 5f, range: 9f, radius: 0f, damage: 11f);
-            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = false; });
+            var kingWave = Ability("king_wave", cooldown: 8f, range: 9f, radius: 0f, damage: 17f);
+            Tune(kingSmash, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; });
             Tune(kingWave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 0.9f; });
 
             var arcaneCounter = Ability("arcane_counter", cooldown: 0f, range: 10f, radius: 2.2f, damage: 26f);
             var arcaneStep = Ability("arcane_step", cooldown: 5.5f, range: 1f, radius: 0f, damage: 0f);
-            var shieldWall = Ability("shield_wall", cooldown: 4f, range: 1f, radius: 0f, damage: 0f);
+            var shieldWall = Ability("shield_wall", cooldown: 2.5f, range: 1f, radius: 0f, damage: 0f);
             var ward = Ability("ward", cooldown: 6f, range: 1f, radius: 0f, damage: 0f);
 
             Tune(arcaneStep, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Dodge; a.duration = 0.35f; a.dashDistance = 6f; a.perfectWindow = 0.18f; a.rider = arcaneCounter; });
@@ -75,7 +75,7 @@ namespace Game.Editor
             Tune(radiantPulse, a => a.resourceCost == 0f, a => a.resourceCost = 30f);
             Tune(fireball, a => a.resourceCost == 0f, a => a.resourceCost = 35f);
 
-            Class("sword_and_shield", true, 520f, 4.5f, 1f, swordSlash, shieldBash);
+            Class("sword_and_shield", true, 540f, 4.5f, 1f, swordSlash, shieldBash);
             Class("healing_mace", true, 90f, 6f, 1f, holyBolt, radiantPulse);
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
@@ -160,6 +160,66 @@ namespace Game.Editor
             {
                 c.phases[0].mechanics = new[] { new MechanicData { ability = slimeBomb, intervalSeconds = 10f, firstDelaySeconds = 6f, target = MechanicTarget.Farthest, count = 1 } };
             });
+            // Pacing: ground circles on the early bosses are orange (the weapon's own defence answers them), and red attacks are rare.
+            var slimeSpit = Ability("slime_spit", cooldown: 0.5f, range: 30f, radius: 4.6f, damage: 18f);
+            Tune(slimeSpit, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 1.2f; a.avoidable = true; a.atTarget = true; });
+            Tune(kingSmash, a => a.cooldown < 10f, a => a.cooldown = 14f);
+            Tune(kingSmash, a => !a.avoidable, a => a.avoidable = true);
+            Tune("mushroom_warden", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
+            {
+                c.skills = new[] { c.skills[0], slimeSpit };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 8f, firstDelaySeconds = 4f, target = MechanicTarget.Farthest, count = 1 } };
+            });
+            Tune("brood_mother", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
+            {
+                c.skills = new[] { c.skills[0], slimeBomb, slimeSpit };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 10f, firstDelaySeconds = 5f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[1].mechanics[0].intervalSeconds = 18f;
+            });
+            Tune("slime_boss", c => c.phases[0].mechanics.Length > 0 && c.phases[0].mechanics[0].ability == slimeBomb, c =>
+            {
+                c.skills = new[] { c.skills[0], c.skills[1], slimeSpit };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 14f, firstDelaySeconds = 6f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[1].mechanics = new[] { new MechanicData { ability = slimeSpit, intervalSeconds = 12f, firstDelaySeconds = 3f, target = MechanicTarget.Farthest, count = 1 } };
+                c.phases[2].mechanics = new[]
+                {
+                    new MechanicData { ability = slimeSpit, intervalSeconds = 10f, firstDelaySeconds = 2f, target = MechanicTarget.Farthest, count = 1 },
+                    new MechanicData { ability = slimeSpit, intervalSeconds = 16f, firstDelaySeconds = 4f, target = MechanicTarget.Random, count = 1 },
+                };
+            });
+            Tune("mushroom_warden", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1f);
+            Tune("brood_mother", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1.3f);
+            Tune("slime_boss", c => c.recoverySeconds <= 0f, c => c.recoverySeconds = 1.5f);
+            // Casts: bosses stand still while they wind these up, and shield bash and fireball can interrupt them.
+            var slimeClass = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime.asset");
+            var devour = Ability("devour", cooldown: 0.5f, range: 6f, radius: 0.01f, damage: 0f);
+            Tune(devour, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 2.2f; a.heal = 140f; a.interruptible = true; });
+            var broodCall = Ability("brood_call", cooldown: 0.5f, range: 6f, radius: 0.01f, damage: 0f);
+            Tune(broodCall, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 2.5f; a.interruptible = true; a.summonClass = slimeClass; a.summonSkin = "slime_green"; a.summonCount = 3; });
+            Tune(shieldBash, a => a.interrupt <= 0f, a => a.interrupt = 2f);
+            Tune(fireball, a => a.interrupt <= 0f, a => a.interrupt = 1.5f);
+            Tune("mushroom_warden", c => c.skills.Length < 3 && !c.skills.Contains(devour), c =>
+            {
+                c.skills = c.skills.Concat(new[] { devour }).ToArray();
+                c.phases[0].mechanics = c.phases[0].mechanics.Concat(new[] { new MechanicData { ability = devour, intervalSeconds = 18f, firstDelaySeconds = 10f, target = MechanicTarget.Random, count = 1 } }).ToArray();
+            });
+            Tune("brood_mother", c => c.skills.Contains(slimeSpit) && !c.skills.Contains(broodCall), c =>
+            {
+                c.skills = new[] { c.skills[0], slimeBomb, broodCall };
+                c.phases[0].mechanics = new[] { new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 12f, target = MechanicTarget.Random, count = 1 } };
+                c.phases[1].mechanics = new[] { c.phases[1].mechanics[0], new MechanicData { ability = broodCall, intervalSeconds = 22f, firstDelaySeconds = 14f, target = MechanicTarget.Random, count = 1 } };
+            });
+            // The king's own cast: a long charge-up cone. Catch it with a shield bash or a fireball and he is staggered; otherwise block or leave the cone.
+            var kingCleave = Ability("king_cleave", cooldown: 15f, range: 9f, radius: 0f, damage: 24f);
+            Tune(kingCleave, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Cone; a.angle = 75f; a.windup = 2f; a.interruptible = true; });
+            Tune("slime_boss", c => c.skills.Contains(kingWave) && !c.skills.Contains(kingCleave), c =>
+            {
+                c.skills = c.skills.Select(skill => skill == kingWave ? kingCleave : skill).ToArray();
+                foreach (var phase in c.phases)
+                {
+                    phase.attacks = phase.attacks.Select(attack => attack == kingWave ? kingCleave : attack).ToArray();
+                }
+            });
             Tune("sword_and_shield", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("healing_mace", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
             Tune("staff", c => c.bodyRadius <= 0f, c => c.bodyRadius = 0.5f);
@@ -239,7 +299,11 @@ namespace Game.Editor
             Link("king_slam", slime, hitSlime);
             Link("king_smash", slime, hitSlime);
             Link("king_wave", slime, hitSlime);
+            Link("king_cleave", slime, hitSlime);
             Link("slime_bomb", slime, hitSlime);
+            Link("slime_spit", slime, hitSlime);
+            Link("devour", holy, hitHoly);
+            Link("brood_call", slime, hitSlime);
             Link("bulwark_crash", shield, hitSpark);
             Link("meteor_fall", fire, hitFire);
             Link("radiant_burst", pulse, hitHoly);

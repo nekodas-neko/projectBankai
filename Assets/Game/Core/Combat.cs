@@ -9,6 +9,10 @@ namespace Game.Core
         readonly ServerConfig config;
         readonly World world;
         readonly AbilityBook book;
+        // How far from the caster adds appear, and how long they stay on the player they were sent at.
+        const float SummonRing = 1.5f;
+        const float AddFocusSeconds = 12f;
+
         readonly List<PendingAttack> pendingAttacks = new List<PendingAttack>();
 
         public Combat(ServerConfig config, World world, AbilityBook book)
@@ -199,6 +203,11 @@ namespace Game.Core
             var heal = ability.Heal * user.Stats.Power;
             var abilityId = StableId.From(ability.Id);
             var hitsEnemies = ability.Damage > 0f || ability.Heal <= 0f;
+            if (ability.SummonCount > 0 && !string.IsNullOrEmpty(ability.SummonClass))
+            {
+                SummonAdds(user, ability);
+            }
+
             var entities = world.Entities;
             for (var i = 0; i < entities.Count; i++)
             {
@@ -222,6 +231,11 @@ namespace Game.Core
                 }
 
                 ApplyDamage(user, other, damage, slot, abilityId, variantId, ability.Avoidable);
+                if (ability.Interrupt > 0f)
+                {
+                    TryInterrupt(user, other, ability, slot, abilityId, variantId);
+                }
+
                 if (ability.Taunt > 0f)
                 {
                     other.ForcedTarget = user.Id;
@@ -251,6 +265,81 @@ namespace Game.Core
                 Variant = variantId,
                 Outcome = HitOutcome.Healed,
             });
+        }
+
+        // A hit that carries Interrupt cancels an interruptible cast the target is winding up, and staggers it.
+        void TryInterrupt(Entity user, Entity target, AbilityDef ability, int slot, int abilityId, int variantId)
+        {
+            if (!target.IsAlive || target.Winding <= 0f)
+            {
+                return;
+            }
+
+            var interrupted = false;
+            for (var i = pendingAttacks.Count - 1; i >= 0; i--)
+            {
+                if (pendingAttacks[i].User == target.Id && pendingAttacks[i].Ability.Interruptible)
+                {
+                    pendingAttacks.RemoveAt(i);
+                    interrupted = true;
+                }
+            }
+
+            if (!interrupted)
+            {
+                return;
+            }
+
+            target.Winding = 0f;
+            target.AddStatus(StatusType.Staggered, ability.Interrupt, 0f);
+            world.Events.Add(new DamageEvent
+            {
+                Source = user.Id,
+                Target = target.Id,
+                Amount = 0f,
+                Slot = (byte)slot,
+                Ability = abilityId,
+                Variant = variantId,
+                Outcome = HitOutcome.Interrupted,
+            });
+        }
+
+        // Adds appear in a ring around the caster and go for the farthest player (a ranged or healing one), the way a classic boss
+        // sends adds at the people who cannot take a hit. The tank's taunt, which sets the forced target, pulls them back.
+        void SummonAdds(Entity caster, AbilityDef ability)
+        {
+            Entity target = null;
+            var farthest = -1f;
+            var entities = world.Entities;
+            for (var i = 0; i < entities.Count; i++)
+            {
+                var other = entities[i];
+                if (other.Owner.IsValid && other.IsAlive && Entity.AreHostile(caster, other))
+                {
+                    var distance = (other.Position - caster.Position).SqrLength;
+                    if (distance > farthest)
+                    {
+                        farthest = distance;
+                        target = other;
+                    }
+                }
+            }
+
+            var appearance = StableId.From(ability.SummonSkin);
+            for (var i = 0; i < ability.SummonCount; i++)
+            {
+                var angle = (float)i / ability.SummonCount * MathF.PI * 2f;
+                var spot = caster.Position + new Vec2(MathF.Cos(angle), MathF.Sin(angle)) * (caster.Radius + SummonRing);
+                var add = world.Spawn(PlayerId.None, caster.Team, ability.SummonClass, world.InsideArena(spot), appearance);
+                add.Summoned = true;
+                add.Section = caster.Section;
+                if (target != null)
+                {
+                    add.ForcedTarget = target.Id;
+                    add.ForcedSeconds = AddFocusSeconds;
+                    add.AddThreat(target.Id, 1f);
+                }
+            }
         }
 
         // An unavoidable (red) hit ignores dodge, block and shield: the only answer is not to be there.

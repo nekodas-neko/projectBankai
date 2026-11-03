@@ -28,6 +28,41 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheCastBarShowsWhileTheBossWindsUpAnInterruptibleCast()
+        {
+            frame.Show(300f, 1200f, true, false, 2);
+            Assert.IsFalse(frame.CastVisible);
+
+            frame.ShowCast("brood_call", 0.4f);
+
+            Assert.IsTrue(frame.CastVisible);
+            Assert.AreEqual("Interrupt: Brood call!", frame.CastText);
+            Assert.AreEqual(0.4f, frame.CastFraction, 0.0001f);
+
+            frame.HideCast();
+            Assert.IsFalse(frame.CastVisible);
+        }
+
+        [Test]
+        public void HidingTheFrameHidesTheCastBarToo()
+        {
+            frame.Show(300f, 1200f, true, false, 2);
+            frame.ShowCast("devour", 0.1f);
+
+            frame.Hide();
+
+            Assert.IsFalse(frame.CastVisible);
+        }
+
+        [Test]
+        public void AStaggeredBossSaysSo()
+        {
+            frame.Show(300f, 1200f, true, true, 1, true);
+
+            Assert.AreEqual("Boss - staggered!", frame.Text);
+        }
+
+        [Test]
         public void ItShowsTheBossHealthAsAFraction()
         {
             frame.Show(300f, 1200f, false, false, 0);
