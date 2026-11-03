@@ -3,7 +3,7 @@ namespace Game.Core
     // Turns the current world and dungeon state into the snapshot sent to every client.
     internal static class SnapshotBuilder
     {
-        public static Snapshot Build(int tick, World world, DungeonDirector dungeon)
+        public static Snapshot Build(int tick, World world, DungeonDirector dungeon, Combat combat)
         {
             var snapshot = new Snapshot
             {
@@ -45,6 +45,7 @@ namespace Game.Core
             world.Events.Clear();
             snapshot.Uses.AddRange(world.Uses);
             world.Uses.Clear();
+            combat.CollectWindups(snapshot.Windups);
             return snapshot;
         }
     }

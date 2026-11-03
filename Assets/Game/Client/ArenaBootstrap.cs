@@ -144,6 +144,7 @@ namespace Game.Client
             }
 
             views.Sync(LocalClient, dt);
+            SyncTelegraphs();
             UpdateButtons();
 
             uses.Clear();
@@ -514,6 +515,33 @@ namespace Game.Client
             return new Vec2(screenAim.x, screenAim.y / scale).Normalized;
         }
 
+        void SyncTelegraphs()
+        {
+            telegraphs.BeginSync();
+            var windups = LocalClient.Latest?.Windups;
+            for (var i = 0; windups != null && i < windups.Count; i++)
+            {
+                var windup = windups[i];
+                if (!AbilityCatalog.TryGet(windup.Ability, out var ability) || ability.windup <= 0f)
+                {
+                    continue;
+                }
+
+                var range = ability.range;
+                var radius = ability.radius;
+                if (ability.TryGetVariant(windup.Variant, out var variant))
+                {
+                    range *= variant.rangeScale;
+                    radius = ability.shape == AbilityShape.Circle ? radius * variant.rangeScale : radius;
+                }
+
+                var key = unchecked((windup.User.Value * 397) ^ windup.Ability) | 1;
+                telegraphs.Show(key, new Vector3(windup.Origin.X, 0f, windup.Origin.Y), new Vector2(windup.Direction.X, windup.Direction.Y), ability.shape, range, radius, ability.angle, ability.windup, windup.Remaining);
+            }
+
+            telegraphs.EndSync();
+        }
+
         void PlayUse(UseEvent use)
         {
             views.OnUse(use.User, use.Slot);
@@ -527,11 +555,6 @@ namespace Game.Client
             if (ability.TryGetVariant(use.Variant, out var variant) && variant.castEffect != null)
             {
                 cast = variant.castEffect;
-            }
-
-            if (ability.windup > 0f)
-            {
-                telegraphs.Add(position, new Vector2(use.Direction.X, use.Direction.Y), ability.shape, ability.range, ability.radius, ability.angle, ability.windup);
             }
 
             var rotation = direction.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(direction) : Quaternion.identity;

@@ -99,6 +99,29 @@ namespace Game.Core
             entity.Position = world.InsideArena(entity.Position + entity.DashDirection * (entity.DashSpeed * dt));
         }
 
+        public void CollectWindups(List<WindupState> into)
+        {
+            for (var i = 0; i < pendingAttacks.Count; i++)
+            {
+                var attack = pendingAttacks[i];
+                var user = world.Find(attack.User);
+                if (user == null || !user.IsAlive)
+                {
+                    continue;
+                }
+
+                into.Add(new WindupState
+                {
+                    User = attack.User,
+                    Ability = StableId.From(attack.Ability.Id),
+                    Variant = attack.Variant,
+                    Origin = attack.Origin,
+                    Direction = attack.Direction,
+                    Remaining = attack.Remaining > 0f ? attack.Remaining : 0f,
+                });
+            }
+        }
+
         public void CancelAttacksOf(EntityId user)
         {
             pendingAttacks.RemoveAll(a => a.User == user);

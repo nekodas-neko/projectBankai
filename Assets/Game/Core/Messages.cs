@@ -97,6 +97,18 @@ namespace Game.Core
         public Vec2 Direction;
     }
 
+    // An attack that has started but not landed yet. Sent every snapshot until it resolves, so a late or joining client
+    // still shows the warning with the time that is actually left.
+    public struct WindupState
+    {
+        public EntityId User;
+        public int Ability;
+        public int Variant;
+        public Vec2 Origin;
+        public Vec2 Direction;
+        public float Remaining;
+    }
+
     public static class StableId
     {
         public static int From(string id)
@@ -130,6 +142,7 @@ namespace Game.Core
         public readonly List<EntityState> Entities = new List<EntityState>();
         public readonly List<DamageEvent> Events = new List<DamageEvent>();
         public readonly List<UseEvent> Uses = new List<UseEvent>();
+        public readonly List<WindupState> Windups = new List<WindupState>();
 
         public bool TryFind(EntityId id, out EntityState state)
         {
