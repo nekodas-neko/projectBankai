@@ -107,6 +107,22 @@ A boss is an ordinary class with phases. The seeded `slime_boss` is the referenc
 
 The validator checks that phases are ordered and that every attack is one of the class's abilities.
 
+## Where server rules live
+
+`GameServer` owns the public API and the fixed tick, and calls focused systems (all in `Assets/Game/Core`, plain C#):
+
+| System | Owns |
+|---|---|
+| `World` | the entities, spawning, nearest-hostile queries, body separation, the event buffers |
+| `Session` | connections, command queues, sequence numbers, sending snapshots |
+| `AbilityBook` | looking abilities up and applying a variant (the place a "based on" template would be resolved) |
+| `Combat` | using abilities, windups, hit areas, damage, healing, dodge, block and shield |
+| `NpcBrain` | enemy targeting, chasing, leash, pack calls, boss phases and minions |
+| `DungeonDirector` | rooms, boss-gated clears, victory, defeat, restart, the respawn rule |
+| `SnapshotBuilder` | turning the world into the snapshot sent to clients |
+
+A new boss mechanic goes in `NpcBrain` (decisions) or `Combat` (what an ability does); a new dungeon rule goes in `DungeonDirector`. The tick order in `GameServer.StepTick` is part of the behaviour: commands, enemy decisions, dashes, separation, windups, timers and respawns, dungeon, snapshot.
+
 ## Tests to write for any addition
 
 - Add the new numbers to a `Game.Core.Tests` case if they change rules (damage, cooldown, hit shape). Core tests run without Unity: `tools\test-core.ps1`.
@@ -120,7 +136,7 @@ These are decisions and gaps, not bugs. They are why the foundation is not froze
 - Client and server tick clocks are not synchronised. No clock offset estimation yet; needed before two phones play together (M1.5).
 - Move commands are one tick each, capped at 2 per tick. Reconciliation replays unacknowledged moves and drops ones older than 1 second.
 - Hits are areas (line, circle or cone), instant or after a windup. No projectiles. A windup hit uses the position and direction from when the attack started.
-- Enemy behaviour is basic: attack whoever has the most threat (or the nearest hostile in aggro range), use the attacks of the current phase, and obey a taunt. No pathfinding. Enemy decisions live in the one big `GameServer` class (issue 53 splits it).
+- Enemy behaviour is basic: attack whoever has the most threat (or the nearest hostile in aggro range), use the attacks of the current phase, and obey a taunt. No pathfinding. Enemy decisions live in `NpcBrain`, ability rules in `Combat`, dungeon progression in `DungeonDirector`; `GameServer` only coordinates them (see below).
 - A client starts a telegraph when the use event arrives, so a late event restarts the warning and a player who joins mid-windup misses it (issue 54).
 - A dodge ignores Move commands while dashing, so the client briefly predicts movement the server discards. It snaps back on the next snapshot.
 - Outside a dungeon dead players respawn after 5 seconds. Inside one they stay down until the next room or a restart.
