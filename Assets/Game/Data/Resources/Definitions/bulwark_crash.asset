@@ -41,6 +41,13 @@ MonoBehaviour:
   summonClass: {fileID: 0}
   summonSkin: 
   summonCount: 0
-  variants: []
+  variants:
+  - id: crushing
+    damageScale: 1.25
+    rangeScale: 1
+    cooldownScale: 1.2
+    costScale: 1
+    castEffect: {fileID: 0}
+    hitEffect: {fileID: 0}
   castEffect: {fileID: 1846483518111950945, guid: f94168cfe5341d944957f40a4bd2dce3, type: 3}
   hitEffect: {fileID: 4465893761992978395, guid: 33b9f5df61c2a214f9e0ac5373b2f08e, type: 3}

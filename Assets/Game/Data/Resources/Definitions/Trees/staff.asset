@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70641bfe6b30ede43b289cc7f0b6c02c, type: 3}
+  m_Name: staff
+  m_EditorClassIdentifier: Game.Client::Game.Client.SkillTreeAsset
+  nodes:
+  - id: crimson_bolt
+    displayName: Crimson bolt
+    slot: 0
+    variant: crimson
+    cost: 1
+    requires: 
+  - id: frost_fireball
+    displayName: Frost fireball
+    slot: 1
+    variant: frost
+    cost: 1
+    requires: 
+  - id: wide_meteor
+    displayName: Wide meteor
+    slot: 2
+    variant: wide
+    cost: 2
+    requires: frost_fireball
+  - id: quick_step
+    displayName: Quick step
+    slot: 4
+    variant: quick
+    cost: 1
+    requires: 

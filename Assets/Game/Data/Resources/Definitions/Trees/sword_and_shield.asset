@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70641bfe6b30ede43b289cc7f0b6c02c, type: 3}
+  m_Name: sword_and_shield
+  m_EditorClassIdentifier: Game.Client::Game.Client.SkillTreeAsset
+  nodes:
+  - id: ember_slash
+    displayName: Ember slash
+    slot: 0
+    variant: ember
+    cost: 1
+    requires: 
+  - id: heavy_bash
+    displayName: Heavy bash
+    slot: 1
+    variant: heavy
+    cost: 1
+    requires: 
+  - id: crushing_crash
+    displayName: Crushing crash
+    slot: 2
+    variant: crushing
+    cost: 2
+    requires: heavy_bash
+  - id: quick_wall
+    displayName: Quick wall
+    slot: 4
+    variant: quick
+    cost: 1
+    requires: 

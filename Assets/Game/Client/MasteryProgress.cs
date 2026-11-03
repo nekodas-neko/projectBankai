@@ -64,15 +64,38 @@ namespace Game.Client
 
         public PlayerProfile Profile { get; }
 
+        public MasteryRules Rules => rules;
+
         public bool Dirty => dirty;
 
         // Starter weapons are owned under their type name, so the weapon in hand is equipped by that name.
         public void Equip(string weaponType)
         {
-            if (Profile.Equip(weaponType) && Profile.EquippedUid == weaponType)
+            var changed = Profile.EquippedUid != weaponType;
+            if (Profile.Equip(weaponType) && changed)
             {
                 dirty = true;
             }
+        }
+
+        // Spends points on a tree node for a weapon type and saves at once (the loadout is sent when the session starts).
+        public bool TryChoose(SkillTreeDef tree, string weaponType, string nodeId, out string reason)
+        {
+            if (!SkillTreeRules.TryChoose(tree, Profile.MasteryFor(weaponType), rules, nodeId, out reason))
+            {
+                return false;
+            }
+
+            dirty = true;
+            Flush();
+            return true;
+        }
+
+        public void ResetSkills(string weaponType)
+        {
+            Profile.MasteryFor(weaponType).Reset();
+            dirty = true;
+            Flush();
         }
 
         // Returns the levels gained from what fell since the last call.
