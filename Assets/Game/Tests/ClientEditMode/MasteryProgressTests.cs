@@ -73,6 +73,18 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void SummonedAddsGiveNoKillsSoABossCannotBeFarmed()
+        {
+            var tracker = new KillTracker();
+            tracker.Observe(Snap((1, Team.Enemies, 50f, EffectFlags.Summoned), (2, Team.Enemies, 50f, 0)), out _, out _);
+
+            tracker.Observe(Snap((1, Team.Enemies, 0f, EffectFlags.Summoned), (2, Team.Enemies, 0f, 0)), out var kills, out var bosses);
+
+            Assert.AreEqual(1, kills, "only the real enemy counts");
+            Assert.AreEqual(0, bosses);
+        }
+
+        [Test]
         public void FallenPlayersAndFriendsAreNotKills()
         {
             var tracker = new KillTracker();

@@ -126,6 +126,11 @@ namespace Game.Core.Tests
                     adds++;
                     Assert.AreEqual(far.Id, entity.ForcedTarget, "sent at the farthest player");
                     Assert.Greater(entity.ForcedSeconds, 5f);
+                    Assert.AreEqual(EffectFlags.Summoned, entity.EffectFlagsNow() & EffectFlags.Summoned, "clients can tell an add from a real enemy");
+                }
+                else
+                {
+                    Assert.AreEqual(0, entity.EffectFlagsNow() & EffectFlags.Summoned);
                 }
             }
 
