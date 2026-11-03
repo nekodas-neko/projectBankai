@@ -37,6 +37,7 @@ namespace Game.Client
         AimIndicator aimIndicator;
         Telegraphs telegraphs;
         BossTargetMarker bossMarker;
+        AggroRings aggroRings;
         MapView mapView;
         ClassDef playerClass;
         Registry<AbilityDef> abilityDefs;
@@ -72,6 +73,7 @@ namespace Game.Client
             aimIndicator = new AimIndicator(transform, assets.cube, assets.aim);
             telegraphs = new Telegraphs(transform, assets.cube, assets.cylinder, assets.telegraph, assets.telegraphFill);
             bossMarker = new BossTargetMarker(transform, assets.cylinder, assets.telegraphFill);
+            aggroRings = new AggroRings(transform, assets.telegraphFill);
             viewCamera = Camera.main;
             BuildHud();
 
@@ -150,6 +152,7 @@ namespace Game.Client
             UpdateMap();
             SyncTelegraphs();
             UpdateBossTarget();
+            aggroRings.Sync(LocalClient.Latest, LocalClient.LocalEntity, views);
             UpdateButtons();
 
             uses.Clear();
