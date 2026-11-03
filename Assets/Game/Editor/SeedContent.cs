@@ -254,6 +254,13 @@ namespace Game.Editor
                 };
             });
 
+            // Mastery: 20 levels per weapon type, one point each, filled by kills with that type in hand.
+            var masteryPath = $"{DefinitionsRoot}/{MasteryCatalog.AssetName}.asset";
+            if (AssetDatabase.LoadAssetAtPath<MasteryAsset>(masteryPath) == null)
+            {
+                AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<MasteryAsset>(), masteryPath);
+            }
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
