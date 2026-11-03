@@ -99,6 +99,25 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator BossFrame_ShowsTheBossAndWhoItIsFighting()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Assert.IsTrue(bootstrap.Hud.BossFrame.IsVisible);
+            Assert.AreEqual("Boss - idle", bootstrap.Hud.BossFrame.Text);
+
+            var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+            player.Position = new Vec2(0f, 12f);
+            yield return new WaitForSeconds(0.6f);
+
+            Assert.AreEqual("Boss - targeting YOU", bootstrap.Hud.BossFrame.Text);
+        }
+
+        [UnityTest]
         public IEnumerator Dungeon_ShowsTheRoomAdvancesAndOffersARestartAfterADefeat()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
