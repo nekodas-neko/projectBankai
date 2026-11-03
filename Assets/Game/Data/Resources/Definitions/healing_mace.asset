@@ -19,10 +19,12 @@ MonoBehaviour:
   autoAttack: {fileID: 11400000, guid: 48571fde32c853145bc655a41335133b, type: 2}
   skills:
   - {fileID: 11400000, guid: 971c79afea78ac549a4a289aac689271, type: 2}
+  - {fileID: 11400000, guid: ef659371ae4a0c64791db01c7c30a454, type: 2}
   defense: {fileID: 11400000, guid: 6ff79eb3868adf3478639e90e51e3b2b, type: 2}
   aggroRange: 0
   threatMultiplier: 1
   bodyRadius: 0.5
+  leashRange: 0
   displayName: Healing mace
   skinPrefix: healer
   phases: []

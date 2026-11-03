@@ -51,6 +51,8 @@ namespace Game.Core
         public float Resource;
         public float MaxResource;
         public int ResourceId;
+        public float Charge;
+        public float ChargeMax;
         public byte Effects;
 
         public float GetCooldown(int slot)

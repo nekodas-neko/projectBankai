@@ -31,6 +31,9 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "jab", Cooldown = 0.1f, Range = 8f, Radius = 1f, Damage = 10f });
             registry.Add(new AbilityDef { Id = "heavy", Cooldown = 0.1f, Range = 8f, Radius = 1f, Damage = 10f, ResourceCost = 50f });
             registry.Add(new AbilityDef { Id = "smash", Cooldown = 2f, Range = 3f, Radius = 2f, Damage = 20f, Windup = 0.5f });
+            registry.Add(new AbilityDef { Id = "burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Damage = 30f, ChargeRequired = 50f, ChargeFromDealt = 1f });
+            registry.Add(new AbilityDef { Id = "bulwark_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 4f, Radius = 4f, Damage = 10f, ChargeRequired = 100f, ChargeFromTaken = 2f, ChargeFromBlocked = 3f });
+            registry.Add(new AbilityDef { Id = "healing_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Heal = 20f, ChargeRequired = 40f, ChargeFromHealing = 2f });
             registry.Add(new AbilityDef { Id = "counter", Cooldown = 0f, Range = 6f, Radius = 1f, Damage = 30f });
             registry.Add(new AbilityDef { Id = "dodge", Kind = AbilityKind.Dodge, Cooldown = 3f, Range = 1f, Duration = 0.5f, DashDistance = 1f, PerfectWindow = 0.15f, Rider = "counter" });
             registry.Add(new AbilityDef { Id = "guard", Kind = AbilityKind.Block, Cooldown = 4f, Range = 1f, Duration = 1f, Reduction = 0.6f });
@@ -151,6 +154,31 @@ namespace Game.Core.Tests
                 Stats = new Stats { MaxHealth = 500f, MoveSpeed = 3f, Power = 1f },
                 AutoAttack = "smash",
                 AggroRange = 15f,
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "striker",
+                Playable = true,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
+                AutoAttack = "basic",
+                Skills = new[] { "jab", "burst" },
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "bulwark",
+                Playable = true,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
+                AutoAttack = "basic",
+                Skills = new[] { "jab", "bulwark_burst" },
+                Defense = "guard",
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "chaplain",
+                Playable = true,
+                Stats = new Stats { MaxHealth = 100f, MoveSpeed = 5f, Power = 1f },
+                AutoAttack = "basic",
+                Skills = new[] { "mend", "healing_burst" },
             });
             registry.Add(new ClassDef
             {

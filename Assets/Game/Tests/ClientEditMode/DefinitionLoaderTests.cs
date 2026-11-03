@@ -14,7 +14,7 @@ namespace Game.Client.Tests
             Assert.IsTrue(classes.TryGet("staff", out var mage));
             Assert.IsTrue(mage.Playable);
             Assert.AreEqual("arcane_bolt", mage.AutoAttack);
-            CollectionAssert.AreEqual(new[] { "fireball" }, mage.Skills);
+            CollectionAssert.AreEqual(new[] { "fireball", "meteor_fall" }, mage.Skills);
             Assert.IsTrue(abilities.TryGet("fireball", out var fireball));
             Assert.AreEqual(30f, fireball.Damage);
 

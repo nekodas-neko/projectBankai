@@ -363,6 +363,7 @@ namespace Game.Client
         {
             Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
             Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
+            Hud.Ultimate.Fired += aim => LocalClient?.Skill(Entity.UltimateSlot, ToWorld(aim));
             Hud.Defense.Fired += aim => LocalClient?.Defend(DefendDirection(aim));
         }
 
@@ -371,6 +372,7 @@ namespace Game.Client
             var hasState = LocalClient.TryGetLocalState(out var state);
             UpdateButton(Hud.Attack, hasState, state, 0, playerClass.AutoAttack);
             UpdateButton(Hud.Special, hasState, state, 1, playerClass.Skills.Length > 0 ? playerClass.Skills[0] : null);
+            UpdateUltimate(hasState, state);
             UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
@@ -391,6 +393,22 @@ namespace Game.Client
                 var rangeScale = variant != null ? variant.RangeScale : 1f;
                 aimIndicator.Show(views.LocalRoot.position, new Vector2(world.X, world.Y), ability.Range * rangeScale, ability.Radius);
             }
+        }
+
+        void UpdateUltimate(bool hasState, EntityState state)
+        {
+            var id = playerClass.Skills.Length > Entity.UltimateSlot - 1 ? playerClass.Skills[Entity.UltimateSlot - 1] : null;
+            if (!hasState || state.ChargeMax <= 0f || !abilityDefs.TryGet(id, out var ability))
+            {
+                Hud.Ultimate.SetCooldown(1f);
+                Hud.Ultimate.SetLabel("Ult");
+                return;
+            }
+
+            var charge = Mathf.Clamp01(state.Charge / state.ChargeMax);
+            var cooldown = ability.Cooldown > 0f ? state.GetCooldown(Entity.UltimateSlot) / ability.Cooldown : 0f;
+            Hud.Ultimate.SetCooldown(Mathf.Max(1f - charge, cooldown));
+            Hud.Ultimate.SetLabel(charge >= 1f ? "ULT!" : Mathf.FloorToInt(charge * 100f) + "%");
         }
 
         void UpdateButton(ActionButton button, bool hasState, EntityState state, int slot, string abilityId)

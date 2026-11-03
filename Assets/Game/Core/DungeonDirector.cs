@@ -146,6 +146,15 @@ namespace Game.Core
         void Reset()
         {
             Room = 0;
+            for (var i = 0; i < session.Count; i++)
+            {
+                var player = world.Find(session[i].Entity);
+                if (player != null)
+                {
+                    player.Charge = 0f;
+                }
+            }
+
             BeginRoom();
         }
 
