@@ -48,6 +48,9 @@ namespace Game.Client
 
         public Transform LocalRoot { get; private set; }
 
+        // When above zero, enemies further than this from the local player are not drawn (the dungeon fades away from the player).
+        public float FogRadius { get; set; }
+
         public int Count => views.Count;
 
         public bool TryGetPosition(EntityId id, out Vector3 position)
@@ -181,6 +184,17 @@ namespace Game.Client
                 }
 
                 Apply(view, state, dt);
+                if (FogRadius > 0f && state.Team == Team.Enemies)
+                {
+                    var me = client.PredictedPosition;
+                    var dx = state.Position.X - me.X;
+                    var dy = state.Position.Y - me.Y;
+                    var inside = dx * dx + dy * dy <= FogRadius * FogRadius;
+                    if (view.Root.gameObject.activeSelf != inside)
+                    {
+                        view.Root.gameObject.SetActive(inside);
+                    }
+                }
             }
 
             stale.Clear();
