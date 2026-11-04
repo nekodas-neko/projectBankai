@@ -165,8 +165,8 @@ namespace Game.Client.Tests
             profile.Add(weapon);
             profile.MasteryFor("staff").AddXp(rules, 250);
 
-            Assert.AreEqual("Staff -7%   mastery 2", WeaponPanel.Describe(weapon, profile, rules, false));
-            Assert.AreEqual("[in hand] Staff   mastery 2", WeaponPanel.Describe(profile.Weapons[1], profile, rules, true));
+            Assert.AreEqual("Staff -7%   mastery 2", CharacterScreen.DescribeWeapon(weapon, profile, rules, false));
+            Assert.AreEqual("[in hand] Staff   mastery 2", CharacterScreen.DescribeWeapon(profile.Weapons[1], profile, rules, true));
         }
     }
 }

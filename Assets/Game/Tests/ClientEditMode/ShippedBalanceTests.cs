@@ -82,12 +82,23 @@ namespace Game.Client.Tests
         [Test, Category("Balance")]
         public void TheBestAndWorstDropsStayCloseToTheStarterWeapon()
         {
-            var tables = LootCatalog.Load(classes);
+            var modifiers = ModifierCatalog.Load();
+            var tables = LootCatalog.Load(classes, modifiers);
             var best = 1f;
             var worst = 1f;
             foreach (var table in tables.All)
             {
-                best = System.Math.Max(best, table.PowerMax);
+                // The strongest drop is the top of the power range with the best power modifier the table can add.
+                var bestModifier = 1f;
+                if (table.ModifierChance > 0f)
+                {
+                    foreach (var id in table.Modifiers)
+                    {
+                        bestModifier = System.Math.Max(bestModifier, modifiers.Get(id).PowerScale);
+                    }
+                }
+
+                best = System.Math.Max(best, table.PowerMax * bestModifier);
                 worst = System.Math.Min(worst, table.PowerMin);
             }
 

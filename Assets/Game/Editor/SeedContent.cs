@@ -305,6 +305,14 @@ namespace Game.Editor
                 c.dropChance = 0.05f;
             });
 
+            // Gold for every kill, a little for a mob and a lot for a boss; a chest holds a handful.
+            Tune("slime", c => c.goldReward <= 0, c => c.goldReward = 3);
+            Tune("cave_crawler", c => c.goldReward <= 0, c => c.goldReward = 8);
+            Tune("chest", c => c.goldReward <= 0, c => c.goldReward = 25);
+            Tune("mushroom_warden", c => c.goldReward <= 0, c => c.goldReward = 100);
+            Tune("brood_mother", c => c.goldReward <= 0, c => c.goldReward = 150);
+            Tune("slime_boss", c => c.goldReward <= 0, c => c.goldReward = 250);
+
             // Health potions: a small chance from mobs and one from every boss.
             Tune("slime", c => c.potionChance <= 0f, c => c.potionChance = 0.06f);
             Tune("cave_crawler", c => c.potionChance <= 0f, c => c.potionChance = 0.12f);
@@ -322,6 +330,41 @@ namespace Game.Editor
                 table.powerMin = 0.9f;
                 table.powerMax = 1.05f;
                 AssetDatabase.CreateAsset(table, mobPath);
+            }
+
+            // Weapon modifiers: one small bonus a drop can carry.
+            var modifierFolder = $"Assets/Game/Data/Resources/{ModifierAsset.Folder}";
+            Directory.CreateDirectory(modifierFolder);
+            Modifier(modifierFolder, "sturdy", "Sturdy", 1f, 1.10f, 1f);
+            Modifier(modifierFolder, "swift", "Swift", 1f, 1f, 1.10f);
+            Modifier(modifierFolder, "keen", "Keen", 1.05f, 1f, 1f);
+            foreach (var tableName in new[] { LootTableAsset.BossDrop, LootTableAsset.MobDrop })
+            {
+                var table = AssetDatabase.LoadAssetAtPath<LootTableAsset>($"{lootFolder}/{tableName}.asset");
+                if (table != null && table.modifiers.Length == 0)
+                {
+                    table.modifiers = new[] { "sturdy", "swift", "keen" };
+                    table.modifierChance = tableName == LootTableAsset.BossDrop ? 0.5f : 0.25f;
+                    EditorUtility.SetDirty(table);
+                }
+            }
+
+            // Armor sets: the worn set adds a small bonus. The wanderer set is what everyone starts in.
+            var armorFolder = $"Assets/Game/Data/Resources/{ArmorSetAsset.Folder}";
+            Directory.CreateDirectory(armorFolder);
+            ArmorSet(armorFolder, "wanderer", "Wanderer", 1f, 1f, 1f);
+            ArmorSet(armorFolder, "stone_warden", "Stone Warden", 1f, 1.10f, 1f);
+            ArmorSet(armorFolder, "ember_guard", "Ember Guard", 1f, 1.06f, 1.03f);
+            ArmorSet(armorFolder, "moss_cloak", "Moss Cloak", 1f, 1f, 1.08f);
+            foreach (var tableName in new[] { LootTableAsset.BossDrop, LootTableAsset.MobDrop })
+            {
+                var table = AssetDatabase.LoadAssetAtPath<LootTableAsset>($"{lootFolder}/{tableName}.asset");
+                if (table != null && table.armorSets.Length == 0)
+                {
+                    table.armorSets = new[] { "stone_warden", "ember_guard", "moss_cloak" };
+                    table.armorChance = tableName == LootTableAsset.BossDrop ? 0.4f : 0.03f;
+                    EditorUtility.SetDirty(table);
+                }
             }
 
             // What kills are worth: XP for the weapon in hand and a drop chance per player. Bosses always drop from the boss table.
@@ -675,7 +718,38 @@ namespace Game.Editor
             bootstrapObject.AddComponent<ArenaBootstrap>().assets = assets;
 
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, scenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(scenePath, true) };
+            SetBuildScenes();
+            AssetDatabase.SaveAssets();
+        }
+
+        const string HomeScenePath = "Assets/Game/Scenes/Home.unity";
+
+        // The game starts on the home screen; the dungeon scene follows it in the build.
+        static void SetBuildScenes()
+        {
+            var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>();
+            if (File.Exists(HomeScenePath))
+            {
+                scenes.Add(new EditorBuildSettingsScene(HomeScenePath, true));
+            }
+
+            scenes.Add(new EditorBuildSettingsScene("Assets/Game/Scenes/Arena.unity", true));
+            EditorBuildSettings.scenes = scenes.ToArray();
+        }
+
+        [MenuItem("Game/Seed home scene")]
+        public static void SeedHome()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(
+                UnityEditor.SceneManagement.NewSceneSetup.EmptyScene,
+                UnityEditor.SceneManagement.NewSceneMode.Single);
+            var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.06f, 0.065f, 0.08f);
+            new GameObject("HomeBootstrap").AddComponent<HomeBootstrap>();
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, HomeScenePath);
+            SetBuildScenes();
             AssetDatabase.SaveAssets();
         }
 
@@ -875,6 +949,38 @@ namespace Game.Editor
 
             apply(asset);
             EditorUtility.SetDirty(asset);
+        }
+
+        static void ArmorSet(string folder, string id, string name, float power, float health, float speed)
+        {
+            var path = $"{folder}/{id}.asset";
+            if (AssetDatabase.LoadAssetAtPath<ArmorSetAsset>(path) != null)
+            {
+                return;
+            }
+
+            var asset = ScriptableObject.CreateInstance<ArmorSetAsset>();
+            asset.displayName = name;
+            asset.powerScale = power;
+            asset.healthScale = health;
+            asset.speedScale = speed;
+            AssetDatabase.CreateAsset(asset, path);
+        }
+
+        static void Modifier(string folder, string id, string name, float power, float health, float speed)
+        {
+            var path = $"{folder}/{id}.asset";
+            if (AssetDatabase.LoadAssetAtPath<ModifierAsset>(path) != null)
+            {
+                return;
+            }
+
+            var asset = ScriptableObject.CreateInstance<ModifierAsset>();
+            asset.displayName = name;
+            asset.powerScale = power;
+            asset.healthScale = health;
+            asset.speedScale = speed;
+            AssetDatabase.CreateAsset(asset, path);
         }
 
         static void Class(string id, bool playable, float health, float speed, float power, AbilityAsset auto, params AbilityAsset[] skills)

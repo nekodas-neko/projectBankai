@@ -35,12 +35,12 @@ namespace Game.Core
         Vec2 lastFacing = new Vec2(0f, 1f);
         Dash dash;
 
-        public GameClient(PlayerId player, ITransport transport, ClassDef classDef, ClientConfig config)
+        public GameClient(PlayerId player, ITransport transport, ClassDef classDef, ClientConfig config, float speedScale = 1f)
         {
             this.player = player;
             this.transport = transport;
             this.config = config;
-            moveSpeed = classDef.Stats.MoveSpeed;
+            moveSpeed = classDef.Stats.MoveSpeed * GameServer.ClampScale(speedScale);
         }
 
         public PlayerId Player => player;
