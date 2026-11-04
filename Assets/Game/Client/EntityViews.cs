@@ -28,7 +28,7 @@ namespace Game.Client
     {
         const float FlashSeconds = 0.12f;
         const float BarWidth = 1.2f;
-        const float CastBarWidth = 1.8f;
+        const float BossBarScale = 2.2f;
         static readonly Color CastColor = new Color(0.4f, 0.7f, 1f);
         const float LocalSmoothing = 25f;
         const float SpeedSmoothing = 12f;
@@ -97,8 +97,8 @@ namespace Game.Client
             {
                 castMaterial = castMaterial != null ? castMaterial : Telegraphs.Tinted(assets.barBackground, CastColor);
                 view.CastBack = CharacterVisual.Part(assets.cube, view.Root, "CastBackground");
-                view.CastBack.localScale = new Vector3(CastBarWidth + 0.1f, 0.26f, 0.05f);
-                view.CastBack.localPosition = new Vector3(0f, view.BarHeight + 0.3f, 0f);
+                view.CastBack.localScale = new Vector3(view.CastWidth + 0.1f, 0.26f * view.BarScale, 0.05f);
+                view.CastBack.localPosition = new Vector3(0f, view.BarHeight + 0.3f * view.BarScale, 0f);
                 view.CastBack.GetComponent<Renderer>().sharedMaterial = assets.barBackground;
                 view.CastFill = CharacterVisual.Part(assets.cube, view.Root, "CastFill");
                 view.CastFill.GetComponent<Renderer>().sharedMaterial = castMaterial != null ? castMaterial : assets.player;
@@ -107,8 +107,8 @@ namespace Game.Client
             fraction = Mathf.Clamp01(fraction);
             view.CastBack.gameObject.SetActive(true);
             view.CastFill.gameObject.SetActive(true);
-            view.CastFill.localScale = new Vector3(Mathf.Max(0.001f, CastBarWidth * fraction), 0.18f, 0.05f);
-            view.CastFill.localPosition = new Vector3(-CastBarWidth * 0.5f * (1f - fraction), view.BarHeight + 0.3f, -0.04f);
+            view.CastFill.localScale = new Vector3(Mathf.Max(0.001f, view.CastWidth * fraction), 0.18f * view.BarScale, 0.05f);
+            view.CastFill.localPosition = new Vector3(-view.CastWidth * 0.5f * (1f - fraction), view.BarHeight + 0.3f * view.BarScale, -0.04f);
         }
 
         public bool CastVisible(EntityId id)
@@ -231,8 +231,9 @@ namespace Game.Client
             }
 
             var fraction = state.MaxHealth > 0f ? Mathf.Clamp01(state.Health / state.MaxHealth) : 0f;
-            view.BarFill.localScale = new Vector3(BarWidth * fraction, 0.12f, 0.05f);
-            view.BarFill.localPosition = new Vector3(-BarWidth * 0.5f * (1f - fraction), view.BarHeight, -0.04f);
+            var width = BarWidth * view.BarScale;
+            view.BarFill.localScale = new Vector3(width * fraction, 0.12f * view.BarScale, 0.05f);
+            view.BarFill.localPosition = new Vector3(-width * 0.5f * (1f - fraction), view.BarHeight, -0.04f);
         }
 
         View Create(EntityState state, PlayerId localPlayer)
@@ -254,14 +255,15 @@ namespace Game.Client
             var visual = CharacterVisual.Create(root, skin, assets);
 
             var background = CharacterVisual.Part(assets.cube, root, "BarBackground");
-            background.localScale = new Vector3(BarWidth + 0.08f, 0.18f, 0.05f);
+            var barScale = (state.Effects & EffectFlags.Boss) != 0 ? BossBarScale : 1f;
+            background.localScale = new Vector3(BarWidth * barScale + 0.08f, 0.18f * barScale, 0.05f);
             background.localPosition = new Vector3(0f, barHeight, 0f);
             background.GetComponent<Renderer>().sharedMaterial = assets.barBackground;
 
             var fill = CharacterVisual.Part(assets.cube, root, "BarFill");
             fill.GetComponent<Renderer>().sharedMaterial = teamMaterial;
 
-            return new View { Root = root, Visual = visual, Ring = ring, RingSize = ringSize, BarBackground = background, BarFill = fill, BarHeight = barHeight };
+            return new View { Root = root, Visual = visual, Ring = ring, RingSize = ringSize, BarBackground = background, BarFill = fill, BarHeight = barHeight, BarScale = barScale };
         }
 
         sealed class View
@@ -275,6 +277,8 @@ namespace Game.Client
             public Transform CastBack;
             public Transform CastFill;
             public float BarHeight;
+            public float BarScale = 1f;
+            public float CastWidth => Mathf.Max(1.8f, BarWidth * BarScale);
             public Vector3 LastPosition;
             public float Speed;
             public float FlashRemaining;
