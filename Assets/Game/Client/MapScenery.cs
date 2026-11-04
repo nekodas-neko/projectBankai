@@ -4,39 +4,31 @@ using UnityEngine;
 
 namespace Game.Client
 {
-    // Scatters trees along the walls and rocks and plants across the floors of a dungeon map, by copying the pieces
-    // the arena scene already has (so no new art is needed, and swapping the art swaps this too).
+    // Dresses a dungeon map as a dungeon: stone pillars with a torch on top along the walls, and rubble across the floors.
+    // The pillars and torches are plain boxes; the rubble copies the rocks the arena scene already has (so swapping the art swaps
+    // it too). Trees, bushes and plants are left out. Everything is registered with the map view so it fades with distance.
     public static class MapScenery
     {
-        const float WallInset = 1.4f;
-        const float TreeSpacing = 7f;
-        const float SquareUnitsPerCover = 45f;
+        public static readonly Color PillarColor = new Color(0.30f, 0.30f, 0.35f);
+        public static readonly Color TorchColor = new Color(1f, 0.55f, 0.15f);
 
-        public static int Decorate(Transform parent, WorldMap map, Transform source)
+        const float WallInset = 1.1f;
+        const float PillarSpacing = 9f;
+        const float PillarHeight = 3.6f;
+        const float PillarWidth = 0.9f;
+        const float SquareUnitsPerRubble = 120f;
+
+        public static int Decorate(MapView view, WorldMap map, Transform source, Mesh cube, Material stone, Material glow)
         {
-            if (source == null)
-            {
-                return 0;
-            }
-
-            var trees = new List<GameObject>();
-            var bushes = new List<GameObject>();
-            var cover = new List<GameObject>();
-            for (var i = 0; i < source.childCount; i++)
+            var pillarMaterial = Telegraphs.Tinted(stone, PillarColor);
+            var torchMaterial = Telegraphs.Tinted(glow != null ? glow : stone, TorchColor);
+            var rubble = new List<GameObject>();
+            for (var i = 0; source != null && i < source.childCount; i++)
             {
                 var child = source.GetChild(i).gameObject;
-                var name = child.name;
-                if (name.StartsWith("CommonTree") || name.StartsWith("Pine"))
+                if (child.name.StartsWith("Rock_"))
                 {
-                    trees.Add(child);
-                }
-                else if (name.StartsWith("Bush"))
-                {
-                    bushes.Add(child);
-                }
-                else
-                {
-                    cover.Add(child);
+                    rubble.Add(child);
                 }
             }
 
@@ -45,64 +37,66 @@ namespace Game.Client
             {
                 var zone = map.Zones[z];
                 var random = new System.Random(11 + z);
-                if (trees.Count > 0)
+                placed += Pillars(view, zone, cube, pillarMaterial, torchMaterial);
+                if (rubble.Count == 0)
                 {
-                    placed += Border(parent, zone, trees, bushes, random);
+                    continue;
                 }
 
-                if (cover.Count > 0)
+                var count = Mathf.RoundToInt((zone.MaxX - zone.MinX) * (zone.MaxY - zone.MinY) / SquareUnitsPerRubble);
+                for (var i = 0; i < count; i++)
                 {
-                    var area = (zone.MaxX - zone.MinX) * (zone.MaxY - zone.MinY);
-                    var count = Mathf.RoundToInt(area / SquareUnitsPerCover);
-                    for (var i = 0; i < count; i++)
-                    {
-                        var x = Mathf.Lerp(zone.MinX + 3f, zone.MaxX - 3f, (float)random.NextDouble());
-                        var y = Mathf.Lerp(zone.MinY + 3f, zone.MaxY - 3f, (float)random.NextDouble());
-                        placed += Place(parent, cover[random.Next(cover.Count)], x, y, random, 0.8f + (float)random.NextDouble() * 0.5f) ? 1 : 0;
-                    }
+                    var x = Mathf.Lerp(zone.MinX + 3f, zone.MaxX - 3f, (float)random.NextDouble());
+                    var y = Mathf.Lerp(zone.MinY + 3f, zone.MaxY - 3f, (float)random.NextDouble());
+                    var copy = Object.Instantiate(rubble[random.Next(rubble.Count)], view.Root);
+                    copy.transform.position = new Vector3(x, 0f, y);
+                    copy.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
+                    copy.transform.localScale = Vector3.one * (0.8f + (float)random.NextDouble() * 0.5f) * 0.4f;
+                    copy.SetActive(true);
+                    view.AddScenery(copy);
+                    placed++;
                 }
             }
 
             return placed;
         }
 
-        static int Border(Transform parent, ZoneDef zone, List<GameObject> trees, List<GameObject> bushes, System.Random random)
+        static int Pillars(MapView view, ZoneDef zone, Mesh cube, Material pillar, Material torch)
         {
             var placed = 0;
-            for (var x = zone.MinX + WallInset; x <= zone.MaxX - WallInset; x += TreeSpacing)
+            for (var x = zone.MinX + WallInset; x <= zone.MaxX - WallInset; x += PillarSpacing)
             {
-                placed += Edge(parent, trees, bushes, x, zone.MinY + WallInset, random);
-                placed += Edge(parent, trees, bushes, x, zone.MaxY - WallInset, random);
+                placed += Pillar(view, cube, pillar, torch, x, zone.MinY + WallInset);
+                placed += Pillar(view, cube, pillar, torch, x, zone.MaxY - WallInset);
             }
 
-            for (var y = zone.MinY + WallInset + TreeSpacing * 0.5f; y <= zone.MaxY - WallInset; y += TreeSpacing)
+            for (var y = zone.MinY + WallInset + PillarSpacing * 0.5f; y <= zone.MaxY - WallInset; y += PillarSpacing)
             {
-                placed += Edge(parent, trees, bushes, zone.MinX + WallInset, y, random);
-                placed += Edge(parent, trees, bushes, zone.MaxX - WallInset, y, random);
+                placed += Pillar(view, cube, pillar, torch, zone.MinX + WallInset, y);
+                placed += Pillar(view, cube, pillar, torch, zone.MaxX - WallInset, y);
             }
 
             return placed;
         }
 
-        static int Edge(Transform parent, List<GameObject> trees, List<GameObject> bushes, float x, float y, System.Random random)
+        static int Pillar(MapView view, Mesh cube, Material pillar, Material torch, float x, float y)
         {
-            // A little jitter so the line of trees does not look ruled.
-            x += (float)(random.NextDouble() - 0.5) * 2f;
-            y += (float)(random.NextDouble() - 0.5) * 2f;
-            var useBush = bushes.Count > 0 && random.Next(3) == 0;
-            var pool = useBush ? bushes : trees;
-            return Place(parent, pool[random.Next(pool.Count)], x, y, random, 0.6f + (float)random.NextDouble() * 0.3f) ? 1 : 0;
+            var post = Box("Pillar", view, cube, pillar, new Vector3(x, PillarHeight * 0.5f, y), new Vector3(PillarWidth, PillarHeight, PillarWidth));
+            var flame = Box("Torch", view, cube, torch, new Vector3(x, PillarHeight + 0.25f, y), new Vector3(0.4f, 0.5f, 0.4f));
+            flame.transform.SetParent(post.transform, true);
+            view.AddScenery(post);
+            return 1;
         }
 
-        static bool Place(Transform parent, GameObject template, float x, float y, System.Random random, float scale)
+        static GameObject Box(string name, MapView view, Mesh cube, Material material, Vector3 position, Vector3 scale)
         {
-            var copy = Object.Instantiate(template, parent);
-            copy.name = template.name;
-            copy.transform.position = new Vector3(x, 0f, y);
-            copy.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
-            copy.transform.localScale = Vector3.one * scale * (template.name.StartsWith("Rock_") ? 0.4f : 1f);
-            copy.SetActive(true);
-            return true;
+            var box = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
+            box.transform.SetParent(view.Root, false);
+            box.transform.position = position;
+            box.transform.localScale = scale;
+            box.GetComponent<MeshFilter>().sharedMesh = cube;
+            box.GetComponent<MeshRenderer>().sharedMaterial = material;
+            return box;
         }
     }
 }

@@ -84,6 +84,11 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': unknown rider '{ability.Rider}'");
                 }
 
+                if (ability.Stun < 0f || ability.Stun > 10f)
+                {
+                    errors.Add($"Ability '{ability.Id}': stun must be between 0 and 10 seconds");
+                }
+
                 if (ability.Interrupt < 0f || ability.Interrupt > 10f)
                 {
                     errors.Add($"Ability '{ability.Id}': interrupt must be between 0 and 10 seconds");
@@ -162,6 +167,11 @@ namespace Game.Core
                 if (def.LeashRange < 0f || (def.LeashRange > 0f && def.LeashRange <= def.AggroRange))
                 {
                     errors.Add($"Class '{def.Id}': leash range must be 0 (none) or larger than the aggro range");
+                }
+
+                if (def.WanderRadius < 0f || def.WanderRadius > 30f || (def.WanderRadius > 0f && def.AggroRange <= 0f))
+                {
+                    errors.Add($"Class '{def.Id}': wander radius must be between 0 and 30, and a wanderer needs an aggro range");
                 }
 
                 if (def.RecoverySeconds < 0f || def.RecoverySeconds > 10f)

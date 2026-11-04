@@ -89,6 +89,7 @@ namespace Game.Core
         Absorbed = 3,
         Healed = 4,
         Interrupted = 5,
+        Stunned = 6,
     }
 
     public struct DamageEvent

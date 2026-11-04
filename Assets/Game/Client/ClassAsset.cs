@@ -42,6 +42,9 @@ namespace Game.Client
         [Min(0f)] public float leashRange;
         [Min(0f)] public float recoverySeconds;
 
+        // Idle enemies stroll about inside this radius of where they stand (0 = stand still).
+        [Min(0f)] public float wanderRadius;
+
         // What killing this enemy gives: mastery XP (0 = the default for its kind), and a chance for each player to get a drop from the named loot table.
         [Min(0)] public int xpReward;
         public string lootTable = "";
@@ -78,6 +81,7 @@ namespace Game.Client
                 BodyRadius = bodyRadius,
                 LeashRange = leashRange,
                 RecoverySeconds = recoverySeconds,
+                WanderRadius = wanderRadius,
                 XpReward = xpReward,
                 LootTable = lootTable ?? string.Empty,
                 DropChance = dropChance,
