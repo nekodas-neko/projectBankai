@@ -293,6 +293,7 @@ namespace Game.Client
                 Zoom = ChangeZoom,
                 CycleSkin = CycleSkin,
                 ToggleCharacter = ToggleCharacter,
+                GoHome = GoHome,
                 ToggleSkills = ToggleSkills,
                 ToggleSession = ToggleMenu,
                 Restart = () => LocalClient?.Restart(),
@@ -978,6 +979,13 @@ namespace Game.Client
 
             HudSettings.SetSkin(className, skins[index].name);
             Reload();
+        }
+
+        // Back to the home screen: the profile is saved first and this session ends with the scene.
+        void GoHome()
+        {
+            mastery.Flush();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(HomeBootstrap.HomeScene);
         }
 
         void ToggleCharacter()
