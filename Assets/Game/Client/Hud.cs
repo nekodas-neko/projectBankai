@@ -89,7 +89,7 @@ namespace Game.Client
         public Action SwapSides;
         public Action<int> Zoom;
         public Action CycleSkin;
-        public Action ToggleWeapons;
+        public Action ToggleCharacter;
         public Action ToggleSkills;
         public Action ToggleSession;
         public Action Restart;
@@ -172,10 +172,10 @@ namespace Game.Client
             BuildTextButton(devMenu, "SwapSides", "Swap sides", new Vector2(240f, 90f), new Vector2(-40f, -170f), callbacks.SwapSides);
             BuildTextButton(devMenu, "ZoomOut", "Zoom -", new Vector2(115f, 90f), new Vector2(-165f, -280f), () => callbacks.Zoom?.Invoke(-1));
             BuildTextButton(devMenu, "Skin", "Skin", new Vector2(115f, 90f), new Vector2(-165f, -390f), callbacks.CycleSkin);
-            BuildTextButton(devMenu, "Class", "Weapon", new Vector2(115f, 90f), new Vector2(-40f, -390f), callbacks.ToggleWeapons);
+            BuildTextButton(devMenu, "Class", "Character", new Vector2(240f, 90f), new Vector2(-40f, -610f), callbacks.ToggleCharacter);
             BuildTextButton(devMenu, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -280f), () => callbacks.Zoom?.Invoke(1));
             BuildTextButton(devMenu, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.ToggleSession);
-            BuildTextButton(devMenu, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -610f), callbacks.ToggleSkills);
+            BuildTextButton(devMenu, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -720f), callbacks.ToggleSkills);
             BuildTextButton(safeArea, "Menu", "Menu", new Vector2(150f, 64f), new Vector2(-10f, -14f), () => devMenu.gameObject.SetActive(!devMenu.gameObject.activeSelf));
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), false);
             attack.HoldForHeavy = true;

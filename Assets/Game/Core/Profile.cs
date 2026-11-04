@@ -50,6 +50,50 @@ namespace Game.Core
             return true;
         }
 
+        // What a weapon or a set is worth when taken apart: more for a stronger weapon and one with a modifier.
+        public static int DismantleValue(OwnedWeapon weapon)
+        {
+            var value = 10 + (int)Math.Round(60f * Math.Max(0f, weapon.Power - 0.8f));
+            return string.IsNullOrEmpty(weapon.Modifier) ? value : value + 10;
+        }
+
+        public static int DismantleValue(OwnedArmor armor)
+        {
+            return 20;
+        }
+
+        // Takes a weapon apart for gold. The one in hand and the last weapon of a type (that type's mastery needs one) stay.
+        public bool TryDismantleWeapon(string uid, out int gold)
+        {
+            gold = 0;
+            var weapon = Weapons.Find(w => w.Uid == uid);
+            if (weapon == null || uid == EquippedUid || Weapons.FindAll(w => w.Type == weapon.Type).Count <= 1)
+            {
+                return false;
+            }
+
+            Weapons.Remove(weapon);
+            gold = DismantleValue(weapon);
+            AddGold(gold);
+            return true;
+        }
+
+        // Takes a set apart for gold. The one being worn stays.
+        public bool TryDismantleArmor(string uid, out int gold)
+        {
+            gold = 0;
+            var armor = Armors.Find(a => a.Uid == uid);
+            if (armor == null || uid == EquippedArmorUid)
+            {
+                return false;
+            }
+
+            Armors.Remove(armor);
+            gold = DismantleValue(armor);
+            AddGold(gold);
+            return true;
+        }
+
         public bool EquipArmor(string uid)
         {
             if (!Armors.Exists(a => a.Uid == uid))
