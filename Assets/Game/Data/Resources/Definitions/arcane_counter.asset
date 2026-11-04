@@ -47,6 +47,9 @@ MonoBehaviour:
   everyone: 0
   shelterTag: 
   shelterReduction: 0
+  selfHeal: 0
+  fortify: 0
+  fortifySeconds: 0
   variants: []
   castEffect: {fileID: 5559672738365469740, guid: 995bd20bcc1f6d7459ab2ea5e7141ce8, type: 3}
   hitEffect: {fileID: 7451035516701182542, guid: add6469434a753d4faef1670aa118ac4, type: 3}

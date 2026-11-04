@@ -47,6 +47,9 @@ MonoBehaviour:
   everyone: 0
   shelterTag: 
   shelterReduction: 0
+  selfHeal: 0
+  fortify: 0
+  fortifySeconds: 0
   variants:
   - id: crushing
     damageScale: 1.25
