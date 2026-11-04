@@ -76,6 +76,7 @@ namespace Game.Client
 
         void OnDestroy()
         {
+            characterScreen?.Dispose();
             mastery?.Flush();
             BuildNumberOverlay.Extra = string.Empty;
         }

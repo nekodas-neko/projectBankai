@@ -814,6 +814,11 @@ namespace Game.Editor
             var camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.06f, 0.065f, 0.08f);
+            var lightObject = new GameObject("Directional Light");
+            var light = lightObject.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.intensity = 1.1f;
+            lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
             new GameObject("HomeBootstrap").AddComponent<HomeBootstrap>();
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, HomeScenePath);
             SetBuildScenes();
