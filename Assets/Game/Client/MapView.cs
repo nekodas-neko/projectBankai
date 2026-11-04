@@ -8,12 +8,18 @@ namespace Game.Client
     // simulation uses. When a boss falls and a gate opens, the barrier goes and the wall opens up.
     public sealed class MapView
     {
-        public static readonly Color FloorColor = new Color(0.30f, 0.44f, 0.24f);
-        public static readonly Color CorridorColor = new Color(0.45f, 0.38f, 0.27f);
-        public static readonly Color WallColor = new Color(0.38f, 0.35f, 0.33f);
+        // A stone dungeon: cold dark floors, a warmer worn path through the gates, near-black walls.
+        public static readonly Color FloorColor = new Color(0.23f, 0.24f, 0.29f);
+        public static readonly Color CorridorColor = new Color(0.30f, 0.27f, 0.25f);
+        public static readonly Color WallColor = new Color(0.16f, 0.16f, 0.20f);
         public static readonly Color BarrierColor = new Color(1f, 0.8f, 0.25f);
 
-        const float WallHeight = 2.4f;
+        // Only the part of the dungeon near the player is drawn: a zone shows while the player is within ShowDistance of it,
+        // and a wall or prop while it is within ShowDistance + WallExtra of the player.
+        public const float ShowDistance = 14f;
+        const float WallExtra = 8f;
+
+        const float WallHeight = 3.2f;
         const float WallThickness = 0.6f;
         const float BarrierHeight = 2.6f;
 
@@ -24,6 +30,8 @@ namespace Game.Client
         readonly List<GameObject> walls = new List<GameObject>();
         readonly List<GameObject> barriers = new List<GameObject>();
         readonly List<WorldMap.Wall> scratch = new List<WorldMap.Wall>();
+        readonly List<Patch> patches = new List<Patch>();
+        readonly List<GameObject> scenery = new List<GameObject>();
         int shownProgress = -1;
 
         public MapView(Transform parent, WorldMap map, Mesh cube, Material ground, Material transparent)
@@ -41,15 +49,16 @@ namespace Game.Client
             for (var i = 0; i < map.Zones.Count; i++)
             {
                 var zone = map.Zones[i];
-                Box($"Floor {zone.Name}", zone.MinX, zone.MinY, zone.MaxX, zone.MaxY, -0.05f, 0.1f, floor);
+                patches.Add(new Patch(Box($"Floor {zone.Name}", zone.MinX, zone.MinY, zone.MaxX, zone.MaxY, -0.05f, 0.1f, floor), zone.MinX, zone.MinY, zone.MaxX, zone.MaxY));
             }
 
             for (var i = 0; i < map.Gates.Count; i++)
             {
                 var gate = map.Gates[i];
-                Box($"Corridor {gate.Name}", gate.MinX, gate.MinY, gate.MaxX, gate.MaxY, -0.045f, 0.1f, corridor);
+                patches.Add(new Patch(Box($"Corridor {gate.Name}", gate.MinX, gate.MinY, gate.MaxX, gate.MaxY, -0.045f, 0.1f, corridor), gate.MinX, gate.MinY, gate.MaxX, gate.MaxY));
                 map.GateSpan(i, out var minX, out var minY, out var maxX, out var maxY);
-                barriers.Add(Box($"Barrier {gate.Name}", minX, minY, maxX, maxY, BarrierHeight * 0.5f, BarrierHeight, barrier));
+                var barrierBox = Box($"Barrier {gate.Name}", minX, minY, maxX, maxY, BarrierHeight * 0.5f, BarrierHeight, barrier);
+                barriers.Add(barrierBox);
             }
 
             Refresh();
@@ -72,6 +81,92 @@ namespace Game.Client
         }
 
         public Transform Root => root;
+
+        public int VisibleFloors
+        {
+            get
+            {
+                var count = 0;
+                foreach (var patch in patches)
+                {
+                    count += patch.Object.activeSelf ? 1 : 0;
+                }
+
+                return count;
+            }
+        }
+
+        public int FloorCount => patches.Count;
+
+        // Pieces that belong to a part of the map (pillars, rubble) and fade with it.
+        public void AddScenery(GameObject piece)
+        {
+            scenery.Add(piece);
+        }
+
+        // Shows the floors, walls and props near the player and hides the rest, so only the current area is in view.
+        // Cheap enough to call every frame: objects are only toggled when they change.
+        public void Fade(float playerX, float playerY)
+        {
+            foreach (var patch in patches)
+            {
+                Toggle(patch.Object, patch.DistanceTo(playerX, playerY) <= ShowDistance);
+            }
+
+            var wallRange = ShowDistance + WallExtra;
+            for (var i = 0; i < scratch.Count && i < walls.Count; i++)
+            {
+                var centre = (scratch[i].A + scratch[i].B) * 0.5f;
+                var near = Mathf.Max(0f, Mathf.Sqrt((centre.X - playerX) * (centre.X - playerX) + (centre.Y - playerY) * (centre.Y - playerY)) - scratch[i].Length * 0.5f) <= wallRange;
+                Toggle(walls[i], near);
+            }
+
+            foreach (var piece in scenery)
+            {
+                if (piece == null)
+                {
+                    continue;
+                }
+
+                var position = piece.transform.position;
+                var dx = position.x - playerX;
+                var dz = position.z - playerY;
+                Toggle(piece, dx * dx + dz * dz <= wallRange * wallRange);
+            }
+        }
+
+        static void Toggle(GameObject target, bool on)
+        {
+            if (target.activeSelf != on)
+            {
+                target.SetActive(on);
+            }
+        }
+
+        sealed class Patch
+        {
+            public readonly GameObject Object;
+            readonly float minX;
+            readonly float minY;
+            readonly float maxX;
+            readonly float maxY;
+
+            public Patch(GameObject obj, float minX, float minY, float maxX, float maxY)
+            {
+                Object = obj;
+                this.minX = minX;
+                this.minY = minY;
+                this.maxX = maxX;
+                this.maxY = maxY;
+            }
+
+            public float DistanceTo(float x, float y)
+            {
+                var dx = Mathf.Max(0f, Mathf.Max(minX - x, x - maxX));
+                var dy = Mathf.Max(0f, Mathf.Max(minY - y, y - maxY));
+                return Mathf.Sqrt(dx * dx + dy * dy);
+            }
+        }
 
         public bool BarrierVisible(int gate)
         {

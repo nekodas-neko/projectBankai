@@ -653,6 +653,9 @@ namespace Game.Client
             }
 
             mapView.Refresh();
+            var here = LocalClient.PredictedPosition;
+            mapView.Fade(here.X, here.Y);
+            views.FogRadius = MapView.ShowDistance + 14f;
             Hud.MiniMap.Refresh(LocalClient.Latest, LocalClient.LocalEntity);
         }
 
@@ -662,7 +665,15 @@ namespace Game.Client
             var groundMaterial = ground != null && ground.GetComponent<Renderer>() != null ? ground.GetComponent<Renderer>().sharedMaterial : assets.dead;
             var props = GameObject.Find("TemporaryProps");
             mapView = new MapView(transform, map, assets.cube, groundMaterial, assets.telegraphFill);
-            MapScenery.Decorate(mapView.Root, map, props != null ? props.transform : null);
+            MapScenery.Decorate(mapView, map, props != null ? props.transform : null, assets.cube, groundMaterial, assets.telegraphFill);
+
+            // A dungeon is dark: no sky behind the walls.
+            var camera = Camera.main;
+            if (camera != null)
+            {
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.03f, 0.03f, 0.05f);
+            }
 
             foreach (var name in new[] { "Ground", "Rim", "TemporaryProps" })
             {
