@@ -9,6 +9,7 @@ namespace Game.Core
         const float LeashArrival = 0.5f;
         const float LeashSpeedScale = 2f;
         const float PackCallThreat = 1f;
+        const float AddFocusSeconds = 12f;
         const float WanderSpeedScale = 0.45f;
         const float WanderArrival = 0.3f;
         const float WanderPauseMin = 1.5f;
@@ -55,7 +56,7 @@ namespace Game.Core
                 return;
             }
 
-            if (def.LeashRange > 0f && !npc.Leashing && (npc.Position - npc.Home).Length > def.LeashRange)
+            if (def.LeashRange > 0f && !npc.Leashing && !npc.Summoned && (npc.Position - npc.Home).Length > def.LeashRange)
             {
                 npc.Leashing = true;
                 npc.Threat.Clear();
@@ -373,6 +374,13 @@ namespace Game.Core
                 var minion = world.Spawn(PlayerId.None, boss.Team, phase.SpawnClass, world.InsideArena(spot), appearance);
                 minion.Summoned = true;
                 minion.Section = boss.Section;
+
+                // Adds join the fight at once, on whoever the boss is fighting, instead of waiting to notice someone.
+                if (boss.Target.IsValid)
+                {
+                    minion.ForcedTarget = boss.Target;
+                    minion.ForcedSeconds = AddFocusSeconds;
+                }
             }
         }
     }

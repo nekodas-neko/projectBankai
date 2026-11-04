@@ -234,12 +234,8 @@ namespace Game.Editor
             Tune("slime", c => c.leashRange <= 0f, c => { c.aggroRange = 9f; c.leashRange = 18f; });
             Tune("slime_boss", c => c.aggroRange > 12f, c => c.aggroRange = 12f);
 
-            // Playtest: the rings were too big and half the map woke at once. Tighter ranges (the boss still notices a player at the 8 units the balance sim starts them at).
+            // Playtest: the rings were too big and half the map woke at once, so mobs notice from closer. Bosses keep their range: a shorter one made the balance bots' fights with the king 10 s longer.
             Tune("slime", c => c.aggroRange > 6f, c => { c.aggroRange = 6f; c.leashRange = 14f; });
-            foreach (var boss in new[] { "slime_boss", "mushroom_warden", "brood_mother" })
-            {
-                Tune(boss, c => c.aggroRange > 9f, c => c.aggroRange = 9f);
-            }
             Tune("mushroom_warden", c => c.aggroRange <= 0f, c =>
             {
                 c.aggroRange = 10f;
