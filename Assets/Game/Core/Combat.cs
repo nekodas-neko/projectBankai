@@ -33,6 +33,21 @@ namespace Game.Core
             UseAt(user, slot, aim, false, default, heavy);
         }
 
+        public const string PotionId = "potion";
+
+        // Heals the drinker by a share of its maximum health. Refused while the potion is cooling down or at full health, so a
+        // client cannot drink faster than the config allows or waste one.
+        public void DrinkPotion(Entity user)
+        {
+            if (!user.IsAlive || user.PotionCooldown > 0f || user.Health >= user.Stats.MaxHealth)
+            {
+                return;
+            }
+
+            user.PotionCooldown = config.PotionCooldownSeconds;
+            ApplyHeal(user, user, user.Stats.MaxHealth * config.PotionHealFraction, 0, StableId.From(PotionId), 0);
+        }
+
         // An enemy mechanic: an ability whose area is centred on a point on the ground (where a player stands), not on the caster.
         public void UseAtPoint(Entity user, int slot, Vec2 point)
         {

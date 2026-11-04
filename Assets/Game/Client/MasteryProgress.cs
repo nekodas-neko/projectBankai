@@ -134,6 +134,21 @@ namespace Game.Client
             return true;
         }
 
+        public int Potions => Profile.Potions;
+
+        // Drinks one from the bag (the caller sends the command) and saves at once.
+        public bool TryUsePotion()
+        {
+            if (!Profile.TryUsePotion())
+            {
+                return false;
+            }
+
+            dirty = true;
+            Flush();
+            return true;
+        }
+
         // The power scale of the weapon in hand, sent when joining.
         public float WeaponPower => Profile.Equipped?.Power ?? 1f;
 
@@ -184,6 +199,13 @@ namespace Game.Client
             foreach (var enemy in fallen)
             {
                 var reward = rewards.For(enemy.ClassHash, enemy.Boss);
+                if (reward.PotionChance > 0f && Roll(reward.PotionChance) && Profile.AddPotion())
+                {
+                    notice = "Found a health potion";
+                    noticeLeft = NoticeSeconds;
+                    dropped = true;
+                }
+
                 var table = TableFor(reward, enemy.Boss, out var chance);
                 if (table != null && Roll(chance))
                 {

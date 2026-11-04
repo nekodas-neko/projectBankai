@@ -211,6 +211,9 @@ namespace Game.Core
         public string LootTable { get; set; } = string.Empty;
         public float DropChance { get; set; }
 
+        // The chance (0 to 1) that each player finds a health potion when this enemy falls.
+        public float PotionChance { get; set; }
+
         // After an attack lands, the enemy stays planted this long before it moves or attacks again, so a boss does not
         // chase and swing without a break. 0 keeps the old behaviour.
         public float RecoverySeconds { get; set; }

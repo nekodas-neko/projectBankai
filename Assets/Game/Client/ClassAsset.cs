@@ -49,6 +49,9 @@ namespace Game.Client
         [Min(0)] public int xpReward;
         public string lootTable = "";
         [Range(0f, 1f)] public float dropChance;
+
+        // The chance each player finds a health potion when this enemy falls.
+        [Range(0f, 1f)] public float potionChance;
         public string displayName = "";
         public string skinPrefix = "";
         public PhaseData[] phases = new PhaseData[0];
@@ -85,6 +88,7 @@ namespace Game.Client
                 XpReward = xpReward,
                 LootTable = lootTable ?? string.Empty,
                 DropChance = dropChance,
+                PotionChance = potionChance,
                 Phases = phases.Select(phase => new PhaseDef
                 {
                     HealthBelow = phase.healthBelow,

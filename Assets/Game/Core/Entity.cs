@@ -74,6 +74,7 @@ namespace Game.Core
         public float Recovery;
         public Vec2 WanderTarget;
         public float WanderPause;
+        public float PotionCooldown;
         public bool Wandering;
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
@@ -412,6 +413,7 @@ namespace Game.Core
             Winding = Winding > dt ? Winding - dt : 0f;
             Recovery = Recovery > dt ? Recovery - dt : 0f;
             WanderPause = WanderPause > dt ? WanderPause - dt : 0f;
+            PotionCooldown = PotionCooldown > dt ? PotionCooldown - dt : 0f;
             ForcedSeconds = ForcedSeconds > dt ? ForcedSeconds - dt : 0f;
 
             if (ResourceSpec != null && ResourceSpec.Regen != 0f)
