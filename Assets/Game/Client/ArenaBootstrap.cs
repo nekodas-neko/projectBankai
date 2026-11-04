@@ -764,7 +764,7 @@ namespace Game.Client
 
         void PlayHit(DamageEvent hit)
         {
-            if (hit.Outcome == HitOutcome.Dodged || hit.Outcome == HitOutcome.Absorbed || hit.Outcome == HitOutcome.Interrupted)
+            if (hit.Outcome == HitOutcome.Dodged || hit.Outcome == HitOutcome.Absorbed || hit.Outcome == HitOutcome.Interrupted || hit.Outcome == HitOutcome.Stunned)
             {
                 return;
             }

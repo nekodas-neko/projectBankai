@@ -72,6 +72,9 @@ namespace Game.Core
         public string PerfectRider;
         public float Winding;
         public float Recovery;
+        public Vec2 WanderTarget;
+        public float WanderPause;
+        public bool Wandering;
         public float DeadSeconds;
         public float ThreatMultiplier = 1f;
         public float Radius;
@@ -408,6 +411,7 @@ namespace Game.Core
             PerfectRemaining = PerfectRemaining > dt ? PerfectRemaining - dt : 0f;
             Winding = Winding > dt ? Winding - dt : 0f;
             Recovery = Recovery > dt ? Recovery - dt : 0f;
+            WanderPause = WanderPause > dt ? WanderPause - dt : 0f;
             ForcedSeconds = ForcedSeconds > dt ? ForcedSeconds - dt : 0f;
 
             if (ResourceSpec != null && ResourceSpec.Regen != 0f)
