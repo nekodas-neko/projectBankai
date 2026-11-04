@@ -32,7 +32,7 @@ namespace Game.Client
 
         public static DungeonBanner Build(RectTransform parent, Action onRestart)
         {
-            var room = NewText("RoomLabel", parent, 40, new Vector2(0.5f, 1f), new Vector2(0f, -62f), new Vector2(760f, 70f));
+            var room = NewText("RoomLabel", parent, 40, new Vector2(0.5f, 1f), new Vector2(0f, -40f), new Vector2(680f, 70f));
             var message = NewText("DungeonMessage", parent, 64, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(900f, 260f));
 
             var buttonImage = Hud.NewImage("RestartButton", parent, null, new Color(0.15f, 0.55f, 0.35f, 0.95f), true);

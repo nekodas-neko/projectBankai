@@ -9,12 +9,12 @@ namespace Game.Client
     // it too). Trees, bushes and plants are left out. Everything is registered with the map view so it fades with distance.
     public static class MapScenery
     {
-        public static readonly Color PillarColor = new Color(0.30f, 0.30f, 0.35f);
+        public static readonly Color PillarColor = new Color(0.50f, 0.50f, 0.57f);
         public static readonly Color TorchColor = new Color(1f, 0.55f, 0.15f);
 
         const float WallInset = 1.1f;
         const float PillarSpacing = 9f;
-        const float PillarHeight = 3.6f;
+        const float PillarHeight = 2.0f;
         const float PillarWidth = 0.9f;
         const float SquareUnitsPerRubble = 120f;
 
@@ -82,7 +82,7 @@ namespace Game.Client
         static int Pillar(MapView view, Mesh cube, Material pillar, Material torch, float x, float y)
         {
             var post = Box("Pillar", view, cube, pillar, new Vector3(x, PillarHeight * 0.5f, y), new Vector3(PillarWidth, PillarHeight, PillarWidth));
-            var flame = Box("Torch", view, cube, torch, new Vector3(x, PillarHeight + 0.25f, y), new Vector3(0.4f, 0.5f, 0.4f));
+            var flame = Box("Torch", view, cube, torch, new Vector3(x, PillarHeight + 0.15f, y), new Vector3(0.3f, 0.3f, 0.3f));
             flame.transform.SetParent(post.transform, true);
             view.AddScenery(post);
             return 1;

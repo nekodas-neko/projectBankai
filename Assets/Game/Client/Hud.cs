@@ -176,7 +176,7 @@ namespace Game.Client
             BuildTextButton(devMenu, "ZoomIn", "Zoom +", new Vector2(115f, 90f), new Vector2(-40f, -280f), () => callbacks.Zoom?.Invoke(1));
             BuildTextButton(devMenu, "Session", "Session", new Vector2(240f, 90f), new Vector2(-40f, -500f), callbacks.ToggleSession);
             BuildTextButton(devMenu, "Skills", "Skills", new Vector2(240f, 90f), new Vector2(-40f, -610f), callbacks.ToggleSkills);
-            BuildTextButton(safeArea, "Menu", "Menu", new Vector2(240f, 90f), new Vector2(-40f, -60f), () => devMenu.gameObject.SetActive(!devMenu.gameObject.activeSelf));
+            BuildTextButton(safeArea, "Menu", "Menu", new Vector2(150f, 64f), new Vector2(-10f, -14f), () => devMenu.gameObject.SetActive(!devMenu.gameObject.activeSelf));
             var attack = BuildActionButton(safeArea, moveOnRight, "Attack", new Vector2(190f, 290f), 100f, new Color(0.22f, 0.54f, 0.87f, 0.9f), false);
             attack.HoldForHeavy = true;
             var chargeRing = NewImage("ChargeRing", attack.transform, ProceduralSprites.Ring, Color.white, false);

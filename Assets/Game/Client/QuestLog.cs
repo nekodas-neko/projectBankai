@@ -154,7 +154,7 @@ namespace Game.Client
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
             rect.sizeDelta = new Vector2(Width, Header);
-            rect.anchoredPosition = new Vector2(-6f, -160f);
+            rect.anchoredPosition = new Vector2(-6f, -280f);
 
             var title = Hud.NewRect("Title", rect).gameObject.AddComponent<Text>();
             title.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
