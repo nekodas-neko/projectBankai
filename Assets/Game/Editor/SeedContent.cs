@@ -48,6 +48,13 @@ namespace Game.Editor
             Tune(radiantBurst, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.5f; a.heal = 50f; a.chargeRequired = 1000f; a.chargeFromDealt = 1.6f; });
             var slimeSlam = Ability("slime_slam", cooldown: 3.5f, range: 2f, radius: 1.2f, damage: 9f);
 
+            // Slime kinds: the purple spitter shoots from a distance, the red brute is slow and tough and hits in a ring, the yellow dasher is quick and fragile.
+            var slimeShot = Ability("slime_shot", cooldown: 2.6f, range: 11f, radius: 0.6f, damage: 8f);
+            Tune(slimeShot, a => a.windup <= 0f, a => a.windup = 0.7f);
+            var slimeCrush = Ability("slime_crush", cooldown: 3.2f, range: 2.8f, radius: 2.3f, damage: 13f);
+            Tune(slimeCrush, a => a.shape == AbilityShape.Line, a => { a.shape = AbilityShape.Circle; a.windup = 0.6f; });
+            var slimeNip = Ability("slime_nip", cooldown: 1.1f, range: 1.7f, radius: 0.9f, damage: 5f);
+
             var kingSlam = Ability("king_slam", cooldown: 5f, range: 3.4f, radius: 1.8f, damage: 15f);
             Tune(kingSlam, a => a.windup <= 0f, a => a.windup = 0.8f);
             var kingSmash = Ability("king_smash", cooldown: 6f, range: 4.5f, radius: 4.5f, damage: 16f);
@@ -80,6 +87,9 @@ namespace Game.Editor
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
             Class("cave_crawler", false, 80f, 0f, 1f, slimeSlam);
+            Class("slime_spitter", false, 45f, 0f, 1f, slimeShot);
+            Class("slime_brute", false, 170f, 0f, 1f, slimeCrush);
+            Class("slime_dasher", false, 28f, 0f, 1f, slimeNip);
             Class("chest", false, 40f, 0f, 1f, slimeSlam);
             Class("slime_boss", false, 2400f, 0f, 1f, slimeSlam);
             Class("mushroom_warden", false, 900f, 0f, 1f, slimeSlam);
@@ -292,6 +302,23 @@ namespace Game.Editor
                 c.dropChance = 0.25f;
             });
 
+            // The three slime kinds. Each notices from a different distance, and pays a little more than a plain slime for its trouble.
+            Tune("slime_spitter", c => c.aggroRange <= 0f, c =>
+            {
+                c.moveSpeed = 2.4f; c.aggroRange = 7f; c.leashRange = 14f; c.bodyRadius = 0.6f;
+                c.xpReward = 12; c.goldReward = 5; c.potionChance = 0.08f; c.lootTable = LootTableAsset.MobDrop; c.dropChance = 0.03f;
+            });
+            Tune("slime_brute", c => c.aggroRange <= 0f, c =>
+            {
+                c.moveSpeed = 1.9f; c.aggroRange = 4.5f; c.leashRange = 12f; c.bodyRadius = 1.1f; c.recoverySeconds = 0.8f;
+                c.xpReward = 20; c.goldReward = 9; c.potionChance = 0.12f; c.lootTable = LootTableAsset.MobDrop; c.dropChance = 0.06f;
+            });
+            Tune("slime_dasher", c => c.aggroRange <= 0f, c =>
+            {
+                c.moveSpeed = 4.6f; c.aggroRange = 5f; c.leashRange = 12f; c.bodyRadius = 0.5f;
+                c.xpReward = 8; c.goldReward = 3; c.potionChance = 0.05f;
+            });
+
             // Cave crawlers wander slowly about their spot, notice players only from close by, and can be sneaked past.
             Tune("cave_crawler", c => c.wanderRadius <= 0f, c =>
             {
@@ -417,6 +444,9 @@ namespace Game.Editor
             Skin("mage_arcane", new Color(0.45f, 0.3f, 0.8f), new Color(0.4f, 0.85f, 1f), new Vector3(0.9f, 1.05f, 0.9f), true);
             Skin("mage_crimson", new Color(0.7f, 0.15f, 0.3f), new Color(1f, 0.8f, 0.3f), new Vector3(0.9f, 1.05f, 0.9f), true);
             Skin("chest", new Color(0.45f, 0.28f, 0.12f), new Color(0.95f, 0.75f, 0.2f), new Vector3(1.4f, 0.8f, 1.0f), false, SkinAsset.BodyShape.Capsule, 0f);
+            Skin("slime_purple", new Color(0.6f, 0.3f, 0.85f), new Color(0.9f, 0.8f, 1f), new Vector3(1.3f, 1.0f, 1.3f), false, SkinAsset.BodyShape.Sphere, 0.25f);
+            Skin("slime_red", new Color(0.85f, 0.25f, 0.2f), new Color(1f, 0.75f, 0.6f), new Vector3(1.9f, 1.5f, 1.9f), false, SkinAsset.BodyShape.Sphere, 0.12f);
+            Skin("slime_yellow", new Color(0.95f, 0.85f, 0.25f), new Color(1f, 1f, 0.7f), new Vector3(1.0f, 0.8f, 1.0f), false, SkinAsset.BodyShape.Sphere, 0.35f);
             Skin("slime_green", new Color(0.35f, 0.8f, 0.5f), new Color(0.8f, 1f, 0.85f), new Vector3(1.4f, 1.1f, 1.4f), false, SkinAsset.BodyShape.Sphere, 0.25f);
             Skin("slime_king", new Color(0.3f, 0.75f, 0.6f), new Color(0.95f, 0.8f, 0.25f), new Vector3(3.2f, 2.6f, 3.2f), false, SkinAsset.BodyShape.Sphere, 0.4f);
 
@@ -447,6 +477,9 @@ namespace Game.Editor
             Link("king_cleave", slime, hitSlime);
             Link("slime_bomb", slime, hitSlime);
             Link("slime_spit", slime, hitSlime);
+            Link("slime_shot", slime, hitSlime);
+            Link("slime_crush", slime, hitSlime);
+            Link("slime_nip", slime, hitSlime);
             Link("devour", holy, hitHoly);
             Link("brood_call", slime, hitSlime);
             Link("bulwark_crash", shield, hitSpark);
@@ -491,6 +524,7 @@ namespace Game.Editor
             {
                 AddWanderers(asset);
                 AddChests(asset);
+                AddSlimeKinds(asset);
                 return;
             }
 
@@ -596,7 +630,40 @@ namespace Game.Editor
 
             AddWanderers(asset);
             AddChests(asset);
+            AddSlimeKinds(asset);
             AssetDatabase.SaveAssets();
+        }
+
+        // Some of the plain slimes in each pack become a purple spitter, a red brute or a yellow dasher, so a pack asks for more than one answer.
+        static void AddSlimeKinds(DungeonAsset asset)
+        {
+            var spitter = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime_spitter.asset");
+            var brute = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime_brute.asset");
+            var dasher = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/slime_dasher.asset");
+            if (spitter == null || brute == null || dasher == null || asset.rooms.Any(room => room.spawns.Any(spawn => spawn.spawnClass == spitter)))
+            {
+                return;
+            }
+
+            var changes = new[]
+            {
+                (0, -22f, 10f, spitter, "slime_purple"), (0, 22f, 9f, brute, "slime_red"), (0, 3f, 21f, spitter, "slime_purple"),
+                (1, 23f, 31f, spitter, "slime_purple"), (1, 39f, 40f, brute, "slime_red"), (1, 36f, 43f, spitter, "slime_purple"),
+                (1, 27f, 46f, brute, "slime_red"), (1, 18f, 66f, dasher, "slime_yellow"), (1, 30f, 66f, dasher, "slime_yellow"),
+                (2, -13f, 65f, spitter, "slime_purple"), (2, -17f, 83f, brute, "slime_red"), (2, -21f, 88f, dasher, "slime_yellow"),
+                (2, -17f, 90f, dasher, "slime_yellow"), (2, -24f, 104f, spitter, "slime_purple"), (2, -10f, 104f, brute, "slime_red"),
+            };
+            foreach (var (room, x, y, kind, skin) in changes)
+            {
+                var spawn = asset.rooms[room].spawns.FirstOrDefault(s => Mathf.Abs(s.position.x - x) < 0.01f && Mathf.Abs(s.position.y - y) < 0.01f);
+                if (spawn != null)
+                {
+                    spawn.spawnClass = kind;
+                    spawn.skin = skin;
+                }
+            }
+
+            EditorUtility.SetDirty(asset);
         }
 
         // One chest in a side area of each section, away from the path to the boss.
@@ -747,6 +814,11 @@ namespace Game.Editor
             var camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.06f, 0.065f, 0.08f);
+            var lightObject = new GameObject("Directional Light");
+            var light = lightObject.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.intensity = 1.1f;
+            lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
             new GameObject("HomeBootstrap").AddComponent<HomeBootstrap>();
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, HomeScenePath);
             SetBuildScenes();

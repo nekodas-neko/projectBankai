@@ -88,6 +88,21 @@ namespace Game.PlayMode.Tests
 
             foreach (var button in Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None))
             {
+                if (button.name == "OpenCharacter")
+                {
+                    button.onClick.Invoke();
+                }
+            }
+
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(home.CharacterScreen.IsOpen);
+            var worn = SkinCatalog.Get(StableId.From(HudSettings.SkinFor(home.Mastery.Profile.EquippedType)));
+            Assert.AreEqual(worn != null && worn.prefab != null, home.CharacterScreen.PictureShown, "the picture is drawn when the skin has a model");
+            Assert.IsNotEmpty(home.CharacterScreen.StatValue(0), "the health bar has its number");
+            home.CharacterScreen.SetOpen(false);
+
+            foreach (var button in Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None))
+            {
                 if (button.name == "Modedungeon")
                 {
                     button.onClick.Invoke();

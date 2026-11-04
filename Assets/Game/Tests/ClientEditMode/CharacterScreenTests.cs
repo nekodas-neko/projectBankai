@@ -35,9 +35,23 @@ namespace Game.Client.Tests
             progress.UseArmorSets(ArmorCatalog.Load());
         }
 
+        readonly System.Collections.Generic.List<CharacterScreen> screens = new System.Collections.Generic.List<CharacterScreen>();
+
+        CharacterScreen NewScreen(System.Action<CharacterScreen.Tab, string> equip, System.Action<CharacterScreen.Tab, string> takeApart, System.Action changed)
+        {
+            var screen = new CharacterScreen((RectTransform)root.transform, equip, takeApart, changed, () => { });
+            screens.Add(screen);
+            return screen;
+        }
+
         [TearDown]
         public void TearDown()
         {
+            foreach (var screen in screens)
+            {
+                screen.Dispose();
+            }
+
             Object.DestroyImmediate(root);
             if (Directory.Exists(directory))
             {
@@ -59,6 +73,38 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheSheetShowsTheNumbersAsBarsAndTheSkillsAsIcons()
+        {
+            var loadout = new int[Entity.AbilitySlots];
+            loadout[1] = StableId.From("frost");
+            var screen = NewScreen((_, __) => { }, (_, __) => { }, () => { });
+
+            screen.Show(CharacterInfo.Build(progress, classes.Get("staff"), abilities, loadout), progress);
+
+            Assert.AreEqual("97", screen.StatValue(0));
+            Assert.Greater(screen.StatBar(0), 0.4f);
+            Assert.Less(screen.StatBar(0), 0.6f, "97 of a 200 scale");
+            Assert.AreEqual("Arcane Bolt", screen.SkillName(0));
+            Assert.AreEqual("Fireball" + System.Environment.NewLine.Substring(System.Environment.NewLine.Length - 1) + "(Frost)", screen.SkillName(1));
+            StringAssert.StartsWith("Staff +10% (Sturdy)", screen.WeaponText);
+            Assert.AreEqual("Armor: Stone Warden (health +10%)", screen.ArmorText);
+        }
+
+        [Test]
+        public void ThePictureShowsOnlyWhenTheSkinHasAModel()
+        {
+            var screen = NewScreen((_, __) => { }, (_, __) => { }, () => { });
+            var info = CharacterInfo.Build(progress, classes.Get("staff"), abilities, new int[Entity.AbilitySlots]);
+
+            screen.Show(info, progress);
+            Assert.AreEqual(info.Skin != null && info.Skin.prefab != null, screen.PictureShown, "a skin with a model is drawn, one without is left empty");
+
+            info.Skin = null;
+            screen.Show(info, progress);
+            Assert.IsFalse(screen.PictureShown);
+        }
+
+        [Test]
         public void AChosenSkillVariantIsNamedAfterItsSkill()
         {
             var staff = classes.Get("staff");
@@ -73,7 +119,7 @@ namespace Game.Client.Tests
         [Test]
         public void TheScreenListsTheBagOfWeaponsAndOfArmorWithWhatTakingApartGives()
         {
-            var screen = new CharacterScreen((RectTransform)root.transform, (_, __) => { }, (_, __) => { }, () => { }, () => { });
+            var screen = NewScreen((_, __) => { }, (_, __) => { }, () => { });
             var info = CharacterInfo.Build(progress, classes.Get("staff"), abilities, new int[Entity.AbilitySlots]);
 
             screen.Show(info, progress);
@@ -95,7 +141,7 @@ namespace Game.Client.Tests
         {
             var info = CharacterInfo.Build(progress, classes.Get("staff"), abilities, new int[Entity.AbilitySlots]);
             CharacterScreen screen = null;
-            screen = new CharacterScreen((RectTransform)root.transform, (_, __) => { }, (_, __) => { }, () => screen.Show(info, progress), () => { });
+            screen = NewScreen((_, __) => { }, (_, __) => { }, () => screen.Show(info, progress));
             screen.Show(info, progress);
 
             FindButton("ArmorTab").onClick.Invoke();
@@ -127,7 +173,7 @@ namespace Game.Client.Tests
             CharacterScreen.Tab tappedTab = CharacterScreen.Tab.Armor;
             string carried = null;
             string taken = null;
-            var screen = new CharacterScreen((RectTransform)root.transform, (t, id) => { tappedTab = t; carried = id; }, (t, id) => taken = id, () => { }, () => { });
+            var screen = NewScreen((t, id) => { tappedTab = t; carried = id; }, (t, id) => taken = id, () => { });
             screen.Show(CharacterInfo.Build(progress, classes.Get("staff"), abilities, new int[Entity.AbilitySlots]), progress);
 
             FindButton("Item3").onClick.Invoke();
