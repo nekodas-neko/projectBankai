@@ -12,6 +12,18 @@ namespace Game.Core
         public float MaxY { get; set; }
     }
 
+    // A tagged patch of ground such as a pool of water or a stretch of cover. It does not block anything; an ability can
+    // look at whether a body stands on a patch with a given tag (see AbilityDef.ShelterTag).
+    public sealed class PatchDef
+    {
+        public string Name { get; set; }
+        public string Tag { get; set; }
+        public float MinX { get; set; }
+        public float MinY { get; set; }
+        public float MaxX { get; set; }
+        public float MaxY { get; set; }
+    }
+
     // A doorway between two zones. It is a wall until the section named by OpenAfter has been cleared (its boss is dead).
     // A gate is a rectangle that overlaps a little into the zones on both ends, so walking through is continuous.
     public sealed class GateDef
@@ -36,9 +48,11 @@ namespace Game.Core
 
         readonly ZoneDef[] zones;
         readonly GateDef[] gates;
+        readonly PatchDef[] patches;
 
-        public WorldMap(ZoneDef[] zones, GateDef[] gates)
+        public WorldMap(ZoneDef[] zones, GateDef[] gates, PatchDef[] patches = null)
         {
+            this.patches = patches ?? Array.Empty<PatchDef>();
             this.zones = zones ?? Array.Empty<ZoneDef>();
             this.gates = gates ?? Array.Empty<GateDef>();
             var first = this.zones.Length > 0;
@@ -65,6 +79,8 @@ namespace Game.Core
 
         public IReadOnlyList<GateDef> Gates => gates;
 
+        public IReadOnlyList<PatchDef> Patches => patches;
+
         public float MinX { get; }
 
         public float MinY { get; }
@@ -75,12 +91,31 @@ namespace Game.Core
 
         public static WorldMap From(DungeonDef dungeon)
         {
-            return dungeon != null && dungeon.Zones.Length > 0 ? new WorldMap(dungeon.Zones, dungeon.Gates) : null;
+            return dungeon != null && dungeon.Zones.Length > 0 ? new WorldMap(dungeon.Zones, dungeon.Gates, dungeon.Patches) : null;
         }
 
         public bool IsOpen(int gateIndex)
         {
             return gateIndex >= 0 && gateIndex < gates.Length && Progress > gates[gateIndex].OpenAfter;
+        }
+
+        // True when the point is on a patch with this tag.
+        public bool OnPatch(Vec2 point, string tag)
+        {
+            if (string.IsNullOrEmpty(tag))
+            {
+                return false;
+            }
+
+            for (var i = 0; i < patches.Length; i++)
+            {
+                if (patches[i].Tag == tag && Inside(point, patches[i].MinX, patches[i].MinY, patches[i].MaxX, patches[i].MaxY))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool Contains(Vec2 point)

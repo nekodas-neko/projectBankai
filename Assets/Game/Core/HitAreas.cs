@@ -7,11 +7,16 @@ namespace Game.Core
     {
         public static float Reach(AbilityDef ability)
         {
-            return ability.Shape == AbilityShape.Circle ? ability.Radius : ability.Range;
+            return ability.Shape == AbilityShape.Circle && !ability.Everyone ? ability.Radius : ability.Range;
         }
 
         public static bool Contains(AbilityDef ability, Vec2 origin, Vec2 direction, Vec2 point, float bodyRadius)
         {
+            if (ability.Everyone)
+            {
+                return true;
+            }
+
             var offset = point - origin;
             switch (ability.Shape)
             {

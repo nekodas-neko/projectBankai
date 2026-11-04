@@ -117,6 +117,15 @@ The server and every client use the same walls (`WorldMap`), so movement predict
 
 A map has many more enemies in view than a round room did, so a snapshot may not fit in one network message (about 1,400 bytes). A connection that cannot carry it all gets every player and the nearest other entities, so far-away enemies appear as you approach them.
 
+## Map-wide attacks and shelter patches
+
+An environment puzzle is an attack the whole room has to answer by going somewhere. Two pieces of data make one:
+
+- **Everyone** (on the ability): the attack hits every hostile in the room wherever it stands, shape and range ignored. Give it a windup of at least 0.5 s so the room can react, and Avoidable off (red) so a block or a dodge does not answer it; the answer is the shelter. It runs as a boss **mechanic** (a timer on a phase), like a ground circle.
+- **Shelter tag and reduction** (on the ability): damage is cut by the reduction (0 to 1) for a target standing on a map **patch** with that tag. A patch is a rectangle on the dungeon (`DungeonDef.Patches`: a name, a tag, a Min and a Max corner). Patches never block movement, and their middle has to be inside a zone.
+
+So a fire wave is an ability with Everyone on, shelter tag `water` and reduction 0.8, and the dungeon has a few `water` patches in that boss's room. Several tags can exist in one dungeon (water, cover); each ability names the one it cares about. The client draws patches from the same data, so players can see where to stand (`ShelterTests` shows the rules).
+
 ## Party size: enemies get tougher with each player
 
 A dungeon has **Health Per Extra Player** (0 means no scaling; the cave uses 0.8). Every enemy's health is multiplied by 1 + that number x (players - 1): a solo player meets the normal health, two players 1.8 times, three players 2.6 times. It follows the party while the dungeon runs: someone joining or leaving changes the maximum, and an enemy that was hurt keeps the same share of its health left; anything spawned later (a boss's minions) is scaled too. The design target is three players, tank, damage and healer, with solo and duo possible for a skilled or well-geared player, so the number is a tuning knob: if three players finish a boss too fast, raise it.
