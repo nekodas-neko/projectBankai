@@ -349,6 +349,24 @@ namespace Game.Editor
                 }
             }
 
+            // Armor sets: the worn set adds a small bonus. The wanderer set is what everyone starts in.
+            var armorFolder = $"Assets/Game/Data/Resources/{ArmorSetAsset.Folder}";
+            Directory.CreateDirectory(armorFolder);
+            ArmorSet(armorFolder, "wanderer", "Wanderer", 1f, 1f, 1f);
+            ArmorSet(armorFolder, "stone_warden", "Stone Warden", 1f, 1.10f, 1f);
+            ArmorSet(armorFolder, "ember_guard", "Ember Guard", 1f, 1.06f, 1.03f);
+            ArmorSet(armorFolder, "moss_cloak", "Moss Cloak", 1f, 1f, 1.08f);
+            foreach (var tableName in new[] { LootTableAsset.BossDrop, LootTableAsset.MobDrop })
+            {
+                var table = AssetDatabase.LoadAssetAtPath<LootTableAsset>($"{lootFolder}/{tableName}.asset");
+                if (table != null && table.armorSets.Length == 0)
+                {
+                    table.armorSets = new[] { "stone_warden", "ember_guard", "moss_cloak" };
+                    table.armorChance = tableName == LootTableAsset.BossDrop ? 0.4f : 0.03f;
+                    EditorUtility.SetDirty(table);
+                }
+            }
+
             // What kills are worth: XP for the weapon in hand and a drop chance per player. Bosses always drop from the boss table.
             Tune("slime", c => string.IsNullOrEmpty(c.lootTable), c => { c.xpReward = 10; c.lootTable = LootTableAsset.MobDrop; c.dropChance = 0.03f; });
             foreach (var boss in new[] { "slime_boss", "mushroom_warden", "brood_mother" })
@@ -700,7 +718,38 @@ namespace Game.Editor
             bootstrapObject.AddComponent<ArenaBootstrap>().assets = assets;
 
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, scenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(scenePath, true) };
+            SetBuildScenes();
+            AssetDatabase.SaveAssets();
+        }
+
+        const string HomeScenePath = "Assets/Game/Scenes/Home.unity";
+
+        // The game starts on the home screen; the dungeon scene follows it in the build.
+        static void SetBuildScenes()
+        {
+            var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>();
+            if (File.Exists(HomeScenePath))
+            {
+                scenes.Add(new EditorBuildSettingsScene(HomeScenePath, true));
+            }
+
+            scenes.Add(new EditorBuildSettingsScene("Assets/Game/Scenes/Arena.unity", true));
+            EditorBuildSettings.scenes = scenes.ToArray();
+        }
+
+        [MenuItem("Game/Seed home scene")]
+        public static void SeedHome()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(
+                UnityEditor.SceneManagement.NewSceneSetup.EmptyScene,
+                UnityEditor.SceneManagement.NewSceneMode.Single);
+            var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.06f, 0.065f, 0.08f);
+            new GameObject("HomeBootstrap").AddComponent<HomeBootstrap>();
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, HomeScenePath);
+            SetBuildScenes();
             AssetDatabase.SaveAssets();
         }
 
@@ -900,6 +949,22 @@ namespace Game.Editor
 
             apply(asset);
             EditorUtility.SetDirty(asset);
+        }
+
+        static void ArmorSet(string folder, string id, string name, float power, float health, float speed)
+        {
+            var path = $"{folder}/{id}.asset";
+            if (AssetDatabase.LoadAssetAtPath<ArmorSetAsset>(path) != null)
+            {
+                return;
+            }
+
+            var asset = ScriptableObject.CreateInstance<ArmorSetAsset>();
+            asset.displayName = name;
+            asset.powerScale = power;
+            asset.healthScale = health;
+            asset.speedScale = speed;
+            AssetDatabase.CreateAsset(asset, path);
         }
 
         static void Modifier(string folder, string id, string name, float power, float health, float speed)

@@ -43,7 +43,7 @@ namespace Game.Client
         readonly FightStats fightStats = new FightStats();
         Registry<SkillTreeDef> skillTrees;
         SkillTreePanel skillPanel;
-        WeaponPanel weaponPanel;
+        CharacterScreen characterScreen;
         string skillMessage = string.Empty;
         Registry<AbilityDef> abilityDefs;
         Registry<DungeonDef> dungeonDefs;
@@ -76,10 +76,12 @@ namespace Game.Client
             skillTrees = SkillTreeCatalog.Load(classDefs, abilityDefs);
             var masteryRules = MasteryCatalog.Load();
             var weaponModifiers = ModifierCatalog.Load();
-            var lootTables = LootCatalog.Load(classDefs, weaponModifiers);
+            var armorSets = ArmorCatalog.Load();
+            var lootTables = LootCatalog.Load(classDefs, weaponModifiers, armorSets);
             lootTables.TryGet(LootTableAsset.BossDrop, out var bossDrop);
             mastery = new MasteryProgress(ProfileStore.ForDevice(), masteryRules, bossDrop, 0, new RewardBook(classDefs, masteryRules), lootTables);
             mastery.UseModifiers(weaponModifiers);
+            mastery.UseArmorSets(armorSets);
             mastery.Equip(className);
             loadout = Loadout(className);
             views = new EntityViews(transform, assets);
@@ -290,7 +292,8 @@ namespace Game.Client
                 SwapSides = RequestSwapSides,
                 Zoom = ChangeZoom,
                 CycleSkin = CycleSkin,
-                ToggleWeapons = ToggleWeapons,
+                ToggleCharacter = ToggleCharacter,
+                GoHome = GoHome,
                 ToggleSkills = ToggleSkills,
                 ToggleSession = ToggleMenu,
                 Restart = () => LocalClient?.Restart(),
@@ -302,7 +305,7 @@ namespace Game.Client
                 () => SwitchMode(SessionMode.Host, null),
                 address => SwitchMode(SessionMode.Join, address),
                 ToggleMenu);
-            weaponPanel = new WeaponPanel((RectTransform)Hud.Root.transform, PickWeapon, RefreshWeapons, ToggleWeapons);
+            characterScreen = new CharacterScreen((RectTransform)Hud.Root.transform, Equip, TakeApart, RefreshCharacter, ToggleCharacter);
             skillPanel = new SkillTreePanel((RectTransform)Hud.Root.transform, ChooseSkillNode, ResetSkills, ToggleSkills);
             WireButtons();
         }
@@ -315,7 +318,7 @@ namespace Game.Client
             if (open)
             {
                 menu.SetOpen(false);
-                weaponPanel.SetOpen(false);
+                characterScreen.SetOpen(false);
                 RefreshSkills();
             }
         }
@@ -358,7 +361,7 @@ namespace Game.Client
             if (open)
             {
                 skillPanel.SetOpen(false);
-                weaponPanel.SetOpen(false);
+                characterScreen.SetOpen(false);
             }
 
             menu.SetOpen(open);
@@ -978,32 +981,59 @@ namespace Game.Client
             Reload();
         }
 
-        void ToggleWeapons()
+        // Back to the home screen: the profile is saved first and this session ends with the scene.
+        void GoHome()
         {
-            var open = !weaponPanel.IsOpen;
-            weaponPanel.SetOpen(open);
+            mastery.Flush();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(HomeBootstrap.HomeScene);
+        }
+
+        void ToggleCharacter()
+        {
+            var open = !characterScreen.IsOpen;
+            characterScreen.SetOpen(open);
             if (open)
             {
                 skillPanel.SetOpen(false);
                 menu.SetOpen(false);
-                RefreshWeapons();
+                RefreshCharacter();
             }
         }
 
-        void RefreshWeapons()
+        void RefreshCharacter()
         {
-            weaponPanel.Show(mastery.Profile, mastery.Rules);
+            var weaponClass = classDefs.TryGet(mastery.Profile.EquippedType, out var def) ? def : playerClass;
+            characterScreen.Show(CharacterInfo.Build(mastery, weaponClass, abilityDefs, loadout), mastery);
         }
 
-        // Carrying another weapon restarts the session: the kit, skills and power are sent when it begins (hub-only later).
-        void PickWeapon(OwnedWeapon weapon)
+        // Carrying another weapon or set restarts the session: the kit, skills and numbers are sent when it begins (hub-only later).
+        void Equip(CharacterScreen.Tab tab, string uid)
         {
-            if (mastery.EquipWeapon(weapon.Uid))
+            if (tab == CharacterScreen.Tab.Weapons)
             {
-                HudSettings.ClassName = weapon.Type;
+                var weapon = mastery.Profile.Weapons.Find(w => w.Uid == uid);
+                if (weapon != null && mastery.EquipWeapon(uid))
+                {
+                    HudSettings.ClassName = weapon.Type;
+                }
+            }
+            else
+            {
+                mastery.EquipArmor(uid);
             }
 
             Reload();
+        }
+
+        // Taking something apart does not change what is in use, so the session carries on and the screen just updates.
+        void TakeApart(CharacterScreen.Tab tab, string uid)
+        {
+            var gold = 0;
+            var done = tab == CharacterScreen.Tab.Weapons ? mastery.DismantleWeapon(uid, out gold) : mastery.DismantleArmor(uid, out gold);
+            if (done)
+            {
+                RefreshCharacter();
+            }
         }
 
         static void Reload()

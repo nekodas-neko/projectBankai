@@ -56,6 +56,18 @@ namespace Game.Core
             return new GearStats(power, health, speed);
         }
 
+        // The weapon in hand and the armor worn together: their scales multiply.
+        public static GearStats Of(OwnedWeapon weapon, OwnedArmor armor, Registry<WeaponModifierDef> modifiers, Registry<ArmorSetDef> sets)
+        {
+            var stats = Of(weapon, modifiers);
+            if (armor == null || sets == null || !sets.TryGet(armor.Set, out var set))
+            {
+                return stats;
+            }
+
+            return new GearStats(stats.Power * set.PowerScale, stats.Health * set.HealthScale, stats.Speed * set.SpeedScale);
+        }
+
         public static List<string> Validate(Registry<WeaponModifierDef> modifiers)
         {
             var errors = new List<string>();
