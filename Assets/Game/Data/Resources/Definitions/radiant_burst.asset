@@ -20,6 +20,8 @@ MonoBehaviour:
   radius: 6
   damage: 20
   windup: 0.5
+  heavyDamageScale: 2.4
+  heavyCooldownScale: 1.8
   resourceCost: 0
   duration: 0
   dashDistance: 0
@@ -32,12 +34,13 @@ MonoBehaviour:
   avoidable: 1
   atTarget: 0
   chargeRequired: 1000
-  chargeFromDealt: 1.6
+  chargeFromDealt: 1.25
   chargeFromTaken: 0
   chargeFromBlocked: 0
   chargeFromHealing: 0
   interruptible: 0
   interrupt: 0
+  stun: 0
   summonClass: {fileID: 0}
   summonSkin: 
   summonCount: 0
