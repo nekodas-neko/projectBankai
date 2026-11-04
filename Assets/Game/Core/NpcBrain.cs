@@ -9,6 +9,11 @@ namespace Game.Core
         const float LeashArrival = 0.5f;
         const float LeashSpeedScale = 2f;
         const float PackCallThreat = 1f;
+        const float AddFocusSeconds = 12f;
+        const float WanderSpeedScale = 0.45f;
+        const float WanderArrival = 0.3f;
+        const float WanderPauseMin = 1.5f;
+        const float WanderPauseSpan = 3f;
 
         readonly ServerConfig config;
         readonly Registry<ClassDef> classes;
@@ -51,7 +56,7 @@ namespace Game.Core
                 return;
             }
 
-            if (def.LeashRange > 0f && !npc.Leashing && (npc.Position - npc.Home).Length > def.LeashRange)
+            if (def.LeashRange > 0f && !npc.Leashing && !npc.Summoned && (npc.Position - npc.Home).Length > def.LeashRange)
             {
                 npc.Leashing = true;
                 npc.Threat.Clear();
@@ -74,9 +79,11 @@ namespace Game.Core
             if (target == null)
             {
                 npc.Target = default;
+                Wander(npc, def);
                 return;
             }
 
+            npc.Wandering = false;
             npc.Target = target.Id;
 
             if (npc.Pack != 0)
@@ -117,6 +124,31 @@ namespace Game.Core
                 var speed = npc.Stats.MoveSpeed * (phase != null ? phase.SpeedScale : 1f);
                 npc.Position = Movement.Step(npc.Position, direction, speed, config.Simulation);
             }
+        }
+
+        // An idle enemy with a wander radius strolls to random spots near where it stands, resting between them.
+        void Wander(Entity npc, ClassDef def)
+        {
+            if (def.WanderRadius <= 0f || npc.WanderPause > 0f)
+            {
+                return;
+            }
+
+            var offset = npc.WanderTarget - npc.Position;
+            var distance = offset.Length;
+            if (!npc.Wandering || distance <= WanderArrival)
+            {
+                var angle = random.NextFloat() * MathF.PI * 2f;
+                var reach = def.WanderRadius * MathF.Sqrt(random.NextFloat());
+                npc.WanderTarget = world.InsideArena(npc.Home + new Vec2(MathF.Cos(angle), MathF.Sin(angle)) * reach);
+                npc.WanderPause = WanderPauseMin + random.NextFloat() * WanderPauseSpan;
+                npc.Wandering = true;
+                return;
+            }
+
+            var direction = offset * (1f / distance);
+            npc.Facing = direction;
+            npc.Position = Movement.Step(npc.Position, direction, npc.Stats.MoveSpeed * WanderSpeedScale, config.Simulation);
         }
 
         Entity PickTarget(Entity npc, float aggroRange)
@@ -342,6 +374,13 @@ namespace Game.Core
                 var minion = world.Spawn(PlayerId.None, boss.Team, phase.SpawnClass, world.InsideArena(spot), appearance);
                 minion.Summoned = true;
                 minion.Section = boss.Section;
+
+                // Adds join the fight at once, on whoever the boss is fighting, instead of waiting to notice someone.
+                if (boss.Target.IsValid)
+                {
+                    minion.ForcedTarget = boss.Target;
+                    minion.ForcedSeconds = AddFocusSeconds;
+                }
             }
         }
     }

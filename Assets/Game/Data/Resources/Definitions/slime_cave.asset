@@ -63,6 +63,26 @@ MonoBehaviour:
       skin: monster_mushroom
       boss: 1
       pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -17, y: 0}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 16, y: 2}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -6, y: 22}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 7, y: 27}
+      skin: slime_green
+      boss: 0
+      pack: 0
   - name: Brood tunnels
     offset: {x: 0, y: 0}
     spawns:
@@ -126,6 +146,26 @@ MonoBehaviour:
       skin: monster_cthulhu
       boss: 1
       pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 30, y: 29}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 37, y: 52}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 20, y: 62}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 35, y: 70}
+      skin: slime_green
+      boss: 0
+      pack: 0
   - name: King's road
     offset: {x: 0, y: 0}
     spawns:
@@ -178,6 +218,21 @@ MonoBehaviour:
       position: {x: -18, y: 114}
       skin: boss_greendemon
       boss: 1
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -5, y: 63}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -16, y: 76}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -26, y: 110}
+      skin: slime_green
+      boss: 0
       pack: 0
   zones:
   - name: Entry hall
