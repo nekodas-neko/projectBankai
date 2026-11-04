@@ -2,6 +2,7 @@ using System.IO;
 using Game.Core;
 using NUnit.Framework;
 using UnityEngine;
+using EntityId = Game.Core.EntityId;
 
 namespace Game.Client.Tests
 {

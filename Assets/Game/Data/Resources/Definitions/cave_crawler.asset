@@ -28,6 +28,7 @@ MonoBehaviour:
   xpReward: 15
   lootTable: mob_drop
   dropChance: 0.05
+  potionChance: 0.12
   displayName: 
   skinPrefix: 
   phases: []
