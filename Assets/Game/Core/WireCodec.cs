@@ -14,7 +14,7 @@ namespace Game.Core
 
         const int EntitySize = 4 + 4 + 1 + 4 + 8 + 8 + 4 + 4 + 20 + 4 + 4 + 4 + 4 + 4 + 4 + 1 + 1 + 4;
         const int EventSize = 4 + 4 + 4 + 1 + 4 + 4 + 1;
-        const int UseSize = 4 + 1 + 4 + 4 + 8;
+        const int UseSize = 4 + 1 + 4 + 4 + 8 + 4;
         const int WindupSize = 4 + 4 + 4 + 8 + 8 + 4;
         const int MaxEntities = 1024;
         const int MaxEvents = 1024;
@@ -121,6 +121,7 @@ namespace Game.Core
                 writer.Write(use.Ability);
                 writer.Write(use.Variant);
                 Write(writer, use.Direction);
+                writer.Write(use.Sequence);
             }
 
             writer.Write((ushort)snapshot.Windups.Count);
@@ -229,6 +230,7 @@ namespace Game.Core
                     Ability = reader.ReadInt32(),
                     Variant = reader.ReadInt32(),
                     Direction = ReadVec2(reader),
+                    Sequence = reader.ReadInt32(),
                 });
             }
 
