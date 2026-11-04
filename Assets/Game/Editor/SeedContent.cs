@@ -718,7 +718,38 @@ namespace Game.Editor
             bootstrapObject.AddComponent<ArenaBootstrap>().assets = assets;
 
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, scenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(scenePath, true) };
+            SetBuildScenes();
+            AssetDatabase.SaveAssets();
+        }
+
+        const string HomeScenePath = "Assets/Game/Scenes/Home.unity";
+
+        // The game starts on the home screen; the dungeon scene follows it in the build.
+        static void SetBuildScenes()
+        {
+            var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>();
+            if (File.Exists(HomeScenePath))
+            {
+                scenes.Add(new EditorBuildSettingsScene(HomeScenePath, true));
+            }
+
+            scenes.Add(new EditorBuildSettingsScene("Assets/Game/Scenes/Arena.unity", true));
+            EditorBuildSettings.scenes = scenes.ToArray();
+        }
+
+        [MenuItem("Game/Seed home scene")]
+        public static void SeedHome()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(
+                UnityEditor.SceneManagement.NewSceneSetup.EmptyScene,
+                UnityEditor.SceneManagement.NewSceneMode.Single);
+            var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.06f, 0.065f, 0.08f);
+            new GameObject("HomeBootstrap").AddComponent<HomeBootstrap>();
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, HomeScenePath);
+            SetBuildScenes();
             AssetDatabase.SaveAssets();
         }
 
