@@ -123,6 +123,9 @@ namespace Game.Core
 
         public bool IsDashing => dash.Active;
 
+        // The way the player last moved or aimed, which is where a tap with no target goes.
+        public Vec2 Facing => lastFacing;
+
         public void Restart()
         {
             Send(CommandType.Restart, Vec2.Zero);
