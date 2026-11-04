@@ -24,9 +24,11 @@ MonoBehaviour:
   bodyRadius: 0.7
   leashRange: 14
   recoverySeconds: 0
+  wanderRadius: 0
   xpReward: 10
   lootTable: mob_drop
   dropChance: 0.03
+  potionChance: 0.06
   displayName: 
   skinPrefix: 
   phases: []

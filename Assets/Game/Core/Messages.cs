@@ -14,6 +14,9 @@ namespace Game.Core
 
         // The attack button held: the same slot-0 attack as a heavy swing.
         HeavyAttack = 8,
+
+        // Drink a health potion (the count lives in the player's own profile; the server limits how often).
+        UsePotion = 9,
     }
 
     public readonly struct Command
@@ -33,7 +36,7 @@ namespace Game.Core
 
         public Command WithPlayer(PlayerId player) => new Command(player, Sequence, Type, Aim);
 
-        public int AbilitySlot => Type == CommandType.Move || Type == CommandType.Restart ? -1 : Type == CommandType.HeavyAttack ? 0 : (int)Type - (int)CommandType.Attack;
+        public int AbilitySlot => Type == CommandType.Move || Type == CommandType.Restart || Type == CommandType.UsePotion ? -1 : Type == CommandType.HeavyAttack ? 0 : (int)Type - (int)CommandType.Attack;
     }
 
     public struct EntityState

@@ -21,6 +21,32 @@ namespace Game.Core
         public List<OwnedWeapon> Weapons { get; } = new List<OwnedWeapon>();
         public string EquippedUid { get; set; } = string.Empty;
 
+        // Health potions carried between runs.
+        public const int MaxPotions = 5;
+        public int Potions { get; set; }
+
+        public bool AddPotion()
+        {
+            if (Potions >= MaxPotions)
+            {
+                return false;
+            }
+
+            Potions++;
+            return true;
+        }
+
+        public bool TryUsePotion()
+        {
+            if (Potions <= 0)
+            {
+                return false;
+            }
+
+            Potions--;
+            return true;
+        }
+
         // How many drops have been rolled; it seeds the next roll and numbers the weapon's id.
         public int LootRolls { get; set; }
 
@@ -172,6 +198,7 @@ namespace Game.Core
         {
             var text = new StringBuilder();
             text.Append(Header).Append(' ').Append(Version).Append('\n');
+            text.Append("potions ").Append(profile.Potions).Append('\n');
             text.Append("equipped ").Append(profile.EquippedUid.Length == 0 ? "-" : profile.EquippedUid).Append('\n');
             foreach (var weapon in profile.Weapons)
             {
@@ -247,6 +274,15 @@ namespace Game.Core
             error = null;
             switch (parts[0])
             {
+                case "potions" when parts.Length == 2:
+                    if (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var potions))
+                    {
+                        error = "bad potions";
+                        return false;
+                    }
+
+                    profile.Potions = Math.Min(potions, PlayerProfile.MaxPotions);
+                    return true;
                 case "equipped" when parts.Length == 2:
                     equipped = parts[1] == "-" ? string.Empty : parts[1];
                     return true;
@@ -295,6 +331,7 @@ namespace Game.Core
 
                     profile.MasteryFor(parts[1]).Choices.Add(parts[2]);
                     return true;
+                case "potions":
                 case "equipped":
                 case "weapon":
                 case "loot":

@@ -12,6 +12,10 @@ namespace Game.Core
         public int MaxTicksPerUpdate { get; set; } = 8;
         public float RespawnSeconds { get; set; } = 5f;
         public float DefenseLeniencySeconds { get; set; } = 0.2f;
+
+        // A health potion heals this fraction of the drinker's maximum health, then needs this long before the next one.
+        public float PotionHealFraction { get; set; } = 0.4f;
+        public float PotionCooldownSeconds { get; set; } = 20f;
     }
 
     // The authoritative simulation. It owns the tick and the public API and coordinates focused systems:
@@ -210,6 +214,10 @@ namespace Game.Core
                     {
                         entity.Facing = command.Aim.Normalized;
                     }
+                }
+                else if (command.Type == CommandType.UsePotion)
+                {
+                    combat.DrinkPotion(entity);
                 }
                 else
                 {

@@ -74,6 +74,11 @@ namespace Game.Core
             Send(CommandType.HeavyAttack, aim);
         }
 
+        public void UsePotion()
+        {
+            Send(CommandType.UsePotion, Vec2.Zero);
+        }
+
         public void Skill(int slot, Vec2 aim)
         {
             if (slot < 1 || slot > ClassDef.SkillSlots)

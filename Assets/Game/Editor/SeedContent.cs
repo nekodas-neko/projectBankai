@@ -288,6 +288,14 @@ namespace Game.Editor
                 c.dropChance = 0.05f;
             });
 
+            // Health potions: a small chance from mobs and one from every boss.
+            Tune("slime", c => c.potionChance <= 0f, c => c.potionChance = 0.06f);
+            Tune("cave_crawler", c => c.potionChance <= 0f, c => c.potionChance = 0.12f);
+            foreach (var bossName in new[] { "slime_boss", "mushroom_warden", "brood_mother" })
+            {
+                Tune(bossName, c => c.potionChance <= 0f, c => c.potionChance = 1f);
+            }
+
             // Mob drops: a rare, slightly weaker weapon. The same shape as the boss table, so a new table is a copy with other numbers.
             var mobPath = $"{lootFolder}/{LootTableAsset.MobDrop}.asset";
             if (AssetDatabase.LoadAssetAtPath<LootTableAsset>(mobPath) == null)

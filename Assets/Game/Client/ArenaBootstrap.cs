@@ -449,10 +449,38 @@ namespace Game.Client
         void WireButtons()
         {
             Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
+            Hud.Potion.Fired += _ => DrinkPotion();
             Hud.Attack.FiredHeavy += aim => LocalClient?.HeavyAttack(ToWorld(aim));
             Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
             Hud.Ultimate.Fired += aim => LocalClient?.Skill(Entity.UltimateSlot, ToWorld(aim));
             Hud.Defense.Fired += aim => LocalClient?.Defend(DefendDirection(aim));
+        }
+
+        float potionReadyAt;
+
+        // Drinks a potion if there is one in the bag, the potion is ready and it would heal something. The server decides again.
+        void DrinkPotion()
+        {
+            if (LocalClient == null || mastery == null || Time.time < potionReadyAt || !LocalClient.TryGetLocalState(out var state))
+            {
+                return;
+            }
+
+            if (state.Health <= 0f || state.Health >= state.MaxHealth || !mastery.TryUsePotion())
+            {
+                return;
+            }
+
+            LocalClient.UsePotion();
+            potionReadyAt = Time.time + new ServerConfig().PotionCooldownSeconds;
+        }
+
+        void UpdatePotionButton()
+        {
+            var cooldown = new ServerConfig().PotionCooldownSeconds;
+            var left = Mathf.Clamp01((potionReadyAt - Time.time) / cooldown);
+            Hud.Potion.SetLabel($"Potion\nx{mastery.Potions}");
+            Hud.Potion.SetCooldown(mastery.Potions <= 0 ? 1f : left);
         }
 
         void UpdateButtons()
@@ -464,6 +492,7 @@ namespace Game.Client
             UpdateButton(Hud.Defense, hasState, state, Entity.DefenseSlot, playerClass.Defense);
             Hud.Defense.SetLabel(DefenseLabel());
             UpdateResource(hasState, state);
+            UpdatePotionButton();
             var quests = QuestLog.Build(dungeonDefs.Get(DungeonId), LocalClient.Latest);
             Hud.Quest.Show(quests);
             Hud.Banner.Update(LocalClient.Latest, hasState && state.Health <= 0f, LocalClient.Map != null, QuestLog.Current(quests));
