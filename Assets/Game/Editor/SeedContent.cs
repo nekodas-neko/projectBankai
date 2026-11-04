@@ -272,6 +272,11 @@ namespace Game.Editor
                 AssetDatabase.CreateAsset(table, lootPath);
             }
 
+            // The mace gets an answer to casts and adds: the pulse staggers a caster and stuns small enemies for a moment. Its ultimate
+            // charges a little slower (the balance report had it firing 1.9 times a minute against the brood mother, target at most 1.5).
+            Tune(radiantPulse, a => a.stun <= 0f, a => { a.stun = 1.5f; a.interrupt = 1.2f; });
+            Tune(radiantBurst, a => a.chargeFromDealt > 1.3f, a => a.chargeFromDealt = 1.25f);
+
             // The tank's bash stuns small enemies for a moment and the crash for longer (bosses are immune).
             Tune(shieldBash, a => a.stun <= 0f, a => a.stun = 2.5f);
             Tune(bulwarkCrash, a => a.stun <= 0f, a => a.stun = 4f);

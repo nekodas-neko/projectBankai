@@ -66,7 +66,7 @@ namespace Game.Client.Tests
         }
 
         [Test]
-        public void TheWardenAndTheMotherCastAndTheSwordAndStaffCanInterrupt()
+        public void TheWardenAndTheMotherCastAndTheSwordStaffAndMaceCanInterrupt()
         {
             DefinitionLoader.Load(out var classes, out var abilities);
 
@@ -84,7 +84,9 @@ namespace Game.Client.Tests
             Assert.Greater(abilities.Get("shield_bash").Interrupt, 0f);
             Assert.Greater(abilities.Get("fireball").Interrupt, 0f);
             Assert.AreEqual(0f, abilities.Get("holy_bolt").Interrupt);
-            Assert.AreEqual(0f, abilities.Get("radiant_pulse").Interrupt);
+            Assert.Greater(abilities.Get("radiant_pulse").Interrupt, 0f, "the mace pulse staggers a caster from close by");
+            Assert.Greater(abilities.Get("radiant_pulse").Stun, 0f);
+            Assert.Greater(abilities.Get("shield_bash").Stun, 0f);
         }
 
         [Test]
