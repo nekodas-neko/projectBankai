@@ -9,6 +9,7 @@ namespace Game.Core
         public const int Shield = 3;
         public const int Dashing = 4;
         public const int Staggered = 5;
+        public const int Fortified = 6;
     }
 
     public static class EffectFlags

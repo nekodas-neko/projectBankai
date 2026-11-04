@@ -112,6 +112,15 @@ namespace Game.Core
         // (for example a pool of water against a fire wave). Empty means nothing shelters from it.
         public string ShelterTag { get; set; }
         public float ShelterReduction { get; set; }
+
+        // Extras of a defensive skill (a dodge, block or shield), the small signature of a weapon's default kit.
+        // SelfHeal: health the user gets back when the skill is used (scaled by power, clamped to the maximum).
+        // Fortify / FortifySeconds: for that many seconds after use, every avoidable hit the user takes is cut by Fortify (0 to 1).
+        //   It lingers after the block or dodge itself ends. Red attacks still ignore it.
+        // Mana or rage back on use needs no field: give the skill a negative ResourceCost.
+        public float SelfHeal { get; set; }
+        public float Fortify { get; set; }
+        public float FortifySeconds { get; set; }
     }
 
     public sealed class ResourceDef
