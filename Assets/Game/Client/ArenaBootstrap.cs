@@ -884,11 +884,25 @@ namespace Game.Client
         {
             telegraphs.BeginSync();
             var windups = LocalClient.Latest?.Windups;
+            AbilityAsset wave = null;
+            var waveRemaining = 0f;
             for (var i = 0; windups != null && i < windups.Count; i++)
             {
                 var windup = windups[i];
                 if (!AbilityCatalog.TryGet(windup.Ability, out var ability) || ability.windup <= 0f)
                 {
+                    continue;
+                }
+
+                // A map-wide attack has no area to draw: the whole room is hit, so the screen says where to stand instead.
+                if (ability.everyone)
+                {
+                    if (wave == null || windup.Remaining < waveRemaining)
+                    {
+                        wave = ability;
+                        waveRemaining = windup.Remaining;
+                    }
+
                     continue;
                 }
 
@@ -905,6 +919,19 @@ namespace Game.Client
             }
 
             telegraphs.EndSync();
+            UpdateShelterWarning(wave, waveRemaining);
+        }
+
+        void UpdateShelterWarning(AbilityAsset wave, float remaining)
+        {
+            if (wave == null || Hud.Shelter == null)
+            {
+                Hud.Shelter?.Hide();
+                return;
+            }
+
+            var sheltered = wave.shelterReduction > 0f && LocalClient.Map != null && LocalClient.TryGetLocalState(out var me) && LocalClient.Map.OnPatch(me.Position, wave.shelterTag);
+            Hud.Shelter.Show(wave.shelterReduction > 0f ? wave.shelterTag : null, remaining, sheltered);
         }
 
         void PlayUse(UseEvent use)

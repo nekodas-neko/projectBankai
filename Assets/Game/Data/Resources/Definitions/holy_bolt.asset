@@ -44,6 +44,9 @@ MonoBehaviour:
   summonClass: {fileID: 0}
   summonSkin: 
   summonCount: 0
+  everyone: 0
+  shelterTag: 
+  shelterReduction: 0
   variants:
   - id: verdant
     damageScale: 1.1

@@ -143,6 +143,8 @@ namespace Game.Client
 
         public ActionButton Potion { get; private set; }
 
+        public ShelterWarning Shelter { get; private set; }
+
         public bool MoveOnRight { get; }
 
         public static Hud Create(bool moveOnRight, HudCallbacks callbacks)
@@ -199,7 +201,7 @@ namespace Game.Client
             var banner = DungeonBanner.Build(safeArea, callbacks.Restart);
             var bossFrame = BossFrame.Build(safeArea);
             var miniMap = MiniMap.Build(safeArea);
-            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, miniMap, moveOnRight) { Quest = quest, Potion = potion };
+            return new Hud(root, safeArea, stick, attack, special, ultimate, defense, resource, banner, bossFrame, miniMap, moveOnRight) { Quest = quest, Potion = potion, Shelter = ShelterWarning.Build(safeArea) };
         }
 
         public static RectTransform NewRect(string name, Transform parent)
