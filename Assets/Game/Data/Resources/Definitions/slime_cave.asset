@@ -83,6 +83,16 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: -25, y: 9}
+      skin: chest
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: 25, y: 9}
+      skin: chest
+      boss: 0
+      pack: 0
   - name: Brood tunnels
     offset: {x: 0, y: 0}
     spawns:
@@ -166,6 +176,16 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: 28, y: 45}
+      skin: chest
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: 39, y: 58}
+      skin: chest
+      boss: 0
+      pack: 0
   - name: King's road
     offset: {x: 0, y: 0}
     spawns:
@@ -232,6 +252,16 @@ MonoBehaviour:
     - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
       position: {x: -26, y: 110}
       skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: -22, y: 65}
+      skin: chest
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: -18, y: 92}
+      skin: chest
       boss: 0
       pack: 0
   zones:

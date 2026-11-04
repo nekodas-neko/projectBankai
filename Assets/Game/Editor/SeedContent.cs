@@ -80,6 +80,7 @@ namespace Game.Editor
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
             Class("cave_crawler", false, 80f, 0f, 1f, slimeSlam);
+            Class("chest", false, 40f, 0f, 1f, slimeSlam);
             Class("slime_boss", false, 2400f, 0f, 1f, slimeSlam);
             Class("mushroom_warden", false, 900f, 0f, 1f, slimeSlam);
             Class("brood_mother", false, 1600f, 0f, 1f, kingSlam);
@@ -281,6 +282,16 @@ namespace Game.Editor
             Tune(shieldBash, a => a.stun <= 0f, a => a.stun = 2.5f);
             Tune(bulwarkCrash, a => a.stun <= 0f, a => a.stun = 4f);
 
+            // A chest stands still and never fights (no aggro range). Smash it open: it always holds a health potion and sometimes a weapon.
+            Tune("chest", c => c.lootTable.Length == 0, c =>
+            {
+                c.bodyRadius = 0.9f;
+                c.xpReward = 5;
+                c.potionChance = 1f;
+                c.lootTable = LootTableAsset.MobDrop;
+                c.dropChance = 0.25f;
+            });
+
             // Cave crawlers wander slowly about their spot, notice players only from close by, and can be sneaked past.
             Tune("cave_crawler", c => c.wanderRadius <= 0f, c =>
             {
@@ -362,6 +373,7 @@ namespace Game.Editor
             Skin("healer_verdant", new Color(0.2f, 0.62f, 0.55f), new Color(0.93f, 0.92f, 0.85f), new Vector3(0.95f, 1f, 0.95f), true);
             Skin("mage_arcane", new Color(0.45f, 0.3f, 0.8f), new Color(0.4f, 0.85f, 1f), new Vector3(0.9f, 1.05f, 0.9f), true);
             Skin("mage_crimson", new Color(0.7f, 0.15f, 0.3f), new Color(1f, 0.8f, 0.3f), new Vector3(0.9f, 1.05f, 0.9f), true);
+            Skin("chest", new Color(0.45f, 0.28f, 0.12f), new Color(0.95f, 0.75f, 0.2f), new Vector3(1.4f, 0.8f, 1.0f), false, SkinAsset.BodyShape.Capsule, 0f);
             Skin("slime_green", new Color(0.35f, 0.8f, 0.5f), new Color(0.8f, 1f, 0.85f), new Vector3(1.4f, 1.1f, 1.4f), false, SkinAsset.BodyShape.Sphere, 0.25f);
             Skin("slime_king", new Color(0.3f, 0.75f, 0.6f), new Color(0.95f, 0.8f, 0.25f), new Vector3(3.2f, 2.6f, 3.2f), false, SkinAsset.BodyShape.Sphere, 0.4f);
 
@@ -435,6 +447,7 @@ namespace Game.Editor
             if (asset != null && asset.zones.Length >= 14 && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
             {
                 AddWanderers(asset);
+                AddChests(asset);
                 return;
             }
 
@@ -539,7 +552,32 @@ namespace Game.Editor
             }
 
             AddWanderers(asset);
+            AddChests(asset);
             AssetDatabase.SaveAssets();
+        }
+
+        // One chest in a side area of each section, away from the path to the boss.
+        static void AddChests(DungeonAsset asset)
+        {
+            var chest = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/chest.asset");
+            if (chest == null || asset.rooms.Any(room => room.spawns.Any(spawn => spawn.spawnClass == chest)))
+            {
+                return;
+            }
+
+            var places = new[]
+            {
+                new[] { new Vector2(-25f, 9f), new Vector2(25f, 9f) },
+                new[] { new Vector2(28f, 45f), new Vector2(39f, 58f) },
+                new[] { new Vector2(-22f, 65f), new Vector2(-18f, 92f) },
+            };
+            for (var room = 0; room < asset.rooms.Length && room < places.Length; room++)
+            {
+                var added = places[room].Select(place => Spawn(chest, place.x, place.y, "chest")).ToArray();
+                asset.rooms[room].spawns = asset.rooms[room].spawns.Concat(added).ToArray();
+            }
+
+            EditorUtility.SetDirty(asset);
         }
 
         // Roaming crawlers that stand alone (no pack) between the packs, two or three in each section.
