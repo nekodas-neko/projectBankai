@@ -34,7 +34,7 @@ MonoBehaviour:
   avoidable: 1
   atTarget: 0
   chargeRequired: 1000
-  chargeFromDealt: 1.6
+  chargeFromDealt: 1.25
   chargeFromTaken: 0
   chargeFromBlocked: 0
   chargeFromHealing: 0

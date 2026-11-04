@@ -39,8 +39,8 @@ MonoBehaviour:
   chargeFromBlocked: 0
   chargeFromHealing: 0
   interruptible: 0
-  interrupt: 0
-  stun: 0
+  interrupt: 1.2
+  stun: 1.5
   summonClass: {fileID: 0}
   summonSkin: 
   summonCount: 0

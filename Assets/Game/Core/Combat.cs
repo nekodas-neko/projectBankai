@@ -197,7 +197,7 @@ namespace Game.Core
                 return facing;
             }
 
-            var target = world.NearestHostile(user, ability.Range);
+            var target = world.PreferredTarget(user, ability.Range);
             return target != null ? (target.Position - user.Position).Normalized : facing;
         }
 
