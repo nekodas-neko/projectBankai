@@ -215,6 +215,22 @@ namespace Game.Editor
                 c.skills = c.skills.Concat(new[] { devour }).ToArray();
                 c.phases[0].mechanics = c.phases[0].mechanics.Concat(new[] { new MechanicData { ability = devour, intervalSeconds = 18f, firstDelaySeconds = 10f, target = MechanicTarget.Random, count = 1 } }).ToArray();
             });
+            // The warden's signature: a spore cloud over the whole chamber. Red, so a block or a dodge does not help; the two pools in the
+            // chamber take most of it away, so the party has to walk into the water before it lands (issue 70).
+            var sporeCloud = Ability("spore_cloud", cooldown: 0.5f, range: 30f, radius: 1f, damage: 18f);
+            Tune(sporeCloud, a => !a.everyone, a => { a.shape = AbilityShape.Circle; a.windup = 2.8f; a.avoidable = false; a.everyone = true; a.shelterTag = "water"; a.shelterReduction = 0.85f; });
+            // A boss has three skill slots and the warden's were full, so the cloud takes the place of the ground circle on the farthest
+            // player (the warden keeps his smash and his devour): everyone goes to the water instead of the far player running.
+            Tune("mushroom_warden", c => !c.skills.Contains(sporeCloud), c =>
+            {
+                c.skills = c.skills.Select(skill => skill == slimeSpit ? sporeCloud : skill).ToArray();
+                foreach (var phase in c.phases)
+                {
+                    phase.mechanics = phase.mechanics.Select(mechanic => mechanic.ability == slimeSpit
+                        ? new MechanicData { ability = sporeCloud, intervalSeconds = 22f, firstDelaySeconds = 9f, target = MechanicTarget.Random, count = 1 }
+                        : mechanic).ToArray();
+                }
+            });
             Tune("brood_mother", c => c.skills.Contains(slimeSpit) && !c.skills.Contains(broodCall), c =>
             {
                 c.skills = new[] { c.skills[0], slimeBomb, broodCall };
@@ -477,6 +493,7 @@ namespace Game.Editor
             Link("king_cleave", slime, hitSlime);
             Link("slime_bomb", slime, hitSlime);
             Link("slime_spit", slime, hitSlime);
+            Link("spore_cloud", slime, hitSlime);
             Link("slime_shot", slime, hitSlime);
             Link("slime_crush", slime, hitSlime);
             Link("slime_nip", slime, hitSlime);
@@ -525,6 +542,7 @@ namespace Game.Editor
                 AddWanderers(asset);
                 AddChests(asset);
                 AddSlimeKinds(asset);
+                AddShelter(asset);
                 return;
             }
 
@@ -631,7 +649,24 @@ namespace Game.Editor
             AddWanderers(asset);
             AddChests(asset);
             AddSlimeKinds(asset);
+            AddShelter(asset);
             AssetDatabase.SaveAssets();
+        }
+
+        // Two pools of water in the warden's chamber, a few steps from him on either side, for his spore cloud (ranged weapons can keep hitting from the water).
+        static void AddShelter(DungeonAsset asset)
+        {
+            if (asset.patches.Length > 0 && asset.patches[0].min.y >= 22f)
+            {
+                return;
+            }
+
+            asset.patches = new[]
+            {
+                new PatchData { name = "West pool", tag = "water", min = new Vector2(-10f, 22f), max = new Vector2(-5f, 27f) },
+                new PatchData { name = "East pool", tag = "water", min = new Vector2(5f, 22f), max = new Vector2(10f, 27f) },
+            };
+            EditorUtility.SetDirty(asset);
         }
 
         // Some of the plain slimes in each pack become a purple spitter, a red brute or a yellow dasher, so a pack asks for more than one answer.

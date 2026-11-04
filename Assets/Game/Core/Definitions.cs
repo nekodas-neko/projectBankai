@@ -103,6 +103,15 @@ namespace Game.Core
         public string SummonClass { get; set; }
         public string SummonSkin { get; set; }
         public int SummonCount { get; set; }
+
+        // Hits every hostile in the room wherever it stands, shape and range ignored (a map-wide attack). Pair it with a windup so
+        // the room can react, and with a shelter so there is somewhere to go.
+        public bool Everyone { get; set; }
+
+        // Damage from this ability is cut by ShelterReduction (0 to 1) for a target standing on a map patch with this tag
+        // (for example a pool of water against a fire wave). Empty means nothing shelters from it.
+        public string ShelterTag { get; set; }
+        public float ShelterReduction { get; set; }
     }
 
     public sealed class ResourceDef
@@ -174,6 +183,9 @@ namespace Game.Core
         public RoomDef[] Rooms { get; set; } = Array.Empty<RoomDef>();
         public ZoneDef[] Zones { get; set; } = Array.Empty<ZoneDef>();
         public GateDef[] Gates { get; set; } = Array.Empty<GateDef>();
+
+        // Tagged patches of ground (water pools, cover) that abilities can treat differently. They never block movement.
+        public PatchDef[] Patches { get; set; } = Array.Empty<PatchDef>();
     }
 
     public enum DungeonPhase : byte

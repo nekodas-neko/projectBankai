@@ -76,6 +76,66 @@ namespace Game.Core.Tests
         }
     }
 
+    // What every player does about a map-wide attack: once it has been noticed, walk onto the nearest patch that shelters from it
+    // and stay there until it lands. Applied after the bot's own policy so it takes over the movement for those seconds.
+    public static class Shelter
+    {
+        public static void Apply(BotView view)
+        {
+            var windups = view.Client.Latest?.Windups;
+            var map = view.Client.Map;
+            if (windups == null || map == null || !view.TryMe(out var me))
+            {
+                return;
+            }
+
+            for (var i = 0; i < windups.Count; i++)
+            {
+                var ability = view.Ability(windups[i].Ability);
+                if (ability == null || !ability.Everyone || ability.ShelterReduction <= 0f || ability.Windup - windups[i].Remaining < 0.4f)
+                {
+                    continue;
+                }
+
+                if (map.OnPatch(me.Position, ability.ShelterTag))
+                {
+                    view.Client.SetMoveInput(Vec2.Zero);
+                    return;
+                }
+
+                var found = false;
+                var best = default(Vec2);
+                var bestSqr = float.MaxValue;
+                foreach (var patch in map.Patches)
+                {
+                    if (patch.Tag != ability.ShelterTag)
+                    {
+                        continue;
+                    }
+
+                    var target = new Vec2(
+                        System.Math.Min(System.Math.Max(me.Position.X, patch.MinX + 0.5f), patch.MaxX - 0.5f),
+                        System.Math.Min(System.Math.Max(me.Position.Y, patch.MinY + 0.5f), patch.MaxY - 0.5f));
+                    var sqr = (target - me.Position).SqrLength;
+                    if (sqr < bestSqr)
+                    {
+                        bestSqr = sqr;
+                        best = target;
+                        found = true;
+                    }
+                }
+
+                if (found)
+                {
+                    var offset = best - me.Position;
+                    view.Client.SetMoveInput(offset.Length > 0.05f ? offset.Normalized : Vec2.Zero);
+                }
+
+                return;
+            }
+        }
+    }
+
     public interface IBotPolicy
     {
         string Name { get; }
@@ -149,7 +209,8 @@ namespace Game.Core.Tests
         protected static bool Threatens(BotView view, in WindupState windup, Vec2 point, float margin)
         {
             var ability = view.Ability(windup.Ability);
-            return ability != null && HitAreas.Contains(ability, windup.Origin, windup.Direction, point, margin);
+            // A map-wide attack lands everywhere, so there is no spot to step out of; the answer is a shelter (see Shelter).
+            return ability != null && !ability.Everyone && HitAreas.Contains(ability, windup.Origin, windup.Direction, point, margin);
         }
 
         // Looks for a direction to run in that leaves every warning that threatens the bot before it lands.

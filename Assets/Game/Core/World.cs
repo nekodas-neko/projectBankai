@@ -52,6 +52,9 @@ namespace Game.Core
             Entities.RemoveAll(match);
         }
 
+        // The dungeon's map, or null in the round arena.
+        public WorldMap Map => config.Simulation.Map;
+
         public Vec2 InsideArena(Vec2 position)
         {
             return config.Simulation.Constrain(position);

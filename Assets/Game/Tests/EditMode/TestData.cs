@@ -36,6 +36,7 @@ namespace Game.Core.Tests
             registry.Add(new AbilityDef { Id = "healing_burst", Shape = AbilityShape.Circle, Cooldown = 1f, Range = 5f, Radius = 5f, Heal = 20f, ChargeRequired = 40f, ChargeFromHealing = 2f });
             registry.Add(new AbilityDef { Id = "red_windup", Shape = AbilityShape.Circle, Cooldown = 3f, Range = 4f, Radius = 4f, Damage = 20f, Windup = 1.6f, Avoidable = false });
             registry.Add(new AbilityDef { Id = "bomb", Shape = AbilityShape.Circle, Cooldown = 0.1f, Range = 30f, Radius = 2f, Damage = 25f, Windup = 1f, Avoidable = false, AtTarget = true });
+            registry.Add(new AbilityDef { Id = "flood", Shape = AbilityShape.Circle, Cooldown = 0.1f, Range = 2f, Radius = 2f, Damage = 40f, Windup = 1.5f, Avoidable = false, Everyone = true, ShelterTag = "water", ShelterReduction = 0.8f });
             registry.Add(new AbilityDef { Id = "red_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f, Avoidable = false });
             registry.Add(new AbilityDef { Id = "orange_slam", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 3f, Radius = 3f, Damage = 20f });
             registry.Add(new AbilityDef { Id = "nibble", Shape = AbilityShape.Circle, Cooldown = 5f, Range = 2f, Radius = 2f, Damage = 0.1f });
@@ -224,6 +225,23 @@ namespace Game.Core.Tests
                         HealthBelow = 1f,
                         Attacks = new[] { "basic" },
                         Mechanics = new[] { new MechanicDef { Ability = "bomb", IntervalSeconds = 4f, FirstDelaySeconds = 1f, Target = MechanicTarget.Farthest, Count = 1 } },
+                    },
+                },
+            });
+            registry.Add(new ClassDef
+            {
+                Id = "flooder",
+                Stats = new Stats { MaxHealth = 1000f, MoveSpeed = 0f, Power = 1f },
+                AutoAttack = "basic",
+                Skills = new[] { "flood" },
+                AggroRange = 40f,
+                Phases = new[]
+                {
+                    new PhaseDef
+                    {
+                        HealthBelow = 1f,
+                        Attacks = new[] { "basic" },
+                        Mechanics = new[] { new MechanicDef { Ability = "flood", IntervalSeconds = 30f, FirstDelaySeconds = 1f, Target = MechanicTarget.Random, Count = 1 } },
                     },
                 },
             });

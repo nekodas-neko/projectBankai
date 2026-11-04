@@ -260,7 +260,13 @@ namespace Game.Core
                     continue;
                 }
 
-                ApplyDamage(user, other, damage, slot, abilityId, variantId, ability.Avoidable);
+                var taken = damage;
+                if (ability.ShelterReduction > 0f && world.Map != null && world.Map.OnPatch(other.Position, ability.ShelterTag))
+                {
+                    taken *= 1f - MathF.Min(ability.ShelterReduction, 1f);
+                }
+
+                ApplyDamage(user, other, taken, slot, abilityId, variantId, ability.Avoidable);
                 if (ability.Interrupt > 0f)
                 {
                     TryInterrupt(user, other, ability, slot, abilityId, variantId);

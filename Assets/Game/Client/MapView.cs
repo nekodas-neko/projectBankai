@@ -13,6 +13,7 @@ namespace Game.Client
         public static readonly Color CorridorColor = new Color(0.52f, 0.45f, 0.38f);
         public static readonly Color WallColor = new Color(0.22f, 0.22f, 0.28f);
         public static readonly Color BarrierColor = new Color(1f, 0.8f, 0.25f);
+        public static readonly Color WaterColor = new Color(0.20f, 0.52f, 0.95f);
 
         // Only the part of the dungeon near the player is drawn: a zone shows while the player is within ShowDistance of it,
         // and a wall or prop while it is within ShowDistance + WallExtra of the player.
@@ -32,6 +33,7 @@ namespace Game.Client
         readonly List<WorldMap.Wall> scratch = new List<WorldMap.Wall>();
         readonly List<Patch> patches = new List<Patch>();
         readonly List<GameObject> scenery = new List<GameObject>();
+        readonly List<Patch> pools = new List<Patch>();
         int shownProgress = -1;
 
         public MapView(Transform parent, WorldMap map, Mesh cube, Material ground, Material transparent)
@@ -61,8 +63,18 @@ namespace Game.Client
                 barriers.Add(barrierBox);
             }
 
+            // Tagged patches (pools of water) lie on the floor; they fade with the area like a floor does.
+            var water = Telegraphs.Tinted(transparent, WaterColor);
+            for (var i = 0; i < map.Patches.Count; i++)
+            {
+                var pool = map.Patches[i];
+                pools.Add(new Patch(Box($"Patch {pool.Name}", pool.MinX, pool.MinY, pool.MaxX, pool.MaxY, 0.02f, 0.05f, water), pool.MinX, pool.MinY, pool.MaxX, pool.MaxY));
+            }
+
             Refresh();
         }
+
+        public int PoolCount => pools.Count;
 
         public int WallCount { get; private set; }
 
@@ -111,6 +123,11 @@ namespace Game.Client
             foreach (var patch in patches)
             {
                 Toggle(patch.Object, patch.DistanceTo(playerX, playerY) <= ShowDistance);
+            }
+
+            foreach (var pool in pools)
+            {
+                Toggle(pool.Object, pool.DistanceTo(playerX, playerY) <= ShowDistance);
             }
 
             for (var i = 0; i < barriers.Count; i++)

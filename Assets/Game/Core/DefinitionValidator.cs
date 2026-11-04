@@ -104,6 +104,21 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': summons between 0 and 8 of an existing class");
                 }
 
+                if (ability.ShelterReduction < 0f || ability.ShelterReduction > 1f)
+                {
+                    errors.Add($"Ability '{ability.Id}': shelter reduction must be between 0 and 1");
+                }
+
+                if (ability.ShelterReduction > 0f && string.IsNullOrEmpty(ability.ShelterTag))
+                {
+                    errors.Add($"Ability '{ability.Id}': a shelter reduction needs a shelter tag");
+                }
+
+                if (ability.Everyone && (ability.Damage <= 0f || ability.Windup < 0.5f || ability.AtTarget))
+                {
+                    errors.Add($"Ability '{ability.Id}': a map-wide attack needs damage, a windup of at least 0.5 s and cannot be a ground circle");
+                }
+
                 ValidateKind(ability, errors);
             }
 
@@ -276,7 +291,27 @@ namespace Game.Core
                     errors.Add($"Dungeon '{dungeon.Id}': gates need zones");
                 }
 
+                if (dungeon.Patches.Length > 0)
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': patches need zones");
+                }
+
                 return;
+            }
+
+            foreach (var patch in dungeon.Patches)
+            {
+                if (patch.MaxX <= patch.MinX || patch.MaxY <= patch.MinY || string.IsNullOrEmpty(patch.Tag))
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': patch '{patch.Name}' needs a size and a tag");
+                    continue;
+                }
+
+                var centre = new Vec2((patch.MinX + patch.MaxX) * 0.5f, (patch.MinY + patch.MaxY) * 0.5f);
+                if (!new WorldMap(dungeon.Zones, null).Contains(centre))
+                {
+                    errors.Add($"Dungeon '{dungeon.Id}': the middle of patch '{patch.Name}' is outside the zones");
+                }
             }
 
             const float MinSize = 4f;

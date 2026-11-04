@@ -61,7 +61,7 @@ namespace Game.Client.Tests
             Assert.AreEqual(MechanicTarget.NotTopThreat, mother.Phases[1].Mechanics[0].Target);
             Assert.GreaterOrEqual(mother.Phases[1].Mechanics[0].IntervalSeconds, 15f, "the red bomb is rare");
 
-            Assert.AreEqual("slime_spit", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability);
+            Assert.AreEqual("spore_cloud", classes.Get("mushroom_warden").Phases[0].Mechanics[0].Ability, "the warden's signature is the map-wide cloud and the pools, not a circle on the far player");
             Assert.GreaterOrEqual(abilities.Get("king_smash").Cooldown, 12f, "the king's smash is rare");
         }
 
