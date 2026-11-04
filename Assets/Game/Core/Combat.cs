@@ -28,9 +28,9 @@ namespace Game.Core
             return HitAreas.Reach(ability);
         }
 
-        public void Use(Entity user, int slot, Vec2 aim, bool heavy = false)
+        public void Use(Entity user, int slot, Vec2 aim, bool heavy = false, int sequence = 0)
         {
-            UseAt(user, slot, aim, false, default, heavy);
+            UseAt(user, slot, aim, false, default, heavy, sequence);
         }
 
         public const string PotionId = "potion";
@@ -55,7 +55,7 @@ namespace Game.Core
             UseAt(user, slot, offset.SqrLength > 1e-6f ? offset.Normalized : user.Facing, true, point);
         }
 
-        void UseAt(Entity user, int slot, Vec2 aim, bool grounded, Vec2 point, bool heavy = false)
+        void UseAt(Entity user, int slot, Vec2 aim, bool grounded, Vec2 point, bool heavy = false, int sequence = 0)
         {
             if (slot < 0 || slot >= Entity.AbilitySlots || user.Cooldowns[slot] > 0f)
             {
@@ -83,7 +83,7 @@ namespace Game.Core
             user.Cooldowns[slot] = ability.Cooldown;
             user.AddResource(-ability.ResourceCost);
             user.Charge = System.Math.Max(0f, user.Charge - ability.ChargeRequired);
-            world.Uses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Variant = variantId, Direction = direction });
+            world.Uses.Add(new UseEvent { User = user.Id, Slot = (byte)slot, Ability = StableId.From(ability.Id), Variant = variantId, Direction = direction, Sequence = sequence });
 
             switch (ability.Kind)
             {

@@ -180,6 +180,8 @@ namespace Game.Client
             aggroRings.Sync(LocalClient.Latest, LocalClient.LocalEntity, views);
             UpdateButtons();
 
+            rejected.Clear();
+            LocalClient.DrainRejected(rejected);
             uses.Clear();
             LocalClient.DrainUses(uses);
             for (var i = 0; i < uses.Count; i++)
@@ -448,15 +450,142 @@ namespace Game.Client
 
         void WireButtons()
         {
-            Hud.Attack.Fired += aim => LocalClient?.Attack(ToWorld(aim));
+            Hud.Attack.Fired += aim => Act(0, aim, false);
             Hud.Potion.Fired += _ => DrinkPotion();
-            Hud.Attack.FiredHeavy += aim => LocalClient?.HeavyAttack(ToWorld(aim));
-            Hud.Special.Fired += aim => LocalClient?.Skill(1, ToWorld(aim));
-            Hud.Ultimate.Fired += aim => LocalClient?.Skill(Entity.UltimateSlot, ToWorld(aim));
-            Hud.Defense.Fired += aim => LocalClient?.Defend(DefendDirection(aim));
+            Hud.Attack.FiredHeavy += aim => Act(0, aim, true);
+            Hud.Special.Fired += aim => Act(1, aim, false);
+            Hud.Ultimate.Fired += aim => Act(Entity.UltimateSlot, aim, false);
+            Hud.Defense.Fired += aim => Defend(aim);
         }
 
         float potionReadyAt;
+        readonly List<int> rejected = new List<int>();
+
+        // The ability the player has in a slot, by the same layout the server builds an entity with.
+        string AbilityIdFor(int slot)
+        {
+            if (slot == 0)
+            {
+                return playerClass.AutoAttack;
+            }
+
+            if (slot == Entity.DefenseSlot)
+            {
+                return playerClass.Defense;
+            }
+
+            return slot - 1 < playerClass.Skills.Length ? playerClass.Skills[slot - 1] : null;
+        }
+
+        // A button press: the command goes to the server and the effect starts here at once. The server still decides; its echo of
+        // this action is dropped by the client, so nothing plays twice.
+        void Act(int slot, Vector2 screenAim, bool heavy)
+        {
+            if (LocalClient == null)
+            {
+                return;
+            }
+
+            var aim = ToWorld(screenAim);
+            var id = slot == 0 ? (heavy ? LocalClient.HeavyAttack(aim) : LocalClient.Attack(aim)) : LocalClient.Skill(slot, aim);
+            PredictUse(id, slot, aim);
+        }
+
+        void Defend(Vector2 screenAim)
+        {
+            if (LocalClient == null)
+            {
+                return;
+            }
+
+            var direction = DefendDirection(screenAim);
+            var dashDistance = 0f;
+            var dashSeconds = 0f;
+            if (abilityDefs.TryGet(playerClass.Defense, out var defense) && defense.Kind == AbilityKind.Dodge && CanPredict(Entity.DefenseSlot, defense))
+            {
+                dashDistance = defense.DashDistance;
+                dashSeconds = Mathf.Max(defense.Duration, 1f / 30f);
+            }
+
+            var id = LocalClient.Defend(direction, dashDistance, dashSeconds);
+            PredictUse(id, Entity.DefenseSlot, direction);
+        }
+
+        // Only an action that looks like it will be accepted is shown early: off cooldown, affordable, and the ultimate charged.
+        bool CanPredict(int slot, AbilityDef ability)
+        {
+            if (!LocalClient.TryGetLocalState(out var state) || state.Health <= 0f || state.GetCooldown(slot) > 0f)
+            {
+                return false;
+            }
+
+            if (slot == Entity.UltimateSlot && (state.ChargeMax <= 0f || state.Charge < state.ChargeMax))
+            {
+                return false;
+            }
+
+            var variant = VariantOf(ability, slot);
+            var cost = ability.ResourceCost * (variant != null ? variant.CostScale : 1f);
+            return cost <= 0f || state.MaxResource <= 0f || state.Resource >= cost;
+        }
+
+        void PredictUse(int id, int slot, Vec2 aim)
+        {
+            var abilityId = AbilityIdFor(slot);
+            if (id == 0 || !abilityDefs.TryGet(abilityId, out var ability) || !CanPredict(slot, ability))
+            {
+                return;
+            }
+
+            var variant = slot < loadout.Length ? loadout[slot] : 0;
+            var use = new UseEvent
+            {
+                User = LocalClient.LocalEntity,
+                Slot = (byte)slot,
+                Ability = StableId.From(abilityId),
+                Variant = variant,
+                Direction = aim.SqrLength > 1e-6f ? aim : AimAtNearest(ability.Range),
+                Sequence = id,
+            };
+            PlayUse(use);
+            LocalClient.ExpectEcho(id);
+        }
+
+        // A tap with no aim goes at the boss or the nearest enemy in range the way the server picks it, otherwise the way the player faces.
+        Vec2 AimAtNearest(float range)
+        {
+            var latest = LocalClient.Latest;
+            var from = LocalClient.PredictedPosition;
+            var best = float.MaxValue;
+            var found = false;
+            var target = default(Vec2);
+            var bossFound = false;
+            for (var i = 0; latest != null && i < latest.Entities.Count; i++)
+            {
+                var e = latest.Entities[i];
+                if (e.Team != Team.Enemies || e.Health <= 0f)
+                {
+                    continue;
+                }
+
+                var boss = (e.Effects & EffectFlags.Boss) != 0;
+                var distance = (e.Position - from).Length;
+                if (distance > range || (bossFound && !boss))
+                {
+                    continue;
+                }
+
+                if ((boss && !bossFound) || distance < best)
+                {
+                    best = distance;
+                    target = e.Position - from;
+                    found = true;
+                    bossFound |= boss;
+                }
+            }
+
+            return found && target.SqrLength > 1e-6f ? target.Normalized : LocalClient.Facing;
+        }
 
         // Drinks a potion if there is one in the bag, the potion is ready and it would heal something. The server decides again.
         void DrinkPotion()

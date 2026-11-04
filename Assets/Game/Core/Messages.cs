@@ -113,6 +113,10 @@ namespace Game.Core
         public int Ability;
         public int Variant;
         public Vec2 Direction;
+
+        // The sequence of the command that caused this use (0 for an enemy's own use), so the client that sent it can match the
+        // echo to the effect it already played.
+        public int Sequence;
     }
 
     // An attack that has started but not landed yet. Sent every snapshot until it resolves, so a late or joining client

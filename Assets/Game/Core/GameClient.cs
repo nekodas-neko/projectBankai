@@ -10,6 +10,7 @@ namespace Game.Core
         public int MaxPendingMoves { get; set; } = 128;
         public double PendingMoveTimeoutSeconds { get; set; } = 1.0;
         public int SnapshotHistory { get; set; } = 32;
+        public double PendingActionTimeoutSeconds { get; set; } = 1.0;
     }
 
     public sealed class GameClient
@@ -24,11 +25,15 @@ namespace Game.Core
         readonly List<Snapshot> history = new List<Snapshot>();
         readonly List<DamageEvent> events = new List<DamageEvent>();
         readonly List<UseEvent> uses = new List<UseEvent>();
+        readonly List<PendingAction> pendingActions = new List<PendingAction>();
+        readonly List<int> rejectedActions = new List<int>();
         double accumulator;
         double secondsSinceSnapshot;
         double clock;
         int sequence;
         Vec2 moveInput;
+        Vec2 lastFacing = new Vec2(0f, 1f);
+        Dash dash;
 
         public GameClient(PlayerId player, ITransport transport, ClassDef classDef, ClientConfig config)
         {
@@ -63,15 +68,19 @@ namespace Game.Core
             moveInput = input.IsFinite ? input.ClampLength(1f) : Vec2.Zero;
         }
 
-        public void Attack(Vec2 aim)
+        // Every command that does something returns its action id (the command's sequence). A caller that plays the effect at
+        // once passes the id to ExpectEcho so the server's use event for it is not played a second time.
+        public int Attack(Vec2 aim)
         {
-            Send(CommandType.Attack, aim);
+            Remember(aim);
+            return Send(CommandType.Attack, aim);
         }
 
         // The attack button held and let go: the heavy swing of the slot-0 attack.
-        public void HeavyAttack(Vec2 aim)
+        public int HeavyAttack(Vec2 aim)
         {
-            Send(CommandType.HeavyAttack, aim);
+            Remember(aim);
+            return Send(CommandType.HeavyAttack, aim);
         }
 
         public void UsePotion()
@@ -79,24 +88,72 @@ namespace Game.Core
             Send(CommandType.UsePotion, Vec2.Zero);
         }
 
-        public void Skill(int slot, Vec2 aim)
+        public int Skill(int slot, Vec2 aim)
         {
             if (slot < 1 || slot > ClassDef.SkillSlots)
             {
                 throw new ArgumentOutOfRangeException(nameof(slot));
             }
 
-            Send((CommandType)((int)CommandType.Attack + slot), aim);
+            Remember(aim);
+            return Send((CommandType)((int)CommandType.Attack + slot), aim);
         }
+
+        void Remember(Vec2 aim)
+        {
+            if (aim.IsFinite && aim.SqrLength > 1e-6f)
+            {
+                lastFacing = aim.Normalized;
+            }
+        }
+
+        // The client played the effect of this action itself. When the server's use event for it arrives it is dropped instead
+        // of being played again; if the server never produces one, the action is reported by DrainRejected.
+        public void ExpectEcho(int actionId)
+        {
+            pendingActions.Add(new PendingAction { Id = actionId, SentAt = clock });
+        }
+
+        // Actions the server processed or timed out on without ever using them (a cooldown, no resource, dead).
+        public void DrainRejected(List<int> into)
+        {
+            into.AddRange(rejectedActions);
+            rejectedActions.Clear();
+        }
+
+        public bool IsDashing => dash.Active;
+
+        // The way the player last moved or aimed, which is where a tap with no target goes.
+        public Vec2 Facing => lastFacing;
 
         public void Restart()
         {
             Send(CommandType.Restart, Vec2.Zero);
         }
 
-        public void Defend(Vec2 direction)
+        // A dodge. With a dash distance and time (the dodge ability's own numbers) the client also starts the dash at once and keeps
+        // it going until the server has confirmed it, then settles on the server's position. A refused dodge snaps back.
+        public int Defend(Vec2 direction, float dashDistance = 0f, float dashSeconds = 0f)
         {
-            Send(CommandType.Defend, direction);
+            var aim = direction.IsFinite ? direction : Vec2.Zero;
+            var id = Send(CommandType.Defend, aim);
+            if (dashDistance > 0f && dashSeconds > 0f && HasLocalEntity)
+            {
+                var way = aim.SqrLength > 1e-6f ? aim.Normalized : lastFacing * -1f;
+                dash = new Dash
+                {
+                    Active = true,
+                    Sequence = id,
+                    Direction = way,
+                    Speed = dashDistance / dashSeconds,
+                    Total = dashDistance,
+                    Origin = PredictedPosition,
+                    Remaining = dashSeconds,
+                    SentAt = clock,
+                };
+            }
+
+            return id;
         }
 
         public void Update(float dt)
@@ -175,19 +232,37 @@ namespace Game.Core
             return true;
         }
 
-        void Send(CommandType type, Vec2 aim)
+        int Send(CommandType type, Vec2 aim)
         {
             var safeAim = aim.IsFinite ? aim : Vec2.Zero;
             var command = new Command(player, ++sequence, type, safeAim);
             transport.Send(WireCodec.Encode(command));
+            return command.Sequence;
         }
 
         void StepMove()
         {
-            if (moveInput.SqrLength <= 1e-6f || !HasLocalEntity)
+            if (!HasLocalEntity)
             {
                 return;
             }
+
+            if (dash.Remaining > 0f)
+            {
+                // The server ignores walking while a dodge runs, so the client does not walk either; it dashes.
+                var tick = config.Simulation.TickSeconds;
+                var step = Math.Min(dash.Remaining, tick);
+                PredictedPosition = config.Simulation.Constrain(PredictedPosition + dash.Direction * (dash.Speed * step));
+                dash.Remaining -= tick;
+                return;
+            }
+
+            if (moveInput.SqrLength <= 1e-6f)
+            {
+                return;
+            }
+
+            lastFacing = moveInput.Normalized;
 
             var command = new Command(player, ++sequence, CommandType.Move, moveInput);
             transport.Send(WireCodec.Encode(command));
@@ -227,7 +302,6 @@ namespace Game.Core
                 map.Progress = snapshot.Room - 1;
             }
             events.AddRange(snapshot.Events);
-            uses.AddRange(snapshot.Uses);
 
             history.Add(snapshot);
             if (history.Count > config.SnapshotHistory)
@@ -249,11 +323,18 @@ namespace Game.Core
 
             if (!found)
             {
+                uses.AddRange(snapshot.Uses);
                 return;
             }
 
             LocalEntity = own.Id;
+            MatchEchoes(snapshot, own.Id);
             pendingMoves.RemoveAll(m => m.Command.Sequence <= snapshot.AckedSequence || clock - m.SentAt > config.PendingMoveTimeoutSeconds);
+
+            if (ReconcileDash(snapshot, own))
+            {
+                return;
+            }
 
             var position = own.Position;
             for (var i = 0; i < pendingMoves.Count; i++)
@@ -262,6 +343,79 @@ namespace Game.Core
             }
 
             PredictedPosition = position;
+        }
+
+        // Uses the client already played are dropped; the rest go on to the caller. An action the server has processed without
+        // using, or one that has gone unanswered too long, is rejected.
+        void MatchEchoes(Snapshot snapshot, EntityId self)
+        {
+            for (var i = 0; i < snapshot.Uses.Count; i++)
+            {
+                var use = snapshot.Uses[i];
+                var index = use.User == self && use.Sequence != 0 ? pendingActions.FindIndex(a => a.Id == use.Sequence) : -1;
+                if (index >= 0)
+                {
+                    pendingActions.RemoveAt(index);
+                    continue;
+                }
+
+                uses.Add(use);
+            }
+
+            for (var i = pendingActions.Count - 1; i >= 0; i--)
+            {
+                if (pendingActions[i].Id <= snapshot.AckedSequence || clock - pendingActions[i].SentAt > config.PendingActionTimeoutSeconds)
+                {
+                    rejectedActions.Add(pendingActions[i].Id);
+                    pendingActions.RemoveAt(i);
+                }
+            }
+        }
+
+        // While a predicted dash is running or waiting for the server to catch up, snapshots do not move the client back to the
+        // server's older position. It settles once the server has processed the dodge and is no longer dashing; a dodge the server
+        // refused (it never moved) snaps back at once. Returns true while the position is left alone.
+        bool ReconcileDash(Snapshot snapshot, in EntityState own)
+        {
+            if (!dash.Active)
+            {
+                return false;
+            }
+
+            var processed = snapshot.AckedSequence >= dash.Sequence;
+            var serverDashing = (own.Effects & EffectFlags.Dashing) != 0;
+            var moved = (own.Position - dash.Origin).Length;
+            if (processed && !serverDashing && (moved < 0.2f || dash.Remaining <= 0f))
+            {
+                dash = default;
+                return false;
+            }
+
+            if (clock - dash.SentAt > config.PendingActionTimeoutSeconds + dash.Total / Math.Max(dash.Speed, 0.01f))
+            {
+                dash = default;
+                return false;
+            }
+
+            return true;
+        }
+
+        struct PendingAction
+        {
+            public int Id;
+            public double SentAt;
+        }
+
+        struct Dash
+        {
+            public bool Active;
+            public int Sequence;
+            public Vec2 Direction;
+            public float Speed;
+            public float Total;
+            public Vec2 Origin;
+            public float Remaining;
+            public double SentAt;
         }
 
         struct PendingMove
