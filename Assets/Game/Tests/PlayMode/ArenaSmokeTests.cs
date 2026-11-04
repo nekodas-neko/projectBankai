@@ -73,6 +73,28 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator Dodge_StartsOnTheClientBeforeTheServerHearsOfIt()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            bootstrap.Session.SetConditions(new NetworkConditions { LatencySeconds = 0.4f });
+            yield return new WaitForSeconds(1.2f);
+            var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+            var clientStart = bootstrap.LocalClient.PredictedPosition;
+            var serverStart = player.Position;
+
+            Press(bootstrap.Hud.Defense, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.15f);
+
+            Assert.Greater((bootstrap.LocalClient.PredictedPosition - clientStart).Length, 0.2f, "the dash started on the client");
+            Assert.AreEqual(serverStart.X, player.Position.X, 0.001f, "the server has not even received the command");
+            Assert.AreEqual(serverStart.Y, player.Position.Y, 0.001f);
+        }
+
+        [UnityTest]
         public IEnumerator UltimateButton_NeedsChargeThenFiresAndEmptiesIt()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;
