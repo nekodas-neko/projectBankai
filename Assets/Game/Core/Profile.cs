@@ -19,6 +19,47 @@ namespace Game.Core
     {
         public Dictionary<string, WeaponMastery> Mastery { get; } = new Dictionary<string, WeaponMastery>();
         public List<OwnedWeapon> Weapons { get; } = new List<OwnedWeapon>();
+        public List<OwnedArmor> Armors { get; } = new List<OwnedArmor>();
+        public string EquippedArmorUid { get; set; } = string.Empty;
+        public const int MaxArmors = 20;
+
+        public OwnedArmor EquippedArmor
+        {
+            get
+            {
+                foreach (var armor in Armors)
+                {
+                    if (armor.Uid == EquippedArmorUid)
+                    {
+                        return armor;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        public bool AddArmor(OwnedArmor armor)
+        {
+            if (armor == null || !ProfileText.IsId(armor.Uid) || !ProfileText.IsId(armor.Set) || Armors.Count >= MaxArmors || Armors.Exists(a => a.Uid == armor.Uid))
+            {
+                return false;
+            }
+
+            Armors.Add(armor);
+            return true;
+        }
+
+        public bool EquipArmor(string uid)
+        {
+            if (!Armors.Exists(a => a.Uid == uid))
+            {
+                return false;
+            }
+
+            EquippedArmorUid = uid;
+            return true;
+        }
         public string EquippedUid { get; set; } = string.Empty;
 
         // Gold: what kills, chests and dismantled weapons give, to be spent on things later.
@@ -108,6 +149,9 @@ namespace Game.Core
             {
                 profile.EquippedUid = profile.Weapons[0].Uid;
             }
+
+            profile.AddArmor(new OwnedArmor { Uid = "wanderer", Set = "wanderer" });
+            profile.EquippedArmorUid = "wanderer";
 
             return profile;
         }
@@ -224,6 +268,12 @@ namespace Game.Core
             text.Append("gold ").Append(profile.Gold).Append('\n');
             text.Append("potions ").Append(profile.Potions).Append('\n');
             text.Append("equipped ").Append(profile.EquippedUid.Length == 0 ? "-" : profile.EquippedUid).Append('\n');
+            foreach (var armor in profile.Armors)
+            {
+                text.Append("armor ").Append(armor.Uid).Append(' ').Append(armor.Set).Append('\n');
+            }
+
+            text.Append("armor_equipped ").Append(profile.EquippedArmorUid.Length == 0 ? "-" : profile.EquippedArmorUid).Append('\n');
             foreach (var weapon in profile.Weapons)
             {
                 text.Append("weapon ").Append(weapon.Uid).Append(' ').Append(weapon.Type).Append(' ')
@@ -273,6 +323,7 @@ namespace Game.Core
             }
 
             var equipped = string.Empty;
+            var wornArmor = string.Empty;
             for (var i = 1; i < lines.Length; i++)
             {
                 var parts = lines[i].Trim().Split(' ');
@@ -281,7 +332,7 @@ namespace Game.Core
                     continue;
                 }
 
-                if (!Apply(profile, parts, ref equipped, out error))
+                if (!Apply(profile, parts, ref equipped, ref wornArmor, out error))
                 {
                     error = $"line {i + 1}: {error}";
                     profile = new PlayerProfile();
@@ -289,15 +340,27 @@ namespace Game.Core
                 }
             }
 
+            profile.EquippedArmorUid = profile.Armors.Exists(a => a.Uid == wornArmor) ? wornArmor : string.Empty;
             profile.EquippedUid = profile.Has(equipped) ? equipped : (profile.Weapons.Count > 0 ? profile.Weapons[0].Uid : string.Empty);
             return true;
         }
 
-        static bool Apply(PlayerProfile profile, string[] parts, ref string equipped, out string error)
+        static bool Apply(PlayerProfile profile, string[] parts, ref string equipped, ref string wornArmor, out string error)
         {
             error = null;
             switch (parts[0])
             {
+                case "armor" when parts.Length == 3:
+                    if (!profile.AddArmor(new OwnedArmor { Uid = parts[1], Set = parts[2] }))
+                    {
+                        error = "bad or repeated armor";
+                        return false;
+                    }
+
+                    return true;
+                case "armor_equipped" when parts.Length == 2:
+                    wornArmor = parts[1] == "-" ? string.Empty : parts[1];
+                    return true;
                 case "gold" when parts.Length == 2:
                     if (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var gold))
                     {
@@ -364,6 +427,8 @@ namespace Game.Core
 
                     profile.MasteryFor(parts[1]).Choices.Add(parts[2]);
                     return true;
+                case "armor":
+                case "armor_equipped":
                 case "gold":
                 case "potions":
                 case "equipped":

@@ -23,3 +23,8 @@ MonoBehaviour:
   - swift
   - keen
   modifierChance: 0.5
+  armorSets:
+  - stone_warden
+  - ember_guard
+  - moss_cloak
+  armorChance: 0.4

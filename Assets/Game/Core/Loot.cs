@@ -14,6 +14,10 @@ namespace Game.Core
         // A dropped weapon carries one of these modifiers with this chance (0 = never).
         public string[] Modifiers { get; set; } = Array.Empty<string>();
         public float ModifierChance { get; set; }
+
+        // An armor set drops with this chance (0 = never), one of these sets.
+        public string[] ArmorSets { get; set; } = Array.Empty<string>();
+        public float ArmorChance { get; set; }
     }
 
     public static class LootRoller
@@ -37,7 +41,19 @@ namespace Game.Core
             return weapon;
         }
 
-        public static List<string> Validate(Registry<LootTableDef> tables, Registry<ClassDef> classes, Registry<WeaponModifierDef> modifiers = null)
+        // An armor drop for the same kill, if the table gives one; the uid is unique inside the profile.
+        public static OwnedArmor RollArmor(LootTableDef table, IRandom random, int rollNumber)
+        {
+            if (table.ArmorChance <= 0f || table.ArmorSets.Length == 0 || random.NextFloat() >= table.ArmorChance)
+            {
+                return null;
+            }
+
+            var set = table.ArmorSets[(int)(random.NextFloat() * table.ArmorSets.Length) % table.ArmorSets.Length];
+            return new OwnedArmor { Uid = $"{set}-drop{rollNumber}", Set = set };
+        }
+
+        public static List<string> Validate(Registry<LootTableDef> tables, Registry<ClassDef> classes, Registry<WeaponModifierDef> modifiers = null, Registry<ArmorSetDef> armorSets = null)
         {
             var errors = new List<string>();
             foreach (var table in tables.All)
@@ -58,6 +74,22 @@ namespace Game.Core
                 if (float.IsNaN(table.ModifierChance) || table.ModifierChance < 0f || table.ModifierChance > 1f)
                 {
                     errors.Add($"Loot table '{table.Id}': modifier chance must be between 0 and 1");
+                }
+
+                if (float.IsNaN(table.ArmorChance) || table.ArmorChance < 0f || table.ArmorChance > 1f)
+                {
+                    errors.Add($"Loot table '{table.Id}': armor chance must be between 0 and 1");
+                }
+
+                if (armorSets != null)
+                {
+                    foreach (var id in table.ArmorSets)
+                    {
+                        if (!armorSets.TryGet(id, out _))
+                        {
+                            errors.Add($"Loot table '{table.Id}': unknown armor set '{id}'");
+                        }
+                    }
                 }
 
                 if (modifiers != null)

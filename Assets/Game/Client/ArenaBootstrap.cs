@@ -76,10 +76,12 @@ namespace Game.Client
             skillTrees = SkillTreeCatalog.Load(classDefs, abilityDefs);
             var masteryRules = MasteryCatalog.Load();
             var weaponModifiers = ModifierCatalog.Load();
-            var lootTables = LootCatalog.Load(classDefs, weaponModifiers);
+            var armorSets = ArmorCatalog.Load();
+            var lootTables = LootCatalog.Load(classDefs, weaponModifiers, armorSets);
             lootTables.TryGet(LootTableAsset.BossDrop, out var bossDrop);
             mastery = new MasteryProgress(ProfileStore.ForDevice(), masteryRules, bossDrop, 0, new RewardBook(classDefs, masteryRules), lootTables);
             mastery.UseModifiers(weaponModifiers);
+            mastery.UseArmorSets(armorSets);
             mastery.Equip(className);
             loadout = Loadout(className);
             views = new EntityViews(transform, assets);

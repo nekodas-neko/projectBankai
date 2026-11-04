@@ -349,6 +349,24 @@ namespace Game.Editor
                 }
             }
 
+            // Armor sets: the worn set adds a small bonus. The wanderer set is what everyone starts in.
+            var armorFolder = $"Assets/Game/Data/Resources/{ArmorSetAsset.Folder}";
+            Directory.CreateDirectory(armorFolder);
+            ArmorSet(armorFolder, "wanderer", "Wanderer", 1f, 1f, 1f);
+            ArmorSet(armorFolder, "stone_warden", "Stone Warden", 1f, 1.10f, 1f);
+            ArmorSet(armorFolder, "ember_guard", "Ember Guard", 1f, 1.06f, 1.03f);
+            ArmorSet(armorFolder, "moss_cloak", "Moss Cloak", 1f, 1f, 1.08f);
+            foreach (var tableName in new[] { LootTableAsset.BossDrop, LootTableAsset.MobDrop })
+            {
+                var table = AssetDatabase.LoadAssetAtPath<LootTableAsset>($"{lootFolder}/{tableName}.asset");
+                if (table != null && table.armorSets.Length == 0)
+                {
+                    table.armorSets = new[] { "stone_warden", "ember_guard", "moss_cloak" };
+                    table.armorChance = tableName == LootTableAsset.BossDrop ? 0.4f : 0.03f;
+                    EditorUtility.SetDirty(table);
+                }
+            }
+
             // What kills are worth: XP for the weapon in hand and a drop chance per player. Bosses always drop from the boss table.
             Tune("slime", c => string.IsNullOrEmpty(c.lootTable), c => { c.xpReward = 10; c.lootTable = LootTableAsset.MobDrop; c.dropChance = 0.03f; });
             foreach (var boss in new[] { "slime_boss", "mushroom_warden", "brood_mother" })
@@ -900,6 +918,22 @@ namespace Game.Editor
 
             apply(asset);
             EditorUtility.SetDirty(asset);
+        }
+
+        static void ArmorSet(string folder, string id, string name, float power, float health, float speed)
+        {
+            var path = $"{folder}/{id}.asset";
+            if (AssetDatabase.LoadAssetAtPath<ArmorSetAsset>(path) != null)
+            {
+                return;
+            }
+
+            var asset = ScriptableObject.CreateInstance<ArmorSetAsset>();
+            asset.displayName = name;
+            asset.powerScale = power;
+            asset.healthScale = health;
+            asset.speedScale = speed;
+            AssetDatabase.CreateAsset(asset, path);
         }
 
         static void Modifier(string folder, string id, string name, float power, float health, float speed)
