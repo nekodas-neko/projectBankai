@@ -14,6 +14,7 @@ namespace Game.Core
         const float AddFocusSeconds = 12f;
 
         readonly List<PendingAttack> pendingAttacks = new List<PendingAttack>();
+        readonly List<PendingAttack> due = new List<PendingAttack>();
 
         public Combat(ServerConfig config, World world, AbilityBook book)
         {
@@ -90,8 +91,11 @@ namespace Game.Core
             }
         }
 
+        // Attacks whose windup ran out are taken off the list first and then resolved, since a landing hit can cancel other
+        // attacks (a stun or an interrupt). An attacker that was stunned or staggered meanwhile does not finish its swing.
         public void StepWindups(float dt)
         {
+            due.Clear();
             for (var i = pendingAttacks.Count - 1; i >= 0; i--)
             {
                 var attack = pendingAttacks[i];
@@ -103,8 +107,14 @@ namespace Game.Core
                 }
 
                 pendingAttacks.RemoveAt(i);
+                due.Add(attack);
+            }
+
+            for (var i = 0; i < due.Count; i++)
+            {
+                var attack = due[i];
                 var user = world.Find(attack.User);
-                if (user != null && user.IsAlive)
+                if (user != null && user.IsAlive && !user.HasStatus(StatusType.Staggered))
                 {
                     ResolveAttack(user, attack.Origin, attack.Direction, attack.Ability, attack.Slot, attack.Variant);
                 }
