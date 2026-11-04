@@ -80,6 +80,30 @@ namespace Game.Core
             return best;
         }
 
+        // What a tapped attack aims at: a boss in range first (so adds in the way do not steal the aim), otherwise the nearest.
+        public Entity PreferredTarget(Entity user, float range)
+        {
+            Entity boss = null;
+            var bossSqr = range * range;
+            for (var i = 0; i < Entities.Count; i++)
+            {
+                var other = Entities[i];
+                if (!other.IsBoss || !other.IsAlive || !Entity.AreHostile(user, other))
+                {
+                    continue;
+                }
+
+                var sqr = (other.Position - user.Position).SqrLength;
+                if (sqr <= bossSqr)
+                {
+                    bossSqr = sqr;
+                    boss = other;
+                }
+            }
+
+            return boss ?? NearestHostile(user, range);
+        }
+
         public void Separate()
         {
             for (var i = 0; i < Entities.Count; i++)
