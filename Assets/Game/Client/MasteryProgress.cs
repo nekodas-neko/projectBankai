@@ -88,6 +88,7 @@ namespace Game.Client
         readonly ulong lootSeed;
         readonly RewardBook rewards;
         readonly Registry<LootTableDef> tables;
+        Registry<WeaponModifierDef> modifiers = new Registry<WeaponModifierDef>();
         readonly List<FallenEnemy> fallen = new List<FallenEnemy>();
         ulong chanceRolls;
 
@@ -151,8 +152,17 @@ namespace Game.Client
             return true;
         }
 
-        // The power scale of the weapon in hand, sent when joining.
-        public float WeaponPower => Profile.Equipped?.Power ?? 1f;
+        // The modifiers a dropped weapon can carry, to work out what the weapon in hand adds up to.
+        public void UseModifiers(Registry<WeaponModifierDef> known)
+        {
+            modifiers = known ?? new Registry<WeaponModifierDef>();
+        }
+
+        // What the weapon in hand and its modifier give: the power, health and speed scales sent when joining.
+        public GearStats Gear => Game.Core.Gear.Of(Profile.Equipped, modifiers);
+
+        // The power scale of the weapon in hand (its own, with its modifier), sent when joining.
+        public float WeaponPower => Gear.Power;
 
         // Spends points on a tree node for a weapon type and saves at once (the loadout is sent when the session starts).
         public bool TryChoose(SkillTreeDef tree, string weaponType, string nodeId, out string reason)
@@ -278,7 +288,8 @@ namespace Game.Client
         public static string Describe(OwnedWeapon weapon)
         {
             var percent = (int)System.Math.Round((weapon.Power - 1f) * 100f);
-            return percent == 0 ? Name(weapon.Type) : $"{Name(weapon.Type)} {(percent > 0 ? "+" : string.Empty)}{percent}%";
+            var text = percent == 0 ? Name(weapon.Type) : $"{Name(weapon.Type)} {(percent > 0 ? "+" : string.Empty)}{percent}%";
+            return string.IsNullOrEmpty(weapon.Modifier) ? text : $"{text} ({Name(weapon.Modifier)})";
         }
 
         public void Tick(float dt)

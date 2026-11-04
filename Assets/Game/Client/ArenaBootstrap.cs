@@ -75,9 +75,11 @@ namespace Game.Client
             playerClass = classDefs.Get(className);
             skillTrees = SkillTreeCatalog.Load(classDefs, abilityDefs);
             var masteryRules = MasteryCatalog.Load();
-            var lootTables = LootCatalog.Load(classDefs);
+            var weaponModifiers = ModifierCatalog.Load();
+            var lootTables = LootCatalog.Load(classDefs, weaponModifiers);
             lootTables.TryGet(LootTableAsset.BossDrop, out var bossDrop);
             mastery = new MasteryProgress(ProfileStore.ForDevice(), masteryRules, bossDrop, 0, new RewardBook(classDefs, masteryRules), lootTables);
+            mastery.UseModifiers(weaponModifiers);
             mastery.Equip(className);
             loadout = Loadout(className);
             views = new EntityViews(transform, assets);
@@ -155,7 +157,7 @@ namespace Game.Client
                 transport.Update(dt);
                 if (LocalClient == null && transport.State == ConnectionState.Connected)
                 {
-                    LocalClient = new GameClient(transport.PlayerId, transport, playerClass, new ClientConfig { Simulation = transport.Simulation.WithMap(WorldMap.From(dungeonDefs.Get(DungeonId))) });
+                    LocalClient = new GameClient(transport.PlayerId, transport, playerClass, new ClientConfig { Simulation = transport.Simulation.WithMap(WorldMap.From(dungeonDefs.Get(DungeonId))) }, mastery.Gear.Speed);
                 }
 
                 if (LocalClient != null && transport.State == ConnectionState.Connected)
@@ -212,7 +214,7 @@ namespace Game.Client
         void StartWorld(string className)
         {
             session = new LocalSession(new ServerConfig(), classDefs, abilityDefs, seed: 1);
-            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)), loadout, mastery.WeaponPower);
+            LocalClient = session.AddPlayer(new PlayerId(1), className, StableId.From(HudSettings.SkinFor(className)), loadout, mastery.WeaponPower, mastery.Gear.Health, mastery.Gear.Speed);
             session.StartDungeon(dungeonDefs.Get(DungeonId));
         }
 
@@ -245,7 +247,7 @@ namespace Game.Client
 
             try
             {
-                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName(), loadout, mastery.WeaponPower);
+                transport = new UdpClientTransport(endpoint, className, StableId.From(HudSettings.SkinFor(className)), DeviceName(), loadout, mastery.WeaponPower, mastery.Gear.Health, mastery.Gear.Speed);
                 return true;
             }
             catch (System.Net.Sockets.SocketException exception)

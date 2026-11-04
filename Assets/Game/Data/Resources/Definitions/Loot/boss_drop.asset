@@ -18,3 +18,8 @@ MonoBehaviour:
   - healing_mace
   powerMin: 0.95
   powerMax: 1.15
+  modifiers:
+  - sturdy
+  - swift
+  - keen
+  modifierChance: 0.5
