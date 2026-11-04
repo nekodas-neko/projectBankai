@@ -28,9 +28,9 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 1
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
       position: {x: -22, y: 10}
-      skin: slime_green
+      skin: slime_purple
       boss: 0
       pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
@@ -38,9 +38,9 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 2
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
       position: {x: 22, y: 9}
-      skin: slime_green
+      skin: slime_red
       boss: 0
       pack: 2
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
@@ -53,9 +53,9 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 3
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
       position: {x: 3, y: 21}
-      skin: slime_green
+      skin: slime_purple
       boss: 0
       pack: 3
     - spawnClass: {fileID: 11400000, guid: 16021f0fd9f50d849a3dd5a8554483ed, type: 2}
@@ -106,9 +106,9 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 1
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
       position: {x: 23, y: 31}
-      skin: slime_green
+      skin: slime_purple
       boss: 0
       pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
@@ -116,14 +116,14 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 2
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
       position: {x: 39, y: 40}
-      skin: slime_green
+      skin: slime_red
       boss: 0
       pack: 2
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
       position: {x: 36, y: 43}
-      skin: slime_green
+      skin: slime_purple
       boss: 0
       pack: 2
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
@@ -131,9 +131,9 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 3
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
       position: {x: 27, y: 46}
-      skin: slime_green
+      skin: slime_red
       boss: 0
       pack: 3
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
@@ -141,14 +141,14 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 3
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
       position: {x: 18, y: 66}
-      skin: slime_green
+      skin: slime_yellow
       boss: 0
       pack: 4
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
       position: {x: 30, y: 66}
-      skin: slime_green
+      skin: slime_yellow
       boss: 0
       pack: 4
     - spawnClass: {fileID: 11400000, guid: 88b56a55d2af4ac48b305bba26764e5b, type: 2}
@@ -199,9 +199,9 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 1
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
       position: {x: -13, y: 65}
-      skin: slime_green
+      skin: slime_purple
       boss: 0
       pack: 1
     - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
@@ -209,29 +209,29 @@ MonoBehaviour:
       skin: slime_green
       boss: 0
       pack: 2
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
       position: {x: -17, y: 83}
-      skin: slime_green
+      skin: slime_red
       boss: 0
       pack: 2
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
       position: {x: -21, y: 88}
-      skin: slime_green
+      skin: slime_yellow
       boss: 0
       pack: 3
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
       position: {x: -17, y: 90}
-      skin: slime_green
+      skin: slime_yellow
       boss: 0
       pack: 3
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
       position: {x: -24, y: 104}
-      skin: slime_green
+      skin: slime_purple
       boss: 0
       pack: 4
-    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
       position: {x: -10, y: 104}
-      skin: slime_green
+      skin: slime_red
       boss: 0
       pack: 4
     - spawnClass: {fileID: 11400000, guid: 79a2fa87f87823c4ababaf5cb56d227f, type: 2}
