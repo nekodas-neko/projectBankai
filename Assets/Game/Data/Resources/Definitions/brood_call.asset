@@ -20,6 +20,8 @@ MonoBehaviour:
   radius: 0.01
   damage: 0
   windup: 2.5
+  heavyDamageScale: 2.4
+  heavyCooldownScale: 1.8
   resourceCost: 0
   duration: 0
   dashDistance: 0
@@ -38,6 +40,7 @@ MonoBehaviour:
   chargeFromHealing: 0
   interruptible: 1
   interrupt: 0
+  stun: 0
   summonClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
   summonSkin: slime_green
   summonCount: 3
