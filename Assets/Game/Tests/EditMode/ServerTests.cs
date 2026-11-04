@@ -168,6 +168,38 @@ namespace Game.Core.Tests
         }
 
         [Test]
+        public void AutoAim_PrefersABossInRangeOverANearerAdd()
+        {
+            var rig = new ServerRig(1);
+            var origin = rig.Players[0].Position;
+            var add = rig.Server.SpawnNpc("dummy", Team.Enemies, origin + new Vec2(1.5f, 0.5f));
+            var boss = rig.Server.SpawnNpc("dummy", Team.Enemies, origin + new Vec2(0f, 2.5f));
+            boss.IsBoss = true;
+
+            rig.Send(0, 1, CommandType.Attack, Vec2.Zero);
+            rig.Tick();
+
+            Assert.AreEqual(90f, boss.Health, "the boss took the hit");
+            Assert.AreEqual(100f, add.Health, "the add in the way did not steal the aim");
+        }
+
+        [Test]
+        public void AutoAim_IgnoresABossOutOfRangeAndTakesTheNearestAdd()
+        {
+            var rig = new ServerRig(1);
+            var origin = rig.Players[0].Position;
+            var add = rig.Server.SpawnNpc("dummy", Team.Enemies, origin + new Vec2(1f, 1f));
+            var boss = rig.Server.SpawnNpc("dummy", Team.Enemies, origin + new Vec2(0f, 9f));
+            boss.IsBoss = true;
+
+            rig.Send(0, 1, CommandType.Attack, Vec2.Zero);
+            rig.Tick();
+
+            Assert.AreEqual(90f, add.Health);
+            Assert.AreEqual(100f, boss.Health);
+        }
+
+        [Test]
         public void AutoAim_WithNoTarget_FiresAlongFacingAndSpendsCooldown()
         {
             var rig = new ServerRig(1);
