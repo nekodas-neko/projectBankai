@@ -73,6 +73,32 @@ namespace Game.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator HomeScreen_ShowsTheCharacterAndStartsTheDungeon()
+        {
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Home");
+            yield return new WaitForSeconds(0.5f);
+            var home = Object.FindFirstObjectByType<HomeBootstrap>();
+
+            Assert.IsNotNull(home);
+            StringAssert.Contains("Staff", home.Home.WeaponText);
+            StringAssert.StartsWith("Health", home.Home.StatsText);
+            StringAssert.StartsWith("Gold", home.Home.WalletText);
+            Assert.IsFalse(home.CharacterScreen.IsOpen);
+
+            foreach (var button in Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None))
+            {
+                if (button.name == "Modedungeon")
+                {
+                    button.onClick.Invoke();
+                }
+            }
+
+            yield return new WaitForSeconds(1f);
+            Assert.IsNotNull(Object.FindFirstObjectByType<ArenaBootstrap>(), "the dungeon scene loaded");
+        }
+
+        [UnityTest]
         public IEnumerator Dodge_StartsOnTheClientBeforeTheServerHearsOfIt()
         {
             HudSettings.SessionMode = (int)SessionMode.Solo;

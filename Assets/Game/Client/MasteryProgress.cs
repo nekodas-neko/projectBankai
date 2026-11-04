@@ -169,6 +169,31 @@ namespace Game.Client
 
         public Registry<WeaponModifierDef> Modifiers => modifiers;
 
+        // Takes a weapon or a set apart for gold and saves at once. False when the item is in use or the last of its kind.
+        public bool DismantleWeapon(string uid, out int gold)
+        {
+            if (!Profile.TryDismantleWeapon(uid, out gold))
+            {
+                return false;
+            }
+
+            dirty = true;
+            Flush();
+            return true;
+        }
+
+        public bool DismantleArmor(string uid, out int gold)
+        {
+            if (!Profile.TryDismantleArmor(uid, out gold))
+            {
+                return false;
+            }
+
+            dirty = true;
+            Flush();
+            return true;
+        }
+
         // Wears an owned set (from the bag) and saves.
         public bool EquipArmor(string uid)
         {
