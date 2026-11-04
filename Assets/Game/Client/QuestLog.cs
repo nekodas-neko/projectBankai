@@ -130,9 +130,9 @@ namespace Game.Client
     // The log on the right-hand side of the screen.
     public sealed class QuestLogPanel
     {
-        const float Width = 400f;
-        const float LineHeight = 46f;
-        const float Header = 64f;
+        const float Width = 320f;
+        const float LineHeight = 40f;
+        const float Header = 56f;
 
         readonly RectTransform root;
         readonly Text body;
@@ -154,29 +154,29 @@ namespace Game.Client
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
             rect.sizeDelta = new Vector2(Width, Header);
-            rect.anchoredPosition = new Vector2(-30f, -170f);
+            rect.anchoredPosition = new Vector2(-6f, -160f);
 
             var title = Hud.NewRect("Title", rect).gameObject.AddComponent<Text>();
             title.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            title.fontSize = 30;
+            title.fontSize = 26;
             title.fontStyle = FontStyle.Bold;
             title.alignment = TextAnchor.UpperLeft;
             title.color = new Color(1f, 0.85f, 0.4f);
             title.raycastTarget = false;
             title.text = "Dungeon log";
-            title.rectTransform.offsetMin = new Vector2(18f, 0f);
-            title.rectTransform.offsetMax = new Vector2(-12f, -10f);
+            title.rectTransform.offsetMin = new Vector2(12f, 0f);
+            title.rectTransform.offsetMax = new Vector2(-8f, -8f);
 
             var lines = Hud.NewRect("Lines", rect).gameObject.AddComponent<Text>();
             lines.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            lines.fontSize = 28;
+            lines.fontSize = 24;
             lines.alignment = TextAnchor.UpperLeft;
             lines.color = Color.white;
             lines.supportRichText = true;
             lines.horizontalOverflow = HorizontalWrapMode.Wrap;
             lines.raycastTarget = false;
-            lines.rectTransform.offsetMin = new Vector2(18f, 0f);
-            lines.rectTransform.offsetMax = new Vector2(-12f, -Header + 8f);
+            lines.rectTransform.offsetMin = new Vector2(12f, 0f);
+            lines.rectTransform.offsetMax = new Vector2(-8f, -Header + 6f);
 
             var panel = new QuestLogPanel(rect, lines);
             panel.Show(new List<QuestEntry>());

@@ -12,8 +12,13 @@ namespace Game.Client
         const float RepeatDelay = 0.25f;
         const float PressedScale = 1.12f;
 
+        static readonly Color ChargingColor = new Color(1f, 0.85f, 0.3f, 0.9f);
+        static readonly Color ChargedColor = new Color(1f, 0.35f, 0.15f, 1f);
+
         Image cooldownFill;
+        Image chargeRing;
         Text label;
+        string baseLabel = string.Empty;
         int activePointer = int.MinValue;
         Vector2 downPosition;
         bool dragging;
@@ -47,11 +52,24 @@ namespace Game.Client
         {
             this.cooldownFill = cooldownFill;
             this.label = label;
+            baseLabel = label.text;
         }
+
+        // The ring around the button that fills while it is held, and turns solid with "HEAVY" when letting go would swing the heavy attack.
+        public void SetChargeRing(Image ring)
+        {
+            chargeRing = ring;
+            ring.fillAmount = 0f;
+        }
+
+        public float ChargeRingFill => chargeRing != null ? chargeRing.fillAmount : 0f;
+
+        public string LabelText => label.text;
 
         public void SetLabel(string text)
         {
-            if (label.text != text)
+            baseLabel = text;
+            if (label.text != text && !IsCharged)
             {
                 label.text = text;
             }
@@ -107,6 +125,38 @@ namespace Game.Client
             }
         }
 
+        // The button grows, a ring fills around it, and at full charge it turns solid orange and reads HEAVY.
+        void ShowCharge()
+        {
+            var charge = Charge;
+            transform.localScale = Vector3.one * Mathf.Lerp(1f, PressedScale, charge);
+            if (chargeRing != null)
+            {
+                chargeRing.fillAmount = charge;
+                chargeRing.color = charge >= 1f ? ChargedColor : ChargingColor;
+            }
+
+            var text = charge >= 1f ? "HEAVY" : baseLabel;
+            if (label.text != text)
+            {
+                label.text = text;
+            }
+        }
+
+        void ClearCharge()
+        {
+            transform.localScale = Vector3.one;
+            if (chargeRing != null)
+            {
+                chargeRing.fillAmount = 0f;
+            }
+
+            if (label.text != baseLabel)
+            {
+                label.text = baseLabel;
+            }
+        }
+
         public void OnPointerUp(PointerEventData eventData)
         {
             if (eventData.pointerId != activePointer)
@@ -120,7 +170,7 @@ namespace Game.Client
             activePointer = int.MinValue;
             dragging = false;
             Aim = Vector2.zero;
-            transform.localScale = Vector3.one;
+            ClearCharge();
 
             if (heavy)
             {
@@ -137,7 +187,7 @@ namespace Game.Client
             if (activePointer != int.MinValue && HoldForHeavy)
             {
                 heldSeconds += Time.unscaledDeltaTime;
-                transform.localScale = Vector3.one * Mathf.Lerp(1f, PressedScale, Charge);
+                ShowCharge();
                 return;
             }
 
