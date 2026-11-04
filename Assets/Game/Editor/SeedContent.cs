@@ -79,6 +79,7 @@ namespace Game.Editor
             Class("healing_mace", true, 90f, 6f, 1f, holyBolt, radiantPulse);
             Class("staff", true, 80f, 6.5f, 1.2f, arcaneBolt, fireball);
             Class("slime", false, 60f, 0f, 1f, slimeSlam);
+            Class("cave_crawler", false, 80f, 0f, 1f, slimeSlam);
             Class("slime_boss", false, 2400f, 0f, 1f, slimeSlam);
             Class("mushroom_warden", false, 900f, 0f, 1f, slimeSlam);
             Class("brood_mother", false, 1600f, 0f, 1f, kingSlam);
@@ -274,6 +275,23 @@ namespace Game.Editor
                 AssetDatabase.CreateAsset(table, lootPath);
             }
 
+            // The tank's bash stuns small enemies for a moment and the crash for longer (bosses are immune).
+            Tune(shieldBash, a => a.stun <= 0f, a => a.stun = 2.5f);
+            Tune(bulwarkCrash, a => a.stun <= 0f, a => a.stun = 4f);
+
+            // Cave crawlers wander slowly about their spot, notice players only from close by, and can be sneaked past.
+            Tune("cave_crawler", c => c.wanderRadius <= 0f, c =>
+            {
+                c.moveSpeed = 3.2f;
+                c.aggroRange = 5f;
+                c.leashRange = 14f;
+                c.bodyRadius = 0.6f;
+                c.wanderRadius = 6f;
+                c.xpReward = 15;
+                c.lootTable = LootTableAsset.MobDrop;
+                c.dropChance = 0.05f;
+            });
+
             // Mob drops: a rare, slightly weaker weapon. The same shape as the boss table, so a new table is a copy with other numbers.
             var mobPath = $"{lootFolder}/{LootTableAsset.MobDrop}.asset";
             if (AssetDatabase.LoadAssetAtPath<LootTableAsset>(mobPath) == null)
@@ -406,6 +424,7 @@ namespace Game.Editor
             var asset = AssetDatabase.LoadAssetAtPath<DungeonAsset>(path);
             if (asset != null && asset.zones.Length >= 14 && asset.rooms.Any(room => room.spawns.Any(spawn => spawn.boss)))
             {
+                AddWanderers(asset);
                 return;
             }
 
@@ -509,7 +528,32 @@ namespace Game.Editor
                 EditorUtility.SetDirty(asset);
             }
 
+            AddWanderers(asset);
             AssetDatabase.SaveAssets();
+        }
+
+        // Roaming crawlers that stand alone (no pack) between the packs, two or three in each section.
+        static void AddWanderers(DungeonAsset asset)
+        {
+            var crawler = AssetDatabase.LoadAssetAtPath<ClassAsset>($"{DefinitionsRoot}/cave_crawler.asset");
+            if (crawler == null || asset.rooms.Any(room => room.spawns.Any(spawn => spawn.spawnClass == crawler)))
+            {
+                return;
+            }
+
+            var places = new[]
+            {
+                new[] { new Vector2(-17f, 0f), new Vector2(16f, 2f), new Vector2(-6f, 22f), new Vector2(7f, 27f) },
+                new[] { new Vector2(30f, 29f), new Vector2(37f, 52f), new Vector2(20f, 62f), new Vector2(35f, 70f) },
+                new[] { new Vector2(-5f, 63f), new Vector2(-16f, 76f), new Vector2(-26f, 110f) },
+            };
+            for (var room = 0; room < asset.rooms.Length && room < places.Length; room++)
+            {
+                var added = places[room].Select(place => Spawn(crawler, place.x, place.y, "slime_green")).ToArray();
+                asset.rooms[room].spawns = asset.rooms[room].spawns.Concat(added).ToArray();
+            }
+
+            EditorUtility.SetDirty(asset);
         }
 
         static SpawnData Spawn(ClassAsset spawnClass, float x, float y, string skin, bool boss = false, int pack = 0)

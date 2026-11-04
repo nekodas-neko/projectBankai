@@ -50,6 +50,7 @@ namespace Game.Client
         [Min(0f)] public float chargeFromHealing;
         [Tooltip("A cast: the caster stands still while it winds up and an Interrupt hit cancels it.")] public bool interruptible;
         [Min(0f)] [Tooltip("Seconds an enemy is staggered when this hits it while it casts something interruptible. 0 = cannot interrupt.")] public float interrupt;
+        [Min(0f)] [Tooltip("Seconds a small enemy is stunned when this hits it (bosses are immune). 0 = no stun.")] public float stun;
         [Tooltip("Summons adds around the caster when it resolves; they go for the farthest player.")] public ClassAsset summonClass;
         public string summonSkin = "";
         [Range(0, 8)] public int summonCount;
@@ -111,6 +112,7 @@ namespace Game.Client
                 ChargeFromHealing = chargeFromHealing,
                 Interruptible = interruptible,
                 Interrupt = interrupt,
+                Stun = stun,
                 SummonClass = summonClass != null ? summonClass.Id : null,
                 SummonSkin = summonSkin,
                 SummonCount = summonCount,

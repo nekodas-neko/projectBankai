@@ -241,6 +241,11 @@ namespace Game.Core
                     TryInterrupt(user, other, ability, slot, abilityId, variantId);
                 }
 
+                if (ability.Stun > 0f)
+                {
+                    TryStun(user, other, ability, slot, abilityId, variantId);
+                }
+
                 if (ability.Taunt > 0f)
                 {
                     other.ForcedTarget = user.Id;
@@ -269,6 +274,29 @@ namespace Game.Core
                 Ability = abilityId,
                 Variant = variantId,
                 Outcome = HitOutcome.Healed,
+            });
+        }
+
+        // A hit that carries Stun freezes a small enemy for a few seconds and cancels any attack it was winding up. Bosses ignore it.
+        void TryStun(Entity user, Entity target, AbilityDef ability, int slot, int abilityId, int variantId)
+        {
+            if (!target.IsAlive || target.IsBoss || target.Owner.IsValid)
+            {
+                return;
+            }
+
+            CancelAttacksOf(target.Id);
+            target.Winding = 0f;
+            target.AddStatus(StatusType.Staggered, ability.Stun, 0f);
+            world.Events.Add(new DamageEvent
+            {
+                Source = user.Id,
+                Target = target.Id,
+                Amount = 0f,
+                Slot = (byte)slot,
+                Ability = abilityId,
+                Variant = variantId,
+                Outcome = HitOutcome.Stunned,
             });
         }
 

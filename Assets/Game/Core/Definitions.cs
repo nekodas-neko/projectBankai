@@ -94,6 +94,10 @@ namespace Game.Core
         // interruptible. The cast is cancelled and does nothing. 0 means this ability cannot interrupt.
         public float Interrupt { get; set; }
 
+        // Seconds a small enemy is stunned (staggered: it cannot move, attack or cast, and its attack in progress is cancelled)
+        // when this ability hits it. Bosses are immune. 0 means this ability does not stun.
+        public float Stun { get; set; }
+
         // When the ability resolves it also summons SummonCount of SummonClass around the caster. The adds are fixed on the
         // farthest player for a while; a taunt pulls them off.
         public string SummonClass { get; set; }
@@ -196,6 +200,10 @@ namespace Game.Core
         public float ThreatMultiplier { get; set; } = 1f;
         public float BodyRadius { get; set; }
         public float LeashRange { get; set; }
+
+        // An enemy that has not noticed a player walks slowly about inside this radius of where it stands, pausing between
+        // steps, so it can be avoided or sneaked past. 0 keeps it standing still.
+        public float WanderRadius { get; set; }
 
         // What killing this enemy gives. XpReward is mastery XP for the weapon in hand (0 = the default in the mastery rules, which
         // depends on whether it is a boss). LootTable names a loot table; DropChance (0 to 1) is the chance each player gets a drop.
