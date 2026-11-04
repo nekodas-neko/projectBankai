@@ -83,6 +83,24 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheTopOfTheScreenHasNoOverlaps()
+        {
+            hud = Hud.Create(false, new HudCallbacks());
+            var safe = hud.Root.transform.Find("SafeArea");
+            var boss = (RectTransform)safe.Find("BossFrame");
+            var log = (RectTransform)safe.Find("QuestLog");
+            var objective = (RectTransform)safe.Find("RoomLabel");
+            var menu = (RectTransform)safe.Find("Menu");
+
+            Assert.Less(log.anchoredPosition.y, boss.anchoredPosition.y - boss.sizeDelta.y - 44f, "the log starts below the boss frame and its cast bar");
+
+            const float width = 1080f;
+            var objectiveRight = width * 0.5f + objective.sizeDelta.x * 0.5f;
+            var menuLeft = width + menu.anchoredPosition.x - menu.sizeDelta.x;
+            Assert.LessOrEqual(objectiveRight, menuLeft, "the Menu button does not cover the current task");
+        }
+
+        [Test]
         public void TheUltimateSitsBelowTheHeightItHadAndAboveTheSkill()
         {
             hud = Hud.Create(false, new HudCallbacks());

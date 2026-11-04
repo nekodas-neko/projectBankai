@@ -9,9 +9,9 @@ namespace Game.Client
     public sealed class MapView
     {
         // A stone dungeon: cold dark floors, a warmer worn path through the gates, near-black walls.
-        public static readonly Color FloorColor = new Color(0.23f, 0.24f, 0.29f);
-        public static readonly Color CorridorColor = new Color(0.30f, 0.27f, 0.25f);
-        public static readonly Color WallColor = new Color(0.16f, 0.16f, 0.20f);
+        public static readonly Color FloorColor = new Color(0.40f, 0.42f, 0.50f);
+        public static readonly Color CorridorColor = new Color(0.52f, 0.45f, 0.38f);
+        public static readonly Color WallColor = new Color(0.22f, 0.22f, 0.28f);
         public static readonly Color BarrierColor = new Color(1f, 0.8f, 0.25f);
 
         // Only the part of the dungeon near the player is drawn: a zone shows while the player is within ShowDistance of it,
@@ -19,9 +19,9 @@ namespace Game.Client
         public const float ShowDistance = 14f;
         const float WallExtra = 8f;
 
-        const float WallHeight = 3.2f;
+        const float WallHeight = 1.3f;
         const float WallThickness = 0.6f;
-        const float BarrierHeight = 2.6f;
+        const float BarrierHeight = 1.6f;
 
         readonly WorldMap map;
         readonly Transform root;
@@ -111,6 +111,13 @@ namespace Game.Client
             foreach (var patch in patches)
             {
                 Toggle(patch.Object, patch.DistanceTo(playerX, playerY) <= ShowDistance);
+            }
+
+            for (var i = 0; i < barriers.Count; i++)
+            {
+                var corridor = map.Zones.Count + i;
+                var near = corridor < patches.Count && patches[corridor].DistanceTo(playerX, playerY) <= ShowDistance;
+                Toggle(barriers[i], near && !map.IsOpen(i));
             }
 
             var wallRange = ShowDistance + WallExtra;

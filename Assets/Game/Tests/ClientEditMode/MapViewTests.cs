@@ -63,6 +63,18 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void AClosedGatesBarrierIsOnlyDrawnWhenThePlayerIsNearIt()
+        {
+            var view = new MapView(root.transform, Map(), new Mesh(), null, null);
+
+            view.Fade(0f, 8f);
+            Assert.IsTrue(view.BarrierVisible(0), "near the closed gate");
+
+            view.Fade(0f, -60f);
+            Assert.IsFalse(view.BarrierVisible(0), "a barrier does not float in the dark far away");
+        }
+
+        [Test]
         public void TheDungeonIsDressedWithPillarsAndNoTrees()
         {
             var view = new MapView(root.transform, Map(), new Mesh(), null, null);
@@ -136,7 +148,7 @@ namespace Game.Client.Tests
                 if (child.name == "Wall" && child.gameObject.activeSelf && Mathf.Abs(child.position.z - 10f) < 0.01f)
                 {
                     found = true;
-                    Assert.Greater(child.localScale.y, 1.5f);
+                    Assert.Greater(child.localScale.y, 1f);
                     Assert.AreEqual(20f + 0.6f, child.localScale.x, 0.01f);
                 }
             }

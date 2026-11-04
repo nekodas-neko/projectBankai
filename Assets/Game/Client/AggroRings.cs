@@ -5,15 +5,16 @@ using EntityId = Game.Core.EntityId;
 
 namespace Game.Client
 {
-    // A thin ring on the ground around every enemy that has not noticed you yet, showing how close you can get before it does.
-    // Rings are pooled and only drawn for enemies near the local player, so a big map does not fill the floor with them.
+    // A thin ring on the ground around the one idle enemy you are about to wake, showing how close you can get before it notices.
+    // Only the nearest one is drawn, and only when you are within ShowBeyondRing of its edge, so a pack never fills the floor with
+    // overlapping circles.
     public sealed class AggroRings
     {
         const float Height = 0.05f;
-        const float Thickness = 0.16f;
-        const float ShowBeyondRing = 3f;
+        const float Thickness = 0.09f;
+        const float ShowBeyondRing = 2.5f;
         const int Segments = 64;
-        const int MaxRings = 24;
+        const int MaxRings = 1;
 
         readonly Transform parent;
         readonly Material material;
@@ -38,22 +39,33 @@ namespace Game.Client
         public void Sync(Snapshot snapshot, EntityId local, EntityViews views)
         {
             used = 0;
-            var hasLocal = views.TryGetPosition(local, out var me);
             var entities = snapshot?.Entities;
-            for (var i = 0; entities != null && i < entities.Count && used < MaxRings; i++)
+            if (views.TryGetPosition(local, out var me) && entities != null)
             {
-                var entity = entities[i];
-                if (!ShouldShow(entity) || !views.TryGetPosition(entity.Id, out var position))
+                var bestEdge = float.MaxValue;
+                var best = default(EntityState);
+                var bestPosition = default(Vector3);
+                for (var i = 0; i < entities.Count; i++)
                 {
-                    continue;
+                    var entity = entities[i];
+                    if (!ShouldShow(entity) || !views.TryGetPosition(entity.Id, out var position))
+                    {
+                        continue;
+                    }
+
+                    var edge = EdgeDistance(new Vector2(me.x, me.z), new Vector2(position.x, position.z), entity.AggroRange);
+                    if (edge <= ShowBeyondRing && edge < bestEdge)
+                    {
+                        bestEdge = edge;
+                        best = entity;
+                        bestPosition = position;
+                    }
                 }
 
-                if (hasLocal && new Vector2(position.x - me.x, position.z - me.z).magnitude > entity.AggroRange + ShowBeyondRing)
+                if (bestEdge < float.MaxValue)
                 {
-                    continue;
+                    Place(bestPosition, best.AggroQuarters);
                 }
-
-                Place(position, entity.AggroQuarters);
             }
 
             for (var i = used; i < pool.Count; i++)
@@ -63,6 +75,12 @@ namespace Game.Client
                     pool[i].SetActive(false);
                 }
             }
+        }
+
+        // How far the player is from the ring's edge (negative once inside it).
+        public static float EdgeDistance(Vector2 player, Vector2 enemy, float range)
+        {
+            return (enemy - player).magnitude - range;
         }
 
         void Place(Vector3 position, byte quarters)

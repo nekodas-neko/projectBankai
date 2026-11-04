@@ -9,7 +9,7 @@ namespace Game.Client
     // The whole dungeon in a corner of the screen: the zones, the gates (gold while closed), and a dot for everyone alive.
     public sealed class MiniMap
     {
-        public static readonly Color ZoneColor = new Color(0.25f, 0.4f, 0.22f, 0.9f);
+        public static readonly Color ZoneColor = new Color(0.38f, 0.40f, 0.48f, 0.9f);
         public static readonly Color ClosedGateColor = new Color(1f, 0.8f, 0.25f, 1f);
         public static readonly Color OpenGateColor = new Color(0.55f, 0.46f, 0.32f, 0.9f);
         public static readonly Color LocalColor = Color.white;

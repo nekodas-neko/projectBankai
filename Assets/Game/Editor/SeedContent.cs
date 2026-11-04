@@ -235,7 +235,8 @@ namespace Game.Editor
             Tune("slime_boss", c => c.aggroRange > 12f, c => c.aggroRange = 12f);
 
             // Playtest: the rings were too big and half the map woke at once, so mobs notice from closer. Bosses keep their range: a shorter one made the balance bots' fights with the king 10 s longer.
-            Tune("slime", c => c.aggroRange > 6f, c => { c.aggroRange = 6f; c.leashRange = 14f; });
+            Tune("slime", c => c.aggroRange > 4.5f, c => { c.aggroRange = 4.5f; c.leashRange = 12f; });
+            Tune("cave_crawler", c => c.aggroRange > 4f, c => c.aggroRange = 4f);
             Tune("mushroom_warden", c => c.aggroRange <= 0f, c =>
             {
                 c.aggroRange = 10f;

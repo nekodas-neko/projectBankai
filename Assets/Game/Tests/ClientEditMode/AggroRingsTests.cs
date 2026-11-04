@@ -43,6 +43,13 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void TheEdgeDistanceIsHowFarThePlayerIsFromTheRing()
+        {
+            Assert.AreEqual(3f, AggroRings.EdgeDistance(Vector2.zero, new Vector2(0f, 9f), 6f), 0.001f);
+            Assert.AreEqual(-1f, AggroRings.EdgeDistance(Vector2.zero, new Vector2(5f, 0f), 6f), 0.001f, "negative inside the ring");
+        }
+
+        [Test]
         public void TheRingIsABandAtTheAggroDistance()
         {
             var mesh = AggroRings.BuildRing(9f, 0.2f);

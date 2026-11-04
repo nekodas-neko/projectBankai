@@ -19,7 +19,7 @@ MonoBehaviour:
   autoAttack: {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
   skills: []
   defense: {fileID: 0}
-  aggroRange: 5
+  aggroRange: 4
   threatMultiplier: 1
   bodyRadius: 0.6
   leashRange: 14
