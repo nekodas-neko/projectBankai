@@ -158,6 +158,8 @@ namespace Game.Net
             int appearance;
             int[] variants;
             float power;
+            float health;
+            float speed;
             try
             {
                 using var stream = new MemoryStream(buffer, Protocol.HeaderSize, length - Protocol.HeaderSize);
@@ -179,6 +181,8 @@ namespace Game.Net
                 }
 
                 power = reader.ReadUInt16() / 1000f;
+                health = reader.ReadUInt16() / 1000f;
+                speed = reader.ReadUInt16() / 1000f;
                 if (!Protocol.ValidText(classId, Protocol.MaxClassLength) || !Protocol.ValidText(name, Protocol.MaxNameLength))
                 {
                     Reject(from, Protocol.RejectBadRequest);
@@ -205,7 +209,7 @@ namespace Game.Net
 
             var player = new PlayerId(nextPlayerId++);
             var transport = new PeerTransport(this, from);
-            server.AddPlayer(player, classId, transport, appearance, variants, power);
+            server.AddPlayer(player, classId, transport, appearance, variants, power, health, speed);
             peers.Add(from, new Peer { Player = player, Transport = transport, LastSeen = clock });
             SendAccept(from, player);
         }

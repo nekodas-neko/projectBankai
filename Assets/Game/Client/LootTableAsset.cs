@@ -16,16 +16,24 @@ namespace Game.Client
         [Range(0.8f, 1.3f)] public float powerMin = 0.95f;
         [Range(0.8f, 1.3f)] public float powerMax = 1.15f;
 
+        // A dropped weapon carries one of these (modifier asset names) with this chance.
+        public string[] modifiers = new string[0];
+        [Range(0f, 1f)] public float modifierChance;
+
+        // Armor sets (armor asset names) that can drop with the weapon, and how often.
+        public string[] armorSets = new string[0];
+        [Range(0f, 1f)] public float armorChance;
+
         public LootTableDef ToDefinition()
         {
-            return new LootTableDef { Id = Id, WeaponTypes = weaponTypes.ToArray(), PowerMin = powerMin, PowerMax = powerMax };
+            return new LootTableDef { Id = Id, WeaponTypes = weaponTypes.ToArray(), PowerMin = powerMin, PowerMax = powerMax, Modifiers = modifiers.ToArray(), ModifierChance = modifierChance, ArmorSets = armorSets.ToArray(), ArmorChance = armorChance };
         }
     }
 
     public static class LootCatalog
     {
         // Every loot table in the folder, or an empty registry (no drops) when any is invalid; invalid ones are logged.
-        public static Registry<LootTableDef> Load(Registry<ClassDef> classes)
+        public static Registry<LootTableDef> Load(Registry<ClassDef> classes, Registry<WeaponModifierDef> modifiers = null, Registry<ArmorSetDef> armorSets = null)
         {
             var tables = new Registry<LootTableDef>();
             foreach (var asset in Resources.LoadAll<LootTableAsset>(LootTableAsset.Folder))
@@ -33,7 +41,7 @@ namespace Game.Client
                 tables.Add(asset.ToDefinition());
             }
 
-            var errors = LootRoller.Validate(tables, classes);
+            var errors = LootRoller.Validate(tables, classes, modifiers ?? ModifierCatalog.Load(), armorSets ?? ArmorCatalog.Load());
             if (errors.Count > 0)
             {
                 Debug.LogError("Invalid loot tables, no drops:\n" + string.Join("\n", errors));

@@ -78,7 +78,7 @@ namespace Game.Core
         public const float MinWeaponPower = 0.8f;
         public const float MaxWeaponPower = 1.3f;
 
-        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0, int[] variants = null, float weaponPower = 1f)
+        public Entity AddPlayer(PlayerId player, string classId, ITransport transport, int appearance = 0, int[] variants = null, float weaponPower = 1f, float healthScale = 1f, float speedScale = 1f)
         {
             if (!player.IsValid)
             {
@@ -94,10 +94,19 @@ namespace Game.Core
             book.ApplyLoadout(entity, variants);
             book.SetUpCharge(entity);
             var scaled = entity.Stats;
-            scaled.Power *= float.IsNaN(weaponPower) ? 1f : MathF.Max(MinWeaponPower, MathF.Min(MaxWeaponPower, weaponPower));
+            scaled.Power *= ClampScale(weaponPower);
+            scaled.MaxHealth *= ClampScale(healthScale);
+            scaled.MoveSpeed *= ClampScale(speedScale);
             entity.Stats = scaled;
+            entity.Health = scaled.MaxHealth;
             session.Add(player, transport, entity.Id);
             return entity;
+        }
+
+        // A scale a client claims, held to what a drop or a modifier can give.
+        public static float ClampScale(float scale)
+        {
+            return float.IsNaN(scale) ? 1f : MathF.Max(MinWeaponPower, MathF.Min(MaxWeaponPower, scale));
         }
 
         public void RemovePlayer(PlayerId player)

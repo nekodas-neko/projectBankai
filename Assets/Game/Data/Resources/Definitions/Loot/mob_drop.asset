@@ -18,3 +18,13 @@ MonoBehaviour:
   - healing_mace
   powerMin: 0.9
   powerMax: 1.05
+  modifiers:
+  - sturdy
+  - swift
+  - keen
+  modifierChance: 0.25
+  armorSets:
+  - stone_warden
+  - ember_guard
+  - moss_cloak
+  armorChance: 0.03
