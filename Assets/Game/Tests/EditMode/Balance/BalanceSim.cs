@@ -31,11 +31,62 @@ namespace Game.Core.Tests
     {
         public const float Step = 1f / 30f;
 
+        // A boss with a map-wide attack needs somewhere to shelter, so it is fought in a plain hall with two pools of the tag it names, a few steps from the boss (as in the cave) so ranged weapons can keep hitting from the water.
+        // Returns null for any other boss, which is fought in the round arena as before.
+        public static DungeonDef ShelterHall(Registry<ClassDef> classes, Registry<AbilityDef> abilities, string boss)
+        {
+            if (!classes.TryGet(boss, out var def))
+            {
+                return null;
+            }
+
+            string tag = null;
+            foreach (var phase in def.Phases)
+            {
+                foreach (var mechanic in phase.Mechanics)
+                {
+                    if (abilities.TryGet(mechanic.Ability, out var ability) && ability.Everyone && ability.ShelterReduction > 0f)
+                    {
+                        tag = ability.ShelterTag;
+                    }
+                }
+            }
+
+            if (tag == null)
+            {
+                return null;
+            }
+
+            return new DungeonDef
+            {
+                Id = "balance_hall", // about the size of the round arena and of the warden's chamber
+                Zones = new[] { new ZoneDef { Name = "hall", MinX = -14f, MinY = -14f, MaxX = 14f, MaxY = 24f } },
+                Patches = new[]
+                {
+                    new PatchDef { Name = "left pool", Tag = tag, MinX = -10f, MinY = -1f, MaxX = -5f, MaxY = 4f },
+                    new PatchDef { Name = "right pool", Tag = tag, MinX = 5f, MinY = -1f, MaxX = 10f, MaxY = 4f },
+                },
+                Rooms = new[] { new RoomDef { Spawns = new[] { new SpawnDef { Class = boss, X = 0f, Y = 8f, Boss = true } } } },
+            };
+        }
+
+        static void StartBoss(LocalSession session, Registry<ClassDef> classes, Registry<AbilityDef> abilities, string boss)
+        {
+            var hall = ShelterHall(classes, abilities, boss);
+            if (hall != null)
+            {
+                session.StartDungeon(hall);
+            }
+            else
+            {
+                session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
+            }
+        }
+
         public static BalanceResult Run(Registry<ClassDef> classes, Registry<AbilityDef> abilities, string weapon, string boss, IBotPolicy policy, float maxSeconds = 240f, ulong seed = 1, int[] loadout = null, float weaponPower = 1f)
         {
             var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
             var client = session.AddPlayer(new PlayerId(1), weapon, 0, loadout, weaponPower);
-            session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
 
             // A tank is not the player a boss picks for its "farthest player" mechanics; a ranged friend is. Alone, the tank
             // would soak all of them, so it gets an idle ally that stays behind and cannot die, to take them instead.
@@ -49,6 +100,7 @@ namespace Game.Core.Tests
                 ally.Health = 1e6f;
             }
 
+            StartBoss(session, classes, abilities, boss);
             var tracker = new Tracker(client, abilities, classes, weapon, boss, policy);
             return Play(session, new[] { tracker }, maxSeconds)[0];
         }
@@ -60,7 +112,7 @@ namespace Game.Core.Tests
             var session = new LocalSession(new ServerConfig(), classes, abilities, seed);
             var tank = session.AddPlayer(new PlayerId(1), tankWeapon);
             var ranged = session.AddPlayer(new PlayerId(2), rangedWeapon);
-            session.Server.SpawnNpc(boss, Team.Enemies, new Vec2(0f, 8f));
+            StartBoss(session, classes, abilities, boss);
             var trackers = new[]
             {
                 new Tracker(tank, abilities, classes, tankWeapon, boss, tankPolicy),
@@ -81,12 +133,13 @@ namespace Game.Core.Tests
                 trackers[i] = new Tracker(client, abilities, classes, members[i].Key, boss, members[i].Value);
             }
 
-            session.StartDungeon(new DungeonDef
+            var dungeon = ShelterHall(classes, abilities, boss) ?? new DungeonDef
             {
                 Id = "balance",
-                HealthPerExtraPlayer = healthPerExtraPlayer,
                 Rooms = new[] { new RoomDef { Spawns = new[] { new SpawnDef { Class = boss, X = 0f, Y = 8f, Boss = true } } } },
-            });
+            };
+            dungeon.HealthPerExtraPlayer = healthPerExtraPlayer;
+            session.StartDungeon(dungeon);
             return Play(session, trackers, maxSeconds);
         }
 
@@ -100,6 +153,7 @@ namespace Game.Core.Tests
                 for (var i = 0; i < trackers.Length; i++)
                 {
                     trackers[i].Policy.Step(trackers[i].View, Step);
+                    Shelter.Apply(trackers[i].View);
                 }
 
                 session.Advance(Step);

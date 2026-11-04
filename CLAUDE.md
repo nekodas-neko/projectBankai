@@ -47,6 +47,7 @@ Working title. Portrait-mode mobile game (Unity, C#) that keeps the MMO core: te
 - Boss casts and adds (issue 65): some boss abilities are interruptible casts (the boss stands still while winding up) and some players' abilities carry an interrupt, which cancels the cast and staggers the boss. Summoning abilities send adds at the farthest player, and a taunt pulls them back. This is how a party answers a boss, not only dodging.
 - Attack warnings are orange or red. Orange attacks can be blocked, dodged or shielded; red attacks (the ability's Avoidable tickbox off) ignore all three and have to be avoided by leaving the area. Fairness between melee and ranged is checked with the balance simulation (issue 69).
 - Bosses can run timed mechanics per phase (issue 70): ground circles dropped on a chosen player (the farthest, a random one, or anyone but the main target) so ranged players have to keep moving, while the boss keeps fighting normally. Data on the class phase and the ability's At Target tickbox.
+- Environment puzzles (issue 70, step 4): an ability can hit everyone in the room (`Everyone`) and be cut by standing on a tagged map patch (`ShelterTag`, `ShelterReduction`; patches are `DungeonDef.Patches`, they never block). The warden's spore cloud and the two water pools in his chamber are the first; see `docs/extending.md`.
 - Attacks can have a windup: the hit lands that long after it starts, from where it started, and every client draws the warning area. Enemies with an aggro range chase and attack on their own.
 
 ## Layout

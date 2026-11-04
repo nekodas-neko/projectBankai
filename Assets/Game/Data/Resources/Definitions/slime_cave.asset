@@ -316,3 +316,12 @@ MonoBehaviour:
     min: {x: 2, y: 62}
     max: {x: 10, y: 70}
     openAfter: 1
+  patches:
+  - name: West pool
+    tag: water
+    min: {x: -10, y: 22}
+    max: {x: -5, y: 27}
+  - name: East pool
+    tag: water
+    min: {x: 5, y: 22}
+    max: {x: 10, y: 27}

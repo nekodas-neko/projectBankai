@@ -44,6 +44,9 @@ MonoBehaviour:
   summonClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
   summonSkin: slime_green
   summonCount: 3
+  everyone: 0
+  shelterTag: 
+  shelterReduction: 0
   variants: []
   castEffect: {fileID: 7038512398453231626, guid: 9560150c1ed72e1448753f1025893cb6, type: 3}
   hitEffect: {fileID: 2147423778621091440, guid: ea60e1026265d554ab3d4f4a355facc7, type: 3}

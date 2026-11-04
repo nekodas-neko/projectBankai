@@ -54,6 +54,9 @@ namespace Game.Client
         [Tooltip("Summons adds around the caster when it resolves; they go for the farthest player.")] public ClassAsset summonClass;
         public string summonSkin = "";
         [Range(0, 8)] public int summonCount;
+        [Tooltip("Hits every enemy in the room wherever it stands (needs damage and a windup of at least 0.5 s).")] public bool everyone;
+        [Tooltip("Damage is cut for a target standing on a dungeon patch with this tag (for example water).")] public string shelterTag = "";
+        [Range(0f, 1f)] [Tooltip("How much of the damage a sheltered target does not take.")] public float shelterReduction;
 
         public VariantData[] variants = new VariantData[0];
         public GameObject castEffect;
@@ -116,6 +119,9 @@ namespace Game.Client
                 SummonClass = summonClass != null ? summonClass.Id : null,
                 SummonSkin = summonSkin,
                 SummonCount = summonCount,
+                Everyone = everyone,
+                ShelterTag = shelterTag,
+                ShelterReduction = shelterReduction,
                 Variants = variants.Select(variant => new VariantDef
                 {
                     Id = variant.id,
