@@ -90,6 +90,32 @@ namespace Game.Client.Tests
         }
 
         [Test]
+        public void KillsPayGoldThatIsSavedAndShownOnTheMasteryLine()
+        {
+            var classes = new Registry<ClassDef>();
+            classes.Add(new ClassDef { Id = "carrier", Stats = new Stats { MaxHealth = 10f }, GoldReward = 7 });
+            var progress = new MasteryProgress(new ProfileStore(directory, Starter), new MasteryRules(), null, 5, new RewardBook(classes, new MasteryRules()), null);
+
+            Kill(progress, 3);
+
+            Assert.AreEqual(21, progress.Gold);
+            progress.Flush();
+            Assert.AreEqual(21, new ProfileStore(directory, Starter).Load().Gold, "saved with the periodic save, like XP");
+            StringAssert.EndsWith("21 gold", progress.Summary().Replace("Found a health potion", string.Empty));
+        }
+
+        [Test]
+        public void TheShippedEnemiesPayGoldAndBossesPayMost()
+        {
+            DefinitionLoader.Load(out var classes, out _);
+
+            Assert.Greater(classes.Get("slime").GoldReward, 0);
+            Assert.Greater(classes.Get("chest").GoldReward, classes.Get("slime").GoldReward);
+            Assert.Greater(classes.Get("mushroom_warden").GoldReward, classes.Get("chest").GoldReward * 2);
+            Assert.Greater(classes.Get("slime_boss").GoldReward, classes.Get("mushroom_warden").GoldReward);
+        }
+
+        [Test]
         public void TheShippedMobsAndBossesCanDropPotions()
         {
             DefinitionLoader.Load(out var classes, out _);

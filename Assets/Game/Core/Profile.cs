@@ -21,6 +21,29 @@ namespace Game.Core
         public List<OwnedWeapon> Weapons { get; } = new List<OwnedWeapon>();
         public string EquippedUid { get; set; } = string.Empty;
 
+        // Gold: what kills, chests and dismantled weapons give, to be spent on things later.
+        public const int MaxGold = 999999;
+        public int Gold { get; set; }
+
+        public void AddGold(int amount)
+        {
+            if (amount > 0)
+            {
+                Gold = (int)Math.Min((long)Gold + amount, MaxGold);
+            }
+        }
+
+        public bool TrySpendGold(int amount)
+        {
+            if (amount < 0 || amount > Gold)
+            {
+                return false;
+            }
+
+            Gold -= amount;
+            return true;
+        }
+
         // Health potions carried between runs.
         public const int MaxPotions = 5;
         public int Potions { get; set; }
@@ -198,6 +221,7 @@ namespace Game.Core
         {
             var text = new StringBuilder();
             text.Append(Header).Append(' ').Append(Version).Append('\n');
+            text.Append("gold ").Append(profile.Gold).Append('\n');
             text.Append("potions ").Append(profile.Potions).Append('\n');
             text.Append("equipped ").Append(profile.EquippedUid.Length == 0 ? "-" : profile.EquippedUid).Append('\n');
             foreach (var weapon in profile.Weapons)
@@ -274,6 +298,15 @@ namespace Game.Core
             error = null;
             switch (parts[0])
             {
+                case "gold" when parts.Length == 2:
+                    if (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var gold))
+                    {
+                        error = "bad gold";
+                        return false;
+                    }
+
+                    profile.Gold = Math.Min(gold, PlayerProfile.MaxGold);
+                    return true;
                 case "potions" when parts.Length == 2:
                     if (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var potions))
                     {
@@ -331,6 +364,7 @@ namespace Game.Core
 
                     profile.MasteryFor(parts[1]).Choices.Add(parts[2]);
                     return true;
+                case "gold":
                 case "potions":
                 case "equipped":
                 case "weapon":

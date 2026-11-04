@@ -136,6 +136,8 @@ namespace Game.Client
 
         public int Potions => Profile.Potions;
 
+        public int Gold => Profile.Gold;
+
         // Drinks one from the bag (the caller sends the command) and saves at once.
         public bool TryUsePotion()
         {
@@ -199,6 +201,11 @@ namespace Game.Client
             foreach (var enemy in fallen)
             {
                 var reward = rewards.For(enemy.ClassHash, enemy.Boss);
+                if (reward.Gold > 0)
+                {
+                    Profile.AddGold(reward.Gold);
+                }
+
                 if (reward.PotionChance > 0f && Roll(reward.PotionChance) && Profile.AddPotion())
                 {
                     notice = "Found a health potion";
@@ -325,7 +332,7 @@ namespace Game.Client
             var level = mastery.Level(rules);
             var bar = needed > 0 ? $"{into}/{needed}" : "max";
             var points = mastery.PointsAvailable(rules);
-            return $"{Describe(Profile.Equipped)} mastery {level} ({bar}){(points > 0 ? $", {points} {(points == 1 ? "point" : "points")}" : string.Empty)}";
+            return $"{Describe(Profile.Equipped)} mastery {level} ({bar}){(points > 0 ? $", {points} {(points == 1 ? "point" : "points")}" : string.Empty)} - {Profile.Gold} gold";
         }
 
         public static string Name(string weaponType)

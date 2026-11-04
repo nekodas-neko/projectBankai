@@ -193,6 +193,11 @@ namespace Game.Core
                     errors.Add($"Class '{def.Id}': a drop chance needs a loot table");
                 }
 
+                if (def.GoldReward < 0 || def.GoldReward > 100000 || (def.Playable && def.GoldReward != 0))
+                {
+                    errors.Add($"Class '{def.Id}': gold reward must be between 0 and 100000 and a weapon cannot carry one");
+                }
+
                 if (float.IsNaN(def.PotionChance) || def.PotionChance < 0f || def.PotionChance > 1f)
                 {
                     errors.Add($"Class '{def.Id}': potion chance must be between 0 and 1");

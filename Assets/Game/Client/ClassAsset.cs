@@ -52,6 +52,9 @@ namespace Game.Client
 
         // The chance each player finds a health potion when this enemy falls.
         [Range(0f, 1f)] public float potionChance;
+
+        // Gold each player gets when this enemy falls.
+        [Min(0)] public int goldReward;
         public string displayName = "";
         public string skinPrefix = "";
         public PhaseData[] phases = new PhaseData[0];
@@ -89,6 +92,7 @@ namespace Game.Client
                 LootTable = lootTable ?? string.Empty,
                 DropChance = dropChance,
                 PotionChance = potionChance,
+                GoldReward = goldReward,
                 Phases = phases.Select(phase => new PhaseDef
                 {
                     HealthBelow = phase.healthBelow,

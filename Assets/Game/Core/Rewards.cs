@@ -5,8 +5,9 @@ namespace Game.Core
     // What one kill is worth to the player who sees it.
     public readonly struct KillReward
     {
-        public KillReward(int xp, string lootTable, float dropChance, float potionChance = 0f)
+        public KillReward(int xp, string lootTable, float dropChance, float potionChance = 0f, int gold = 0)
         {
+            Gold = gold;
             Xp = xp;
             LootTable = lootTable ?? string.Empty;
             DropChance = dropChance;
@@ -14,6 +15,8 @@ namespace Game.Core
         }
 
         public float PotionChance { get; }
+
+        public int Gold { get; }
 
         public int Xp { get; }
 
@@ -50,7 +53,7 @@ namespace Game.Core
                 return new KillReward(rules.XpForKill(boss), string.Empty, 0f);
             }
 
-            return new KillReward(def.XpReward > 0 ? def.XpReward : rules.XpForKill(boss), def.LootTable, def.DropChance, def.PotionChance);
+            return new KillReward(def.XpReward > 0 ? def.XpReward : rules.XpForKill(boss), def.LootTable, def.DropChance, def.PotionChance, def.GoldReward);
         }
     }
 }

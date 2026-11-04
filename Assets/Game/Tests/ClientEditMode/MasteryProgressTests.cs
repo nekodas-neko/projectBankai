@@ -118,13 +118,13 @@ namespace Game.Client.Tests
             progress.Observe(Snap((1, Team.Enemies, 50f, 0)));
             progress.Observe(Snap((1, Team.Enemies, 0f, 0)));
 
-            Assert.AreEqual("Healing mace mastery 0 (10/20)", progress.Summary());
+            Assert.AreEqual("Healing mace mastery 0 (10/20) - 0 gold", progress.Summary());
 
             progress.Observe(Snap((1, Team.Enemies, 0f, 0), (2, Team.Enemies, 50f, 0)));
             progress.Observe(Snap((1, Team.Enemies, 0f, 0), (2, Team.Enemies, 0f, 0)));
             progress.Tick(6f);
 
-            Assert.AreEqual("Healing mace mastery 1 (0/40), 1 point", progress.Summary());
+            Assert.AreEqual("Healing mace mastery 1 (0/40), 1 point - 0 gold", progress.Summary());
         }
 
         [Test]

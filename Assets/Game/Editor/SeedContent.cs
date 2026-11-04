@@ -305,6 +305,14 @@ namespace Game.Editor
                 c.dropChance = 0.05f;
             });
 
+            // Gold for every kill, a little for a mob and a lot for a boss; a chest holds a handful.
+            Tune("slime", c => c.goldReward <= 0, c => c.goldReward = 3);
+            Tune("cave_crawler", c => c.goldReward <= 0, c => c.goldReward = 8);
+            Tune("chest", c => c.goldReward <= 0, c => c.goldReward = 25);
+            Tune("mushroom_warden", c => c.goldReward <= 0, c => c.goldReward = 100);
+            Tune("brood_mother", c => c.goldReward <= 0, c => c.goldReward = 150);
+            Tune("slime_boss", c => c.goldReward <= 0, c => c.goldReward = 250);
+
             // Health potions: a small chance from mobs and one from every boss.
             Tune("slime", c => c.potionChance <= 0f, c => c.potionChance = 0.06f);
             Tune("cave_crawler", c => c.potionChance <= 0f, c => c.potionChance = 0.12f);
