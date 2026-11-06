@@ -48,12 +48,21 @@ namespace Game.Core
             Reset();
         }
 
+        // After a victory the run starts over. After a defeat in a continuous dungeon the party goes back to the room of the last
+        // boss it killed: the gates and the dead bosses stay as they were, and only the sections not yet cleared are put back.
         public void RestartIfFinished()
         {
-            if (dungeon != null && (Phase == DungeonPhase.Victory || Phase == DungeonPhase.Defeat))
+            if (dungeon == null || (Phase != DungeonPhase.Victory && Phase != DungeonPhase.Defeat))
             {
-                Reset();
+                return;
             }
+
+            if (Phase == DungeonPhase.Defeat && Map != null && cleared > 0 && TryResumeFromCheckpoint())
+            {
+                return;
+            }
+
+            Reset();
         }
 
         public void Step(float dt)
@@ -254,7 +263,15 @@ namespace Game.Core
             }
 
             sectionHasBoss = new bool[dungeon.Rooms.Length];
-            for (var section = 0; section < dungeon.Rooms.Length; section++)
+            SpawnSections(0);
+            Phase = DungeonPhase.Fighting;
+            timer = 0f;
+        }
+
+        // Every section from "first" on gets its enemies, in the zone it belongs to.
+        void SpawnSections(int first)
+        {
+            for (var section = first; section < dungeon.Rooms.Length; section++)
             {
                 var room = dungeon.Rooms[section];
                 for (var i = 0; i < room.Spawns.Length; i++)
@@ -270,9 +287,52 @@ namespace Game.Core
                     sectionHasBoss[section] |= spawn.Boss;
                 }
             }
+        }
 
+        // The checkpoint is the middle of the zone where the last cleared section's boss stood: a room the party has already won,
+        // with the gate to the next part open. Returns false when the data gives no place to stand (then the run starts over).
+        bool TryResumeFromCheckpoint()
+        {
+            var room = dungeon.Rooms[cleared - 1];
+            SpawnDef anchor = null;
+            for (var i = 0; i < room.Spawns.Length && anchor == null; i++)
+            {
+                anchor = room.Spawns[i].Boss ? room.Spawns[i] : null;
+            }
+
+            if (anchor == null && room.Spawns.Length > 0)
+            {
+                anchor = room.Spawns[0];
+            }
+
+            if (anchor == null)
+            {
+                return false;
+            }
+
+            var point = new Vec2(anchor.X + room.OffsetX, anchor.Y + room.OffsetY);
+            var zone = Map.ZoneAt(point);
+            if (zone >= 0)
+            {
+                var z = Map.Zones[zone];
+                point = new Vec2((z.MinX + z.MaxX) * 0.5f, (z.MinY + z.MaxY) * 0.5f);
+            }
+
+            RemoveEnemies();
+            for (var i = 0; i < session.Count; i++)
+            {
+                var player = world.Find(session[i].Entity);
+                if (player != null)
+                {
+                    player.Charge = 0f;
+                    player.Respawn(world.InsideArena(point + new Vec2(World.SpawnPoint(i).X, 0f)));
+                }
+            }
+
+            SpawnSections(cleared);
             Phase = DungeonPhase.Fighting;
             timer = 0f;
+            return true;
         }
 
         void StepMap(float dt)
