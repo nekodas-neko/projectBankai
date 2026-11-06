@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: add142465e0fbf7449ac467266c6a7c4, type: 3}
+  m_Name: slime_purple
+  m_EditorClassIdentifier: Game.Client::Game.Client.SkinAsset
+  playable: 0
+  shape: 1
+  bobHeight: 0.25
+  prefab: {fileID: 0}
+  body: {fileID: 2100000, guid: fec41d141aa177241851b9eaedd0126f, type: 2}
+  accent: {fileID: 2100000, guid: 0be6bfb0f0e1e9548a2c14b991f5b641, type: 2}
+  scale: {x: 1.3, y: 1, z: 1.3}

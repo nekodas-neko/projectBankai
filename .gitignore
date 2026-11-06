@@ -60,3 +60,19 @@ local-data/
 
 .DS_Store
 Thumbs.db
+*.slnx
+
+/Assets/Game/Client/Resources/BuildInfo.txt
+/Assets/Game/Client/Resources/BuildInfo.txt.meta
+/Assets/Game/Client/Resources.meta
+/.utmp/
+/Assets/Resources/BillingMode.json
+/Assets/Resources/BillingMode.json.meta
+/Assets/Resources.meta
+
+!/tests/**/*.csproj
+/tests/**/bin/
+/tests/**/obj/
+
+/_art-incoming/
+tuning.txt

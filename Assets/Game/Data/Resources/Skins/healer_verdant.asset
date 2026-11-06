@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: add142465e0fbf7449ac467266c6a7c4, type: 3}
+  m_Name: healer_verdant
+  m_EditorClassIdentifier: Game.Client::Game.Client.SkinAsset
+  playable: 1
+  shape: 0
+  bobHeight: 0.14
+  prefab: {fileID: 0}
+  body: {fileID: 2100000, guid: 443ab1a99144c7b4aafd4b2ccdaba34c, type: 2}
+  accent: {fileID: 2100000, guid: 4e6f0e9e632fd4740a9a95f5ffc4dbe3, type: 2}
+  scale: {x: 0.95, y: 1, z: 0.95}

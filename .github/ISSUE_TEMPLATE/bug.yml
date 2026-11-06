@@ -1,0 +1,36 @@
+name: Bug
+description: Something behaved wrongly
+labels: [bug]
+body:
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What was expected
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: Build number
+      description: Shown in the corner of the screen
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Drag an image in here

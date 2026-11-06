@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f163ad990b858e444a427c5a66f8a819, type: 3}
+  m_Name: meteor_fall
+  m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
+  kind: 0
+  shape: 1
+  angle: 0
+  cooldown: 1
+  range: 6
+  radius: 6
+  damage: 70
+  windup: 0.8
+  heavyDamageScale: 2.4
+  heavyCooldownScale: 1.8
+  resourceCost: 0
+  duration: 0
+  dashDistance: 0
+  reduction: 0
+  absorb: 0
+  perfectWindow: 0
+  heal: 0
+  taunt: 0
+  rider: {fileID: 0}
+  avoidable: 1
+  atTarget: 0
+  chargeRequired: 1000
+  chargeFromDealt: 0.8
+  chargeFromTaken: 0
+  chargeFromBlocked: 0
+  chargeFromHealing: 0
+  interruptible: 0
+  interrupt: 0
+  stun: 0
+  summonClass: {fileID: 0}
+  summonSkin: 
+  summonCount: 0
+  everyone: 0
+  shelterTag: 
+  shelterReduction: 0
+  selfHeal: 0
+  fortify: 0
+  fortifySeconds: 0
+  variants:
+  - id: wide
+    damageScale: 0.9
+    rangeScale: 1.25
+    cooldownScale: 1
+    costScale: 1
+    castEffect: {fileID: 0}
+    hitEffect: {fileID: 0}
+  castEffect: {fileID: 5559672738365469740, guid: 995bd20bcc1f6d7459ab2ea5e7141ce8, type: 3}
+  hitEffect: {fileID: 587756144387011988, guid: 6f4a075f9c0af374e89b9ba89f5348a4, type: 3}

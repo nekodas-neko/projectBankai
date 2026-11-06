@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
+  m_Name: chest
+  m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
+  playable: 0
+  maxHealth: 40
+  moveSpeed: 0
+  power: 1
+  autoAttack: {fileID: 11400000, guid: 940b24a73e36a4a48aaa9f33c9df92c0, type: 2}
+  skills: []
+  defense: {fileID: 0}
+  aggroRange: 0
+  threatMultiplier: 1
+  bodyRadius: 0.9
+  leashRange: 0
+  recoverySeconds: 0
+  wanderRadius: 0
+  xpReward: 5
+  lootTable: mob_drop
+  dropChance: 0.25
+  potionChance: 1
+  goldReward: 25
+  displayName: 
+  skinPrefix: 
+  phases: []
+  hasResource: 0
+  resourceId: 
+  resourceMax: 100
+  resourceStart: 0
+  resourceRegen: 0
+  resourceGainDealt: 0
+  resourceGainTaken: 0
+  resourceGainBlocked: 0

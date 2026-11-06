@@ -1,0 +1,327 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 166dfb502cb43ac4da57afc2e2db064b, type: 3}
+  m_Name: slime_cave
+  m_EditorClassIdentifier: Game.Client::Game.Client.DungeonAsset
+  clearDelaySeconds: 3
+  healthPerExtraPlayer: 0.8
+  rooms:
+  - name: Mushroom grove
+    offset: {x: 0, y: 0}
+    spawns:
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -21, y: 5}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -18, y: 8}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
+      position: {x: -22, y: 10}
+      skin: slime_purple
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 19, y: 5}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
+      position: {x: 22, y: 9}
+      skin: slime_red
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 17, y: 10}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -3, y: 19}
+      skin: slime_green
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
+      position: {x: 3, y: 21}
+      skin: slime_purple
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 16021f0fd9f50d849a3dd5a8554483ed, type: 2}
+      position: {x: 0, y: 31}
+      skin: monster_mushroom
+      boss: 1
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -17, y: 0}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 16, y: 2}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -6, y: 22}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 7, y: 27}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: -25, y: 9}
+      skin: chest
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: 25, y: 9}
+      skin: chest
+      boss: 0
+      pack: 0
+  - name: Brood tunnels
+    offset: {x: 0, y: 0}
+    spawns:
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 22, y: 27}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 25, y: 30}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
+      position: {x: 23, y: 31}
+      skin: slime_purple
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 37, y: 36}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
+      position: {x: 39, y: 40}
+      skin: slime_red
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
+      position: {x: 36, y: 43}
+      skin: slime_purple
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 24, y: 44}
+      skin: slime_green
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
+      position: {x: 27, y: 46}
+      skin: slime_red
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: 23, y: 47}
+      skin: slime_green
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
+      position: {x: 18, y: 66}
+      skin: slime_yellow
+      boss: 0
+      pack: 4
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
+      position: {x: 30, y: 66}
+      skin: slime_yellow
+      boss: 0
+      pack: 4
+    - spawnClass: {fileID: 11400000, guid: 88b56a55d2af4ac48b305bba26764e5b, type: 2}
+      position: {x: 25, y: 73}
+      skin: monster_cthulhu
+      boss: 1
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 30, y: 29}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 37, y: 52}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 20, y: 62}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: 35, y: 70}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: 28, y: 45}
+      skin: chest
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: 39, y: 58}
+      skin: chest
+      boss: 0
+      pack: 0
+  - name: King's road
+    offset: {x: 0, y: 0}
+    spawns:
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -4, y: 66}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -9, y: 68}
+      skin: slime_green
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
+      position: {x: -13, y: 65}
+      skin: slime_purple
+      boss: 0
+      pack: 1
+    - spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+      position: {x: -19, y: 79}
+      skin: slime_green
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
+      position: {x: -17, y: 83}
+      skin: slime_red
+      boss: 0
+      pack: 2
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
+      position: {x: -21, y: 88}
+      skin: slime_yellow
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: f9d90306a614ccc488a7c9d2a69f5118, type: 2}
+      position: {x: -17, y: 90}
+      skin: slime_yellow
+      boss: 0
+      pack: 3
+    - spawnClass: {fileID: 11400000, guid: 3751a9e09340ab54094a91fec2ff99e0, type: 2}
+      position: {x: -24, y: 104}
+      skin: slime_purple
+      boss: 0
+      pack: 4
+    - spawnClass: {fileID: 11400000, guid: 9e9fe0ad8876a244f88f9425cbebad49, type: 2}
+      position: {x: -10, y: 104}
+      skin: slime_red
+      boss: 0
+      pack: 4
+    - spawnClass: {fileID: 11400000, guid: 79a2fa87f87823c4ababaf5cb56d227f, type: 2}
+      position: {x: -18, y: 114}
+      skin: boss_greendemon
+      boss: 1
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -5, y: 63}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -16, y: 76}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: c571b53201a37814682ca1a3fd935970, type: 2}
+      position: {x: -26, y: 110}
+      skin: slime_green
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: -22, y: 65}
+      skin: chest
+      boss: 0
+      pack: 0
+    - spawnClass: {fileID: 11400000, guid: 47f7fc2f872ab424daa3951061f79826, type: 2}
+      position: {x: -18, y: 92}
+      skin: chest
+      boss: 0
+      pack: 0
+  zones:
+  - name: Entry hall
+    min: {x: -8, y: -8}
+    max: {x: 8, y: 10}
+  - name: West passage
+    min: {x: -12, y: 3}
+    max: {x: -6, y: 7}
+  - name: West cave
+    min: {x: -28, y: -2}
+    max: {x: -10, y: 12}
+  - name: East passage
+    min: {x: 6, y: 3}
+    max: {x: 12, y: 7}
+  - name: East cave
+    min: {x: 10, y: -2}
+    max: {x: 28, y: 12}
+  - name: Grove path
+    min: {x: -3, y: 8}
+    max: {x: 3, y: 16}
+  - name: Warden's chamber
+    min: {x: -12, y: 14}
+    max: {x: 12, y: 38}
+  - name: Brood tunnel east
+    min: {x: 14, y: 24}
+    max: {x: 40, y: 34}
+  - name: Brood tunnel north
+    min: {x: 32, y: 30}
+    max: {x: 42, y: 60}
+  - name: Side nook
+    min: {x: 20, y: 40}
+    max: {x: 33, y: 50}
+  - name: Brood chamber
+    min: {x: 8, y: 56}
+    max: {x: 42, y: 80}
+  - name: Cold passage
+    min: {x: -24, y: 60}
+    max: {x: 6, y: 72}
+  - name: Hall approach
+    min: {x: -24, y: 70}
+    max: {x: -14, y: 94}
+  - name: King's hall
+    min: {x: -32, y: 92}
+    max: {x: -4, y: 124}
+  gates:
+  - name: First gate
+    min: {x: 10, y: 26}
+    max: {x: 18, y: 32}
+    openAfter: 0
+  - name: Second gate
+    min: {x: 2, y: 62}
+    max: {x: 10, y: 70}
+    openAfter: 1
+  patches:
+  - name: West pool
+    tag: water
+    min: {x: -10, y: 22}
+    max: {x: -5, y: 27}
+  - name: East pool
+    tag: water
+    min: {x: 5, y: 22}
+    max: {x: 10, y: 27}

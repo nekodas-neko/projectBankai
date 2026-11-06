@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
+  m_Name: slime_boss
+  m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
+  playable: 0
+  maxHealth: 2400
+  moveSpeed: 2.2
+  power: 1
+  autoAttack: {fileID: 11400000, guid: e0ac7ad238286114e89f4f51f4c6adb1, type: 2}
+  skills:
+  - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+  - {fileID: 11400000, guid: 274694ff9049cf54a853b4817fd0e5d4, type: 2}
+  - {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+  defense: {fileID: 0}
+  aggroRange: 12
+  threatMultiplier: 1
+  bodyRadius: 1.8
+  leashRange: 0
+  recoverySeconds: 1.5
+  wanderRadius: 0
+  xpReward: 150
+  lootTable: boss_drop
+  dropChance: 1
+  potionChance: 1
+  goldReward: 250
+  displayName: 
+  skinPrefix: 
+  phases:
+  - healthBelow: 1
+    attacks:
+    - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+    - {fileID: 11400000, guid: e0ac7ad238286114e89f4f51f4c6adb1, type: 2}
+    speedScale: 1
+    spawnClass: {fileID: 0}
+    spawnCount: 0
+    spawnSkin: 
+    mechanics:
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 14
+      firstDelaySeconds: 6
+      target: 1
+      count: 1
+  - healthBelow: 0.65
+    attacks:
+    - {fileID: 11400000, guid: 274694ff9049cf54a853b4817fd0e5d4, type: 2}
+    - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+    - {fileID: 11400000, guid: e0ac7ad238286114e89f4f51f4c6adb1, type: 2}
+    speedScale: 1
+    spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    spawnCount: 2
+    spawnSkin: slime_green
+    mechanics:
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 12
+      firstDelaySeconds: 3
+      target: 1
+      count: 1
+  - healthBelow: 0.3
+    attacks:
+    - {fileID: 11400000, guid: fd2f0329c6caf5b4e8f14dd1f55b450e, type: 2}
+    - {fileID: 11400000, guid: 274694ff9049cf54a853b4817fd0e5d4, type: 2}
+    - {fileID: 11400000, guid: e0ac7ad238286114e89f4f51f4c6adb1, type: 2}
+    speedScale: 1.5
+    spawnClass: {fileID: 11400000, guid: 0e89e0770a1b3c444b78b177ad7c2adf, type: 2}
+    spawnCount: 3
+    spawnSkin: slime_green
+    mechanics:
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 10
+      firstDelaySeconds: 2
+      target: 1
+      count: 1
+    - ability: {fileID: 11400000, guid: 393fd2a3287483245bdf8897ebea2157, type: 2}
+      intervalSeconds: 16
+      firstDelaySeconds: 4
+      target: 0
+      count: 1
+  hasResource: 0
+  resourceId: 
+  resourceMax: 100
+  resourceStart: 0
+  resourceRegen: 0
+  resourceGainDealt: 0
+  resourceGainTaken: 0
+  resourceGainBlocked: 0

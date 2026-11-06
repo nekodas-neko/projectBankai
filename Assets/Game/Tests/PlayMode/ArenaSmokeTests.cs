@@ -1,0 +1,456 @@
+using System.IO;
+using System.Collections;
+using System.Net;
+using Game.Client;
+using Game.Core;
+using Game.Net;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+
+namespace Game.PlayMode.Tests
+{
+    public class ArenaSmokeTests
+    {
+        static void Press(ActionButton button, Vector2 from, Vector2 to)
+        {
+            var data = new PointerEventData(EventSystem.current) { pointerId = 0, position = from };
+            ExecuteEvents.Execute<IPointerDownHandler>(button.gameObject, data, ExecuteEvents.pointerDownHandler);
+            data.position = to;
+            ExecuteEvents.Execute<IDragHandler>(button.gameObject, data, ExecuteEvents.dragHandler);
+            ExecuteEvents.Execute<IPointerUpHandler>(button.gameObject, data, ExecuteEvents.pointerUpHandler);
+        }
+
+        [UnityTest]
+        public IEnumerator Skin_ChosenForTheClassIsWhatThePlayerWears()
+        {
+            HudSettings.ClassName = "staff";
+            HudSettings.SetSkin("staff", "mage_crimson");
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.6f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Assert.IsTrue(bootstrap.Views.TryGetBodyMaterial(bootstrap.LocalClient.LocalEntity, out var material));
+            HudSettings.SetSkin("staff", "mage_arcane");
+
+            Assert.AreEqual("mage_crimson_body", material.name);
+        }
+
+        [UnityTest]
+        public IEnumerator UsingASkill_PlaysItsCastEffect()
+        {
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Assert.AreEqual(0, Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None).Length);
+
+            Press(bootstrap.Hud.Attack, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.2f);
+
+            Assert.Greater(Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None).Length, 0);
+        }
+
+        [UnityTest]
+        public IEnumerator DefendButton_DodgesAndTheResourceShows()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Press(bootstrap.Hud.Defense, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var state));
+            Assert.Greater(state.GetCooldown(Entity.DefenseSlot), 0f);
+            Assert.AreNotEqual(0, state.Effects & EffectFlags.Invulnerable);
+            Assert.Greater(state.MaxResource, 0f);
+            Assert.Greater(state.Resource, 0f);
+        }
+
+        [UnityTest]
+        public IEnumerator HomeScreen_ShowsTheCharacterAndStartsTheDungeon()
+        {
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Home");
+            yield return new WaitForSeconds(0.5f);
+            var home = Object.FindFirstObjectByType<HomeBootstrap>();
+
+            Assert.IsNotNull(home);
+            StringAssert.Contains("Staff", home.Home.WeaponText);
+            StringAssert.StartsWith("Health", home.Home.StatsText);
+            StringAssert.StartsWith("Gold", home.Home.WalletText);
+            Assert.IsFalse(home.CharacterScreen.IsOpen);
+
+            foreach (var button in Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None))
+            {
+                if (button.name == "OpenCharacter")
+                {
+                    button.onClick.Invoke();
+                }
+            }
+
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(home.CharacterScreen.IsOpen);
+            var worn = SkinCatalog.Get(StableId.From(HudSettings.SkinFor(home.Mastery.Profile.EquippedType)));
+            Assert.AreEqual(worn != null && worn.prefab != null, home.CharacterScreen.PictureShown, "the picture is drawn when the skin has a model");
+            Assert.IsNotEmpty(home.CharacterScreen.StatValue(0), "the health bar has its number");
+            home.CharacterScreen.SetOpen(false);
+
+            foreach (var button in Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None))
+            {
+                if (button.name == "Modedungeon")
+                {
+                    button.onClick.Invoke();
+                }
+            }
+
+            yield return new WaitForSeconds(1f);
+            Assert.IsNotNull(Object.FindFirstObjectByType<ArenaBootstrap>(), "the dungeon scene loaded");
+        }
+
+        [UnityTest]
+        public IEnumerator Dodge_StartsOnTheClientBeforeTheServerHearsOfIt()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            bootstrap.Session.SetConditions(new NetworkConditions { LatencySeconds = 0.4f });
+            yield return new WaitForSeconds(1.2f);
+            var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+            var clientStart = bootstrap.LocalClient.PredictedPosition;
+            var serverStart = player.Position;
+
+            Press(bootstrap.Hud.Defense, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.15f);
+
+            Assert.Greater((bootstrap.LocalClient.PredictedPosition - clientStart).Length, 0.2f, "the dash started on the client");
+            Assert.AreEqual(serverStart.X, player.Position.X, 0.001f, "the server has not even received the command");
+            Assert.AreEqual(serverStart.Y, player.Position.Y, 0.001f);
+        }
+
+        [UnityTest]
+        public IEnumerator UltimateButton_NeedsChargeThenFiresAndEmptiesIt()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+
+            Press(bootstrap.Hud.Ultimate, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.2f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var empty));
+            Assert.Greater(empty.ChargeMax, 0f);
+            Assert.AreEqual(0f, empty.GetCooldown(Entity.UltimateSlot));
+
+            player.Charge = player.ChargeMax;
+            yield return new WaitForSeconds(0.2f);
+            Press(bootstrap.Hud.Ultimate, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            yield return new WaitForSeconds(0.2f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var fired));
+            Assert.Greater(fired.GetCooldown(Entity.UltimateSlot), 0f);
+            Assert.AreEqual(0f, fired.Charge, 1f);
+        }
+
+        [UnityTest]
+        public IEnumerator BossFrame_ShowsTheBossAndWhoItIsFighting()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Assert.IsTrue(bootstrap.Hud.BossFrame.IsVisible);
+            Assert.AreEqual("Boss - idle", bootstrap.Hud.BossFrame.Text);
+
+            var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+            player.Position = new Vec2(0f, 24f);
+            yield return new WaitForSeconds(0.6f);
+
+            Assert.AreEqual("Boss - targeting YOU", bootstrap.Hud.BossFrame.Text);
+        }
+
+        [UnityTest]
+        public IEnumerator TheBossCastBarSitsAboveTheBossAndHidesAgain()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Entity boss = null;
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (entity.IsBoss && boss == null)
+                {
+                    boss = entity;
+                }
+            }
+
+            Assert.IsNotNull(boss);
+            Assert.IsFalse(bootstrap.Views.CastVisible(boss.Id));
+
+            bootstrap.Views.SetCast(boss.Id, 0.5f);
+            Assert.IsTrue(bootstrap.Views.CastVisible(boss.Id));
+
+            bootstrap.Views.SetCast(boss.Id, -1f);
+            Assert.IsFalse(bootstrap.Views.CastVisible(boss.Id));
+        }
+
+        [UnityTest]
+        public IEnumerator DungeonMap_IsDrawnAClosedGateStopsThePlayerAndABossOpensIt()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.6f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            var server = bootstrap.Session.Server;
+            var player = server.FindPlayerEntity(new PlayerId(1));
+
+            Assert.IsNotNull(server.Map);
+            Assert.IsNotNull(GameObject.Find("DungeonMap"));
+            Assert.IsNull(GameObject.Find("Ground"), "the round ground is hidden");
+            Assert.IsTrue(bootstrap.Hud.MiniMap.IsVisible);
+            Assert.Greater(bootstrap.Hud.MiniMap.VisibleDots, 1);
+
+            // The first gate is on the east wall of the warden's chamber.
+            player.Position = new Vec2(8f, 29f);
+            bootstrap.Hud.MoveStick.Value = new Vector2(1f, 0f);
+            yield return new WaitForSeconds(1.5f);
+            Assert.Less(player.Position.X, 12.5f, "the closed gate stops the player");
+
+            foreach (var entity in server.Entities)
+            {
+                if (!entity.Owner.IsValid && entity.IsBoss && entity.Section == 0)
+                {
+                    entity.Health = 0f;
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsTrue(server.Map.IsOpen(0));
+
+            yield return new WaitForSeconds(1.5f);
+            bootstrap.Hud.MoveStick.Value = Vector2.zero;
+            Assert.Greater(player.Position.X, 15f, "the open gate lets the player through");
+        }
+
+        [UnityTest]
+        public IEnumerator Dungeon_ShowsTheRoomAdvancesAndOffersARestartAfterADefeat()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.6f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            StringAssert.StartsWith("Defeat the", bootstrap.Hud.Banner.RoomText);
+            var firstTask = bootstrap.Hud.Banner.RoomText;
+            StringAssert.Contains("> " + firstTask, bootstrap.Hud.Quest.Text);
+            Assert.IsFalse(bootstrap.Hud.Banner.RestartVisible);
+
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (!entity.Owner.IsValid && entity.IsBoss && entity.Section == 0)
+                {
+                    entity.Health = 0f;
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            StringAssert.Contains("Boss down", bootstrap.Hud.Banner.MessageText);
+            Assert.IsTrue(bootstrap.Session.Server.Map.IsOpen(0));
+
+            yield return new WaitForSeconds(3.5f);
+            Assert.AreNotEqual(firstTask, bootstrap.Hud.Banner.RoomText, "the next boss is the task now");
+            StringAssert.Contains("[x] " + firstTask, bootstrap.Hud.Quest.Text);
+
+            foreach (var entity in bootstrap.Session.Server.Entities)
+            {
+                if (entity.Owner.IsValid)
+                {
+                    entity.Health = 0f;
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual("Defeat", bootstrap.Hud.Banner.MessageText);
+            Assert.IsTrue(bootstrap.Hud.Banner.RestartVisible);
+        }
+
+        [UnityTest]
+        public IEnumerator SkillTreeChoices_PickTheVariantsTheServerUses()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Solo;
+            HudSettings.ClassName = "staff";
+            var store = ProfileStore.ForDevice();
+            var original = File.Exists(store.Path) ? File.ReadAllText(store.Path) : null;
+            try
+            {
+                // Load the arena once first so an earlier test's arena is gone before the profile is written.
+                SceneManager.LoadScene("Arena");
+                yield return new WaitForSeconds(0.3f);
+                DefinitionLoader.Load(out var classes, out var abilities);
+                var tree = SkillTreeCatalog.Load(classes, abilities).Get("staff");
+                var rules = MasteryCatalog.Load();
+                var profile = PlayerProfile.Starter(new[] { "sword_and_shield", "staff", "healing_mace" });
+                var staff = profile.MasteryFor("staff");
+                staff.AddXp(rules, rules.MaxXp);
+                Assert.IsTrue(SkillTreeRules.TryChoose(tree, staff, rules, "crimson_bolt", out var reason), reason);
+                Assert.IsTrue(SkillTreeRules.TryChoose(tree, staff, rules, "frost_fireball", out reason), reason);
+                Assert.IsTrue(store.Save(profile));
+
+                SceneManager.LoadScene("Arena");
+                yield return new WaitForSeconds(0.5f);
+                var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+                var player = bootstrap.Session.Server.FindPlayerEntity(new PlayerId(1));
+                Assert.AreEqual(StableId.From("crimson"), player.Variants[0]);
+                Assert.AreEqual(StableId.From("frost"), player.Variants[1]);
+            }
+            finally
+            {
+                if (original != null)
+                {
+                    File.WriteAllText(store.Path, original);
+                }
+                else if (File.Exists(store.Path))
+                {
+                    File.Delete(store.Path);
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator HostMode_AcceptsAJoiningPlayerOverTheNetwork()
+        {
+            HudSettings.SessionMode = (int)SessionMode.Host;
+            HudSettings.ClassName = "staff";
+            UdpClientTransport joiner = null;
+            try
+            {
+                SceneManager.LoadScene("Arena");
+                yield return new WaitForSeconds(0.5f);
+                var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+                Assert.IsNotNull(bootstrap.Host);
+
+                DefinitionLoader.Load(out var classes, out _);
+                joiner = new UdpClientTransport(new IPEndPoint(IPAddress.Loopback, bootstrap.Host.Port), "sword_and_shield", 0, "Tester");
+                GameClient client = null;
+                var waited = 0f;
+                while (waited < 4f && (bootstrap.Views.Count < 2 + FirstRoomEnemies() || client == null || !client.HasLocalEntity))
+                {
+                    joiner.Update(Time.deltaTime);
+                    if (client == null && joiner.State == ConnectionState.Connected)
+                    {
+                        client = new GameClient(joiner.PlayerId, joiner, classes.Get("sword_and_shield"), new ClientConfig { Simulation = joiner.Simulation });
+                    }
+
+                    client?.Update(Time.deltaTime);
+                    waited += Time.deltaTime;
+                    yield return null;
+                }
+
+                Assert.AreEqual(ConnectionState.Connected, joiner.State);
+                Assert.AreEqual(2 + FirstRoomEnemies(), bootstrap.Views.Count);
+                Assert.IsTrue(client.HasLocalEntity);
+            }
+            finally
+            {
+                joiner?.Dispose();
+                HudSettings.SessionMode = (int)SessionMode.Solo;
+            }
+        }
+
+        // A dungeon with a map has every section's enemies from the start; a round one only the first room's.
+        static int FirstRoomEnemies()
+        {
+            DefinitionLoader.Load(out _, out _, out var dungeons);
+            var cave = dungeons.Get("slime_cave");
+            if (cave.Zones.Length == 0)
+            {
+                return cave.Rooms[0].Spawns.Length;
+            }
+
+            var total = 0;
+            foreach (var room in cave.Rooms)
+            {
+                total += room.Spawns.Length;
+            }
+
+            return total;
+        }
+
+        [UnityTest]
+        public IEnumerator CameraZoom_ScalesTheCameraDistance()
+        {
+            HudSettings.CameraZoom = 1.6f;
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(1.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            var height = Camera.main.transform.position.y - bootstrap.Views.LocalRoot.position.y;
+            HudSettings.CameraZoom = 1f;
+
+            Assert.AreEqual(26f * 1.6f, height, 0.5f);
+        }
+
+        [UnityTest]
+        public IEnumerator ActionButtons_TapAndDragFireThroughTheServer()
+        {
+            SceneManager.LoadScene("Arena");
+            yield return new WaitForSeconds(0.5f);
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+
+            Press(bootstrap.Hud.Attack, new Vector2(100f, 100f), new Vector2(100f, 100f));
+            Press(bootstrap.Hud.Special, new Vector2(100f, 100f), new Vector2(400f, 100f));
+            yield return new WaitForSeconds(0.3f);
+
+            Assert.IsTrue(bootstrap.LocalClient.TryGetLocalState(out var state));
+            Assert.Greater(state.GetCooldown(0), 0f);
+            Assert.Greater(state.GetCooldown(1), 0f);
+            Assert.IsFalse(bootstrap.Hud.Special.IsAiming);
+        }
+
+        [UnityTest]
+        public IEnumerator Arena_SpawnsEntitiesAndMovesPlayerWithStick()
+        {
+            SceneManager.LoadScene("Arena");
+            yield return null;
+            yield return null;
+
+            var bootstrap = Object.FindFirstObjectByType<ArenaBootstrap>();
+            Assert.IsNotNull(bootstrap);
+
+            yield return new WaitForSeconds(0.5f);
+
+            Assert.AreEqual(1 + FirstRoomEnemies(), bootstrap.Views.Count);
+            Assert.IsNotNull(bootstrap.Views.LocalRoot);
+            var before = bootstrap.Views.LocalRoot.position;
+
+            bootstrap.Hud.MoveStick.Value = new Vector2(1f, 0f);
+            var elapsed = 0f;
+            while (elapsed < 0.5f)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+                bootstrap.Hud.MoveStick.Value = new Vector2(1f, 0f);
+            }
+
+            var after = bootstrap.Views.LocalRoot.position;
+            Assert.Greater(after.x - before.x, 0.5f);
+            Assert.AreEqual(before.z, after.z, 0.05f);
+        }
+    }
+}

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70641bfe6b30ede43b289cc7f0b6c02c, type: 3}
+  m_Name: healing_mace
+  m_EditorClassIdentifier: Game.Client::Game.Client.SkillTreeAsset
+  nodes:
+  - id: verdant_bolt
+    displayName: Verdant bolt
+    slot: 0
+    variant: verdant
+    cost: 1
+    requires: 
+  - id: quick_pulse
+    displayName: Quick pulse
+    slot: 1
+    variant: quick
+    cost: 1
+    requires: 
+  - id: greater_burst
+    displayName: Greater burst
+    slot: 2
+    variant: greater
+    cost: 2
+    requires: quick_pulse
+  - id: quick_ward
+    displayName: Quick ward
+    slot: 4
+    variant: quick
+    cost: 1
+    requires: 

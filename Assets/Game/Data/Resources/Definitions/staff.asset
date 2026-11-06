@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a58f2c47455fa14caa843fb873f6591, type: 3}
+  m_Name: staff
+  m_EditorClassIdentifier: Game.Client::Game.Client.ClassAsset
+  playable: 1
+  maxHealth: 80
+  moveSpeed: 6.5
+  power: 1.2
+  autoAttack: {fileID: 11400000, guid: 0ea40e5e6afd88c4e8bdd9f926c49918, type: 2}
+  skills:
+  - {fileID: 11400000, guid: f7c6fa52e3e51034d94395b1d147d6b5, type: 2}
+  - {fileID: 11400000, guid: 23d8fa46725c69548b8024db45abf315, type: 2}
+  defense: {fileID: 11400000, guid: 119348fd6f1b911448c656fc25c5cc33, type: 2}
+  aggroRange: 0
+  threatMultiplier: 1
+  bodyRadius: 0.5
+  leashRange: 0
+  displayName: Staff
+  skinPrefix: mage
+  phases: []
+  hasResource: 1
+  resourceId: focus
+  resourceMax: 100
+  resourceStart: 100
+  resourceRegen: 3
+  resourceGainDealt: 0
+  resourceGainTaken: 0
+  resourceGainBlocked: 0

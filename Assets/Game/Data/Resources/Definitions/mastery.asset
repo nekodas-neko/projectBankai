@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1edf02a18190ef844a95e703c52031ca, type: 3}
+  m_Name: mastery
+  m_EditorClassIdentifier: Game.Client::Game.Client.MasteryAsset
+  xpPerLevel: 640000007d00000096000000af000000c8000000e1000000fa000000130100002c010000450100005e0100007701000090010000a9010000c2010000db010000f40100000d020000260200003f020000
+  pointsPerLevel: 1
+  xpPerKill: 10
+  xpPerBossKill: 150

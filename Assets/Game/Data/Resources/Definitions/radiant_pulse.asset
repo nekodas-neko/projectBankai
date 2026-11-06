@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f163ad990b858e444a427c5a66f8a819, type: 3}
+  m_Name: radiant_pulse
+  m_EditorClassIdentifier: Game.Client::Game.Client.AbilityAsset
+  kind: 0
+  shape: 0
+  angle: 0
+  cooldown: 0.5
+  range: 5
+  radius: 3
+  damage: 14
+  windup: 0
+  heavyDamageScale: 2.4
+  heavyCooldownScale: 1.8
+  resourceCost: 30
+  duration: 0
+  dashDistance: 0
+  reduction: 0
+  absorb: 0
+  perfectWindow: 0
+  heal: 14
+  taunt: 0
+  rider: {fileID: 0}
+  avoidable: 1
+  atTarget: 0
+  chargeRequired: 0
+  chargeFromDealt: 0
+  chargeFromTaken: 0
+  chargeFromBlocked: 0
+  chargeFromHealing: 0
+  interruptible: 0
+  interrupt: 1.2
+  stun: 1.5
+  summonClass: {fileID: 0}
+  summonSkin: 
+  summonCount: 0
+  everyone: 0
+  shelterTag: 
+  shelterReduction: 0
+  selfHeal: 0
+  fortify: 0
+  fortifySeconds: 0
+  variants:
+  - id: quick
+    damageScale: 0.9
+    rangeScale: 1
+    cooldownScale: 0.8
+    costScale: 1
+    castEffect: {fileID: 0}
+    hitEffect: {fileID: 0}
+  castEffect: {fileID: 4905148031431149112, guid: a1651bd803f9bff499fe3f38d44f2e0f, type: 3}
+  hitEffect: {fileID: 8979028662820827838, guid: 8b285d15f1bc548459c1b89365e91257, type: 3}
