@@ -57,6 +57,9 @@ namespace Game.Client
         [Tooltip("Hits every enemy in the room wherever it stands (needs damage and a windup of at least 0.5 s).")] public bool everyone;
         [Tooltip("Damage is cut for a target standing on a dungeon patch with this tag (for example water).")] public string shelterTag = "";
         [Range(0f, 1f)] [Tooltip("How much of the damage a sheltered target does not take.")] public float shelterReduction;
+        [Min(0f)] [Tooltip("Defensive skills: health the user gets back when it is used (times power).")] public float selfHeal;
+        [Range(0f, 1f)] [Tooltip("Defensive skills: for Fortify Seconds after use, avoidable hits the user takes are cut by this share.")] public float fortify;
+        [Range(0f, 10f)] public float fortifySeconds;
 
         public VariantData[] variants = new VariantData[0];
         public GameObject castEffect;
@@ -122,6 +125,9 @@ namespace Game.Client
                 Everyone = everyone,
                 ShelterTag = shelterTag,
                 ShelterReduction = shelterReduction,
+                SelfHeal = selfHeal,
+                Fortify = fortify,
+                FortifySeconds = fortifySeconds,
                 Variants = variants.Select(variant => new VariantDef
                 {
                     Id = variant.id,

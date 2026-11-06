@@ -22,7 +22,7 @@ MonoBehaviour:
   windup: 0
   heavyDamageScale: 2.4
   heavyCooldownScale: 1.8
-  resourceCost: 0
+  resourceCost: -15
   duration: 4
   dashDistance: 0
   reduction: 0
@@ -47,6 +47,9 @@ MonoBehaviour:
   everyone: 0
   shelterTag: 
   shelterReduction: 0
+  selfHeal: 0
+  fortify: 0
+  fortifySeconds: 0
   variants:
   - id: quick
     damageScale: 1

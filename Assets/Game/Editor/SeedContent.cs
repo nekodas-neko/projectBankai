@@ -72,6 +72,11 @@ namespace Game.Editor
             Tune(arcaneStep, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Dodge; a.duration = 0.35f; a.dashDistance = 6f; a.perfectWindow = 0.18f; a.rider = arcaneCounter; });
             Tune(shieldWall, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Block; a.duration = 1.5f; a.reduction = 0.75f; });
             Tune(ward, a => a.kind == AbilityKind.Attack, a => { a.kind = AbilityKind.Shield; a.duration = 4f; a.absorb = 40f; });
+            // The small signature of each default kit (issue 50): the sword and shield's block leaves a short damage cut behind,
+            // the mace's ward gives mana back, the staff's step heals a little.
+            Tune(shieldWall, a => a.fortifySeconds <= 0f, a => { a.fortify = 0.25f; a.fortifySeconds = 2.5f; });
+            Tune(ward, a => a.resourceCost == 0f, a => a.resourceCost = -15f);
+            Tune(arcaneStep, a => a.selfHeal <= 0f, a => a.selfHeal = 6f);
             Tune(slimeSlam, a => a.windup <= 0f, a => a.windup = 0.6f);
             Tune(radiantPulse, a => a.heal <= 0f, a => a.heal = 14f);
             Tune(shieldBash, a => a.taunt <= 0f, a => a.taunt = 3f);

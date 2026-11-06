@@ -56,6 +56,8 @@ Every weapon's defensive skill can carry a small extra, as data on the ability, 
 
 The effect is a status (`StatusType.Fortified`) with no wire flag, so snapshots and the protocol do not change. Clients do not draw it yet.
 
+Seeded numbers (guesses until played): the sword and shield's `shield_wall` cuts avoidable hits by 25% for 2.5 s after use (its block lasts 1.5 s); the healing mace's `ward` has a Resource Cost of -15, so every use gives 15 mana back; the staff's `arcane_step` heals 6 (times power) each time it is used. Note that the staff and the mace do not have a block as their default defence yet: the staff dodges and the mace shields.
+
 ## Worked example: give a class a resource
 
 On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus`; the HUD colours these three), a max, a start value, **Regen** per second (negative decays), and the three gains. Abilities with a **Resource Cost** need the class to have a resource, and the validator says so if not. A negative cost grants resource instead of spending it.

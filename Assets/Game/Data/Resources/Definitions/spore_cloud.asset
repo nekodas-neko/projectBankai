@@ -47,6 +47,9 @@ MonoBehaviour:
   everyone: 1
   shelterTag: water
   shelterReduction: 0.85
+  selfHeal: 0
+  fortify: 0
+  fortifySeconds: 0
   variants: []
   castEffect: {fileID: 7038512398453231626, guid: 9560150c1ed72e1448753f1025893cb6, type: 3}
   hitEffect: {fileID: 2147423778621091440, guid: ea60e1026265d554ab3d4f4a355facc7, type: 3}
