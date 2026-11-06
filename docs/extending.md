@@ -46,6 +46,18 @@ Goal: a `roll` dodge for a new class, with a counter when it is timed well.
 
 A **Block** ability needs a duration and a **Reduction** between 0 and 1. A **Shield** needs a duration and an **Absorb** amount. Both feed the class resource through its **Gain Blocked** value, which is how a tank builds rage and a healer converts absorbed damage into mana.
 
+### The signature of a default kit
+
+Every weapon's defensive skill can carry a small extra, as data on the ability, so the three starting kits feel different before any skill tree point is spent. All of these are optional and only for defensive kinds (a dodge, block or shield; the validator rejects them on an attack):
+
+- **Fortify** (0 to 1) and **Fortify Seconds** (up to 10): for that long after the skill is used, every avoidable hit the user takes is cut by that share, on top of the block or shield. It outlasts the block itself, so it is the "short defense bonus" of the sword and shield. Red attacks ignore it, like they ignore a block.
+- **Self Heal**: health back when the skill is used (times the user's power, never past the maximum). Reported as a normal heal event.
+- **Resource back on use** needs no field: give the skill a negative **Resource Cost**, as the attacks already do (mana for the mace).
+
+The effect is a status (`StatusType.Fortified`) with no wire flag, so snapshots and the protocol do not change. Clients do not draw it yet.
+
+Seeded numbers (guesses until played): the sword and shield's `shield_wall` cuts avoidable hits by 25% for 2.5 s after use (its block lasts 1.5 s); the healing mace's `ward` has a Resource Cost of -15, so every use gives 15 mana back; the staff's `arcane_step` heals 6 (times power) each time it is used. Note that the staff and the mace do not have a block as their default defence yet: the staff dodges and the mace shields.
+
 ## Worked example: give a class a resource
 
 On the class asset tick **Has Resource**, then set an id (`mana`, `rage`, `focus`; the HUD colours these three), a max, a start value, **Regen** per second (negative decays), and the three gains. Abilities with a **Resource Cost** need the class to have a resource, and the validator says so if not. A negative cost grants resource instead of spending it.

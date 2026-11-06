@@ -47,6 +47,9 @@ MonoBehaviour:
   everyone: 0
   shelterTag: 
   shelterReduction: 0
+  selfHeal: 0
+  fortify: 0.25
+  fortifySeconds: 2.5
   variants:
   - id: quick
     damageScale: 1

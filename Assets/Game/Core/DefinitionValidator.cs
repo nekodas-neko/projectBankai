@@ -104,6 +104,21 @@ namespace Game.Core
                     errors.Add($"Ability '{ability.Id}': summons between 0 and 8 of an existing class");
                 }
 
+                if (ability.SelfHeal < 0f || ability.Fortify < 0f || ability.Fortify > 1f || ability.FortifySeconds < 0f || ability.FortifySeconds > 10f)
+                {
+                    errors.Add($"Ability '{ability.Id}': self heal must not be negative, fortify must be between 0 and 1 and last 0 to 10 seconds");
+                }
+
+                if (ability.Fortify > 0f && ability.FortifySeconds <= 0f)
+                {
+                    errors.Add($"Ability '{ability.Id}': a fortify needs a duration");
+                }
+
+                if (ability.Kind == AbilityKind.Attack && (ability.SelfHeal > 0f || ability.Fortify > 0f))
+                {
+                    errors.Add($"Ability '{ability.Id}': self heal and fortify belong to defensive skills (an attack heals with its heal)");
+                }
+
                 if (ability.ShelterReduction < 0f || ability.ShelterReduction > 1f)
                 {
                     errors.Add($"Ability '{ability.Id}': shelter reduction must be between 0 and 1");

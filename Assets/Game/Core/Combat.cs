@@ -104,6 +104,25 @@ namespace Game.Core
                     Strike(user, ability, slot, direction, variantId, grounded && ability.AtTarget ? point : user.Position);
                     break;
             }
+
+            if (ability.Kind != AbilityKind.Attack)
+            {
+                ApplyDefenseExtras(user, ability, slot, variantId);
+            }
+        }
+
+        // The signature of a default kit: a defensive skill can also heal its user and leave a short damage cut behind.
+        void ApplyDefenseExtras(Entity user, AbilityDef ability, int slot, int variantId)
+        {
+            if (ability.Fortify > 0f && ability.FortifySeconds > 0f)
+            {
+                user.AddStatus(StatusType.Fortified, ability.FortifySeconds, Clamp01(ability.Fortify));
+            }
+
+            if (ability.SelfHeal > 0f && user.IsAlive)
+            {
+                ApplyHeal(user, user, ability.SelfHeal * user.Stats.Power, slot, StableId.From(ability.Id), variantId);
+            }
         }
 
         // Attacks whose windup ran out are taken off the list first and then resolved, since a landing hit can cancel other
@@ -431,6 +450,11 @@ namespace Game.Core
                     {
                         target.AddResource(blocked * spec.GainBlocked);
                     }
+                }
+
+                if (avoidable && health > 0f && target.HasStatus(StatusType.Fortified))
+                {
+                    health -= health * Clamp01(target.StatusMagnitude(StatusType.Fortified));
                 }
 
                 var absorbed = avoidable ? target.AbsorbWithShield(health) : 0f;
