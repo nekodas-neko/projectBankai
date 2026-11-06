@@ -44,17 +44,42 @@ namespace Game.Core.Tests
             };
         }
 
+        // The same cave with a third chamber behind a second gate.
+        static DungeonDef LongCave()
+        {
+            var cave = Cave();
+            cave.Id = "long_cave";
+            var zones = new List<ZoneDef>(cave.Zones) { new ZoneDef { Name = "C", MinX = -10f, MinY = 42f, MaxX = 10f, MaxY = 62f } };
+            var rooms = new List<RoomDef>(cave.Rooms)
+            {
+                new RoomDef
+                {
+                    Name = "Three",
+                    OffsetY = 52f,
+                    Spawns = new[]
+                    {
+                        new SpawnDef { Class = "dummy", X = 0f, Y = 5f, Boss = true },
+                        new SpawnDef { Class = "dummy", X = 5f, Y = 4f, Pack = 1 },
+                    },
+                },
+            };
+            cave.Zones = zones.ToArray();
+            cave.Rooms = rooms.ToArray();
+            cave.Gates = new[] { cave.Gates[0], new GateDef { Name = "second door", MinX = -2f, MinY = 35f, MaxX = 2f, MaxY = 43f, OpenAfter = 1 } };
+            return cave;
+        }
+
         sealed class Setup
         {
             public readonly LocalSession Session;
             public readonly GameClient Client;
             public readonly Entity Player;
 
-            public Setup()
+            public Setup(bool longCave = false)
             {
                 Session = new LocalSession(new ServerConfig(), TestData.Classes(), TestData.Abilities(), 1);
                 Client = Session.AddPlayer(new PlayerId(1), "fighter");
-                Session.StartDungeon(Cave());
+                Session.StartDungeon(longCave ? LongCave() : Cave());
                 Player = Session.Server.FindPlayerEntity(new PlayerId(1));
             }
 
@@ -236,11 +261,9 @@ namespace Game.Core.Tests
         }
 
         [Test]
-        public void EveryPlayerDownIsADefeatAndARestartPutsTheWholeCaveBack()
+        public void ADefeatBeforeAnyBossHasFallenRestartsTheWholeCave()
         {
             var setup = new Setup();
-            setup.BossOf(0).Health = 0f;
-            setup.Advance(0.2f);
             setup.Player.Health = 0f;
             setup.Advance(0.2f);
             Assert.AreEqual(DungeonPhase.Defeat, setup.Server.DungeonPhase);
@@ -253,6 +276,55 @@ namespace Game.Core.Tests
             Assert.AreEqual(0, setup.Server.Room);
             Assert.AreEqual(5, setup.Enemies().Count);
             Assert.IsTrue(setup.Player.IsAlive);
+        }
+
+        [Test]
+        public void ADefeatAfterABossResumesFromThatBossesRoomWithItsGateStillOpen()
+        {
+            var setup = new Setup(longCave: true);
+            setup.BossOf(0).Health = 0f;
+            setup.Advance(2f);
+            setup.BossOf(1).Health = 0f;
+            setup.Advance(2f);
+            Assert.AreEqual(2, setup.Server.Map.Progress);
+            var hurt = setup.BossOf(2);
+            hurt.Health = hurt.Stats.MaxHealth * 0.4f;
+            setup.Player.Health = 0f;
+            setup.Advance(0.2f);
+            Assert.AreEqual(DungeonPhase.Defeat, setup.Server.DungeonPhase);
+
+            setup.Client.Restart();
+            setup.Advance(0.2f);
+
+            Assert.AreEqual(DungeonPhase.Fighting, setup.Server.DungeonPhase);
+            Assert.AreEqual(2, setup.Server.Map.Progress, "the first two gates stay open");
+            Assert.IsTrue(setup.Server.Map.IsOpen(1));
+            Assert.AreEqual(2, setup.Server.Room);
+            Assert.AreEqual(2, setup.Enemies().Count, "only the last section is put back");
+            Assert.AreEqual(2, setup.Enemies(2).Count);
+            Assert.AreEqual(setup.BossOf(2).Stats.MaxHealth, setup.BossOf(2).Health, 0.01f, "and it is fresh");
+            Assert.IsTrue(setup.Player.IsAlive);
+            Assert.AreEqual(setup.Player.Stats.MaxHealth, setup.Player.Health, 0.01f);
+            Assert.AreEqual(26f, setup.Player.Position.Y, 1f, "in the middle of the chamber where the second boss stood");
+            Assert.IsTrue(setup.Server.Map.Contains(setup.Player.Position));
+        }
+
+        [Test]
+        public void AVictoryStillRestartsTheWholeRun()
+        {
+            var setup = new Setup();
+            setup.BossOf(0).Health = 0f;
+            setup.Advance(2f);
+            setup.BossOf(1).Health = 0f;
+            setup.Advance(0.2f);
+            Assert.AreEqual(DungeonPhase.Victory, setup.Server.DungeonPhase);
+
+            setup.Client.Restart();
+            setup.Advance(0.2f);
+
+            Assert.AreEqual(DungeonPhase.Fighting, setup.Server.DungeonPhase);
+            Assert.AreEqual(0, setup.Server.Map.Progress);
+            Assert.AreEqual(5, setup.Enemies().Count);
         }
 
         [Test]
